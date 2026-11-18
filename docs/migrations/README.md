@@ -33,6 +33,7 @@
 - [11.0](ui-11.0.md)：删除 `WClipRRect`（直接用 Flutter `ClipRRect`）
 - [12.0](ui-12.0.md)：删除 `WStepFlow` / `WNavBarStyle` / `WGlobalKeyExtension`、`WNavController` 动画 API、num / string / BoxDecoration 冗余糖
 - [13.0](ui-13.0.md)：`WButton` 改 named constructors（删除 `WButtonVariant` / `WButtonTheme.danger`）；删除 `WScaffold.basic`
+- [14.0](ui-14.0.md)：`WImage.source` 改为无名构造器 `WImage`
 
 ## form
 

@@ -305,6 +305,48 @@ void main() {
       expect(style.backgroundColor?.resolve({}), const Color(0xFFFF0000));
     });
 
+    testWidgets('WButtonTheme 覆盖 outlined 样式', (tester) async {
+      final theme = ThemeData(
+        useMaterial3: true,
+        extensions: const [
+          WButtonTheme(
+            outlined: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(Color(0xFF00FF00)),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _wrap(
+          WButton.outlined(label: '描边', onTap: () {}),
+          theme: theme,
+        ),
+      );
+      final style = tester.widget<OutlinedButton>(find.byType(OutlinedButton)).style!;
+      expect(style.backgroundColor?.resolve({}), const Color(0xFF00FF00));
+    });
+
+    testWidgets('WButtonTheme 覆盖 text 样式', (tester) async {
+      final theme = ThemeData(
+        useMaterial3: true,
+        extensions: const [
+          WButtonTheme(
+            text: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(Color(0xFF0000FF)),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _wrap(
+          WButton.text(label: '文字', onTap: () {}),
+          theme: theme,
+        ),
+      );
+      final style = tester.widget<TextButton>(find.byType(TextButton)).style!;
+      expect(style.backgroundColor?.resolve({}), const Color(0xFF0000FF));
+    });
+
     testWidgets('单按钮 style 覆盖主题', (tester) async {
       final theme = ThemeData(
         useMaterial3: true,

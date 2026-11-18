@@ -98,7 +98,7 @@ void main() {
     expect(full, contains('C-1. 实现表单页'));
     expect(full, contains('D-1. 实现接口'));
     expect(full, contains('WAsyncPagedController'));
-    expect(full, contains('WImage.source'));
+    expect(full, contains('WImage'));
 
     final trimmed = InitTemplates.aiPrompts(
       features: InitFeatures.full.copyWith(
@@ -111,7 +111,7 @@ void main() {
     expect(trimmed, isNot(contains('## C.')));
     expect(trimmed, isNot(contains('## D.')));
     expect(trimmed, isNot(contains('WAsyncPagedController')));
-    expect(trimmed, isNot(contains('WImage.source')));
+    expect(trimmed, isNot(contains('WImage')));
     expect(trimmed, isNot(contains('@if:')));
     expect(trimmed, isNot(contains('@endif')));
     expect(trimmed, contains('K-1'));

@@ -31,42 +31,42 @@ void main() {
 
     test('非法配置触发 assert', () {
       expect(
-        () => WImage.source(
+        () => WImage(
           source: WImageSource.asset('x'),
           options: const WImageLoadOptions(retryCount: -1),
         ),
         throwsAssertionError,
       );
       expect(
-        () => WImage.source(
+        () => WImage(
           source: WImageSource.asset('x'),
           options: const WImageLoadOptions(retryDelay: -1),
         ),
         throwsAssertionError,
       );
       expect(
-        () => WImage.source(
+        () => WImage(
           source: WImageSource.asset('x'),
           options: const WImageLoadOptions(memCacheWidth: 0),
         ),
         throwsAssertionError,
       );
       expect(
-        () => WImage.source(
+        () => WImage(
           source: WImageSource.asset('x'),
           options: const WImageLoadOptions(memCacheHeight: 0),
         ),
         throwsAssertionError,
       );
       expect(
-        () => WImage.source(
+        () => WImage(
           source: WImageSource.asset('x'),
           style: const WImageStyle(aspectRatio: 0),
         ),
         throwsAssertionError,
       );
       expect(
-        () => WImage.source(source: WImageSource.asset('x'), style: const WImageStyle(width: -1)),
+        () => WImage(source: WImageSource.asset('x'), style: const WImageStyle(width: -1)),
         throwsAssertionError,
       );
     });
@@ -142,15 +142,15 @@ void main() {
   group('WImage', () {
     test('should build with config', () {
       const style = WImageStyle(width: 100, height: 100);
-      final image = WImage.source(source: WImageSource.asset('test_image.png'), style: style);
+      final image = WImage(source: WImageSource.asset('test_image.png'), style: style);
 
       expect(image.style.width, 100);
       expect(image.style.height, 100);
       expect(image.source.type, WImageType.asset);
     });
 
-    test('WImage.source + WImageStyle', () {
-      final image = WImage.source(
+    test('WImage + WImageStyle', () {
+      final image = WImage(
         source: WImageSource.base64('AAAA'),
         style: const WImageStyle(width: 10, height: 10),
       );
@@ -167,7 +167,7 @@ void main() {
           ),
           child: MaterialApp(
             home: Scaffold(
-              body: WImage.source(
+              body: WImage(
                 source: WImageSource.base64('data:image/png;base64,@@bad@@'),
                 slots: WImageSlots(placeholderBuilder: (context, data) => const Text('style')),
               ),
@@ -187,7 +187,7 @@ void main() {
           ),
           child: MaterialApp(
             home: Scaffold(
-              body: WImage.source(source: WImageSource.base64('data:image/png;base64,@@bad@@')),
+              body: WImage(source: WImageSource.base64('data:image/png;base64,@@bad@@')),
             ),
           ),
         ),
@@ -203,7 +203,7 @@ void main() {
           ),
           child: MaterialApp(
             home: Scaffold(
-              body: WImage.source(source: WImageSource.base64('data:image/png;base64,@@bad@@')),
+              body: WImage(source: WImageSource.base64('data:image/png;base64,@@bad@@')),
             ),
           ),
         ),
@@ -214,7 +214,7 @@ void main() {
 
     test('memory / provider 类型', () {
       final bytes = Uint8List.fromList([1, 2, 3]);
-      final memory = WImage.source(source: WImageSource.provider(MemoryImage(bytes)));
+      final memory = WImage(source: WImageSource.provider(MemoryImage(bytes)));
       expect(memory.source.type, WImageType.provider);
       expect(memory.source, isA<WProviderImageSource>());
     });
@@ -225,7 +225,7 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(MemoryImage(bytes)),
             style: const WImageStyle(width: 10, height: 10),
           ),
@@ -238,7 +238,7 @@ void main() {
     testWidgets('errorWidgetBuilder 组合 WImageErrorView 并可重试', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 160, height: 120),
             slots: WImageSlots(
@@ -263,7 +263,7 @@ void main() {
         MaterialApp(
           // Center 让 40x40 成为松约束；否则 home 的紧约束会盖掉 SizedBox。
           home: Center(
-            child: WImage.source(
+            child: WImage(
               source: WImageSource.base64('data:image/png;base64,@@bad@@'),
               style: const WImageStyle(width: 40, height: 40),
               slots: WImageSlots(
@@ -284,7 +284,7 @@ void main() {
     testWidgets('同一 provider 重建时复用', (tester) async {
       final provider = MemoryImage(Uint8List.fromList([9, 9, 9]));
       Widget build() => MaterialApp(
-        home: WImage.source(
+        home: WImage(
           source: WImageSource.provider(provider),
           style: const WImageStyle(width: 10, height: 10),
         ),
@@ -300,7 +300,7 @@ void main() {
     testWidgets('160x90 的可重试错误优先显示重试按钮', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 160, height: 90),
             slots: WImageSlots(
@@ -318,7 +318,7 @@ void main() {
     testWidgets('100x100 可重试错误显示文案和重试按钮', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 100, height: 100),
             slots: WImageSlots(
@@ -338,7 +338,7 @@ void main() {
       WImageError? captured;
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 64, height: 64),
             onLoadStatusChanged: (_) {},
@@ -349,7 +349,7 @@ void main() {
       // 通过 errorWidgetBuilder 捕获更直接
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([4, 5, 6]))),
             style: const WImageStyle(width: 64, height: 64),
             slots: WImageSlots(
@@ -366,13 +366,13 @@ void main() {
     });
 
     test('命名构造带显式类型', () {
-      expect(WImage.source(source: WImageSource.asset('a.png')).source.type, WImageType.asset);
+      expect(WImage(source: WImageSource.asset('a.png')).source.type, WImageType.asset);
       expect(
-        WImage.source(source: WImageSource.network('https://x/y.png')).source.type,
+        WImage(source: WImageSource.network('https://x/y.png')).source.type,
         WImageType.network,
       );
-      expect(WImage.source(source: WImageSource.file('/tmp/a.png')).source.type, WImageType.file);
-      expect(WImage.source(source: WImageSource.base64('AAAA')).source.type, WImageType.base64);
+      expect(WImage(source: WImageSource.file('/tmp/a.png')).source.type, WImageType.file);
+      expect(WImage(source: WImageSource.base64('AAAA')).source.type, WImageType.base64);
     });
   });
 
@@ -380,7 +380,7 @@ void main() {
     testWidgets('fitContain() 应使用 BoxFit.contain', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.asset('no_such_asset_for_test.png'),
             style: const WImageStyle(fit: BoxFit.contain),
           ),
@@ -398,7 +398,7 @@ void main() {
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
-            home: WImage.source(
+            home: WImage(
               source: WImageSource.base64('data:image/png;base64,@@invalid@@'),
               slots: WImageSlots(
                 errorWidgetBuilder: (context, url, error, retry) {
@@ -426,7 +426,7 @@ void main() {
       final statuses = <WImageLoadStatus>[];
 
       Widget build() => MaterialApp(
-        home: WImage.source(
+        home: WImage(
           source: WImageSource.base64('data:image/png;base64,@@invalid@@'),
           slots: WImageSlots(
             errorWidgetBuilder: (context, data, error, retry) => const Text('base64-error'),
@@ -480,7 +480,7 @@ void main() {
             home: Scaffold(
               body: Column(
                 children: [
-                  WImage.source(source: WImageSource.network('https://example.com/a.png')),
+                  WImage(source: WImageSource.network('https://example.com/a.png')),
                 ],
               ),
             ),
@@ -510,7 +510,7 @@ void main() {
               body: SizedBox(
                 width: 100,
                 height: 100,
-                child: WImage.source(source: WImageSource.network('https://example.com/a.png')),
+                child: WImage(source: WImageSource.network('https://example.com/a.png')),
               ),
             ),
           ),
@@ -537,7 +537,7 @@ void main() {
             home: Scaffold(
               body: Column(
                 children: [
-                  WImage.source(
+                  WImage(
                     source: WImageSource.network('https://example.com/a.png'),
                     style: const WImageStyle(aspectRatio: 16 / 9),
                   ),
@@ -557,10 +557,10 @@ void main() {
     });
   });
   group('WImage 选项命名', () {
-    testWidgets('WImage.source 接受 options:', (tester) async {
+    testWidgets('WImage 接受 options:', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.network('https://example.com/a.png'),
             options: const WImageLoadOptions(retryCount: 1, memCacheWidth: 120),
           ),

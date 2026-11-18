@@ -1,3 +1,15 @@
+## 14.0.0
+
+### Breaking
+- `WImage.source`：删除；改为无名构造器 `WImage({required WImageSource source, ...})`。
+  迁移只是 `WImage.source(` → `WImage(`，`source:` / `style:` / `options:` / `slots:`
+  参数与默认值不变。见 `docs/migrations/ui-14.0.md`。
+
+### Changed
+- README 补充 `WImageSource.file` 在 Web 上抛 `UnsupportedError`。
+- 测试稳定性 / 覆盖：图片宽度配方等待改为条件等待；补 `WButtonTheme` 的
+  `outlined` / `text` 覆盖测试。无公开行为变化。
+
 ## 13.0.0
 
 ### Breaking

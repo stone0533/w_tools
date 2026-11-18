@@ -1,3 +1,12 @@
+## 20.0.0
+
+### Breaking
+- 聚合依赖 `w_tools_ui: ^14.0.0`：根包 re-export 的 `WImage.source` 改为
+  `WImage(source: ...)`。迁移见 `packages/ui/CHANGELOG.md` 14.0.0。
+
+### Changed
+- `w_tools_ui` 约束抬到 `^14.0.0`。
+
 ## 19.1.0
 
 ### Changed

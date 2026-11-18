@@ -43,7 +43,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: WImage.source(
+          body: WImage(
             source: WImageSource.base64('data:image/png;base64,$base64Text'),
             style: const WImageStyle(width: 64, height: 64),
           ),

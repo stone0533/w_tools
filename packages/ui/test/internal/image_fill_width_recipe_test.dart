@@ -20,13 +20,14 @@ void main() {
   Widget recipe({
     required double maxHeight,
     Alignment alignment = Alignment.center,
+    ImageProvider? image,
   }) {
     return SizedBox(
       width: 300,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight),
-        child: WImage.source(
-          source: WImageSource.provider(MemoryImage(bytes())),
+        child: WImage(
+          source: WImageSource.provider(image ?? MemoryImage(bytes())),
           style: WImageStyle(
             width: double.infinity,
             fit: BoxFit.fitWidth,
@@ -46,7 +47,12 @@ void main() {
         ),
       ),
     );
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 30)));
+    // 等待解码完成：固定延迟在并行负载下会偶发失败；最多等 1s。
+    for (var i = 0; i < 100; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+      await tester.pump();
+      if (tester.getSize(find.byType(Image)).height > 0) break;
+    }
     await tester.pumpAndSettle();
   }
 
@@ -68,12 +74,17 @@ void main() {
   }
 
   testWidgets('未超过上限时与普通 fitWidth 一致', (tester) async {
-    await pump(tester, SingleChildScrollView(child: recipe(maxHeight: 5000)));
+    final image = MemoryImage(bytes());
+    await pump(
+      tester,
+      SingleChildScrollView(child: recipe(maxHeight: 5000, image: image)),
+    );
     // 1:10 窄图在 300 宽下 fitWidth 高度是 3000，未被 5000 截断
     expect(tester.getSize(find.byType(Image)), const Size(300, 3000));
   });
 
   testWidgets('超过上限时盒子固定在 maxHeight，alignment 决定保留哪一段', (tester) async {
+    final image = MemoryImage(bytes());
     final cases = <(Alignment, Color)>[
       (Alignment.topCenter, const Color(0xFFFF0000)),
       (Alignment.center, const Color(0xFF00FF00)),
@@ -84,7 +95,7 @@ void main() {
         tester,
         RepaintBoundary(
           key: _shotKey,
-          child: recipe(maxHeight: 500, alignment: alignment),
+          child: recipe(maxHeight: 500, alignment: alignment, image: image),
         ),
       );
       expect(tester.getSize(find.byType(Image)), const Size(300, 500));

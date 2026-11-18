@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^13.0.0
+  w_tools_ui: ^14.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -33,6 +33,8 @@ dependencies:
   Web 走 `cached_network_image_web`。
 - `asset` / `file` / `base64` / `provider` 来源不经过网络缓存，但依赖仍在 pub 层，
   不能靠“只用 asset 图”裁掉插件注册。
+- `WImageSource.file` 在 Web 上不受支持：`WImageSource.resolve` 会抛
+  `UnsupportedError`，跨平台代码优先用网络 / 资源 / Base64 来源。
 - 已有 `ImageProvider` 用 `WImageSource.provider` 接管加载。是否拆分缓存依赖见
   [ADR-0008](https://github.com/stone0533/w_tools/blob/main/docs/adr/0008-ui-image-cache-dependency.md)。
 
@@ -64,7 +66,7 @@ class DemoPage extends StatelessWidget {
 ```dart
 import 'package:w_tools_ui/w_tools_ui.dart';
 
-WImage.source(
+WImage(
   source: WImageSource.network('https://example.com/cover.jpg'),
   style: const WImageStyle(
     aspectRatio: 16 / 9,
@@ -75,7 +77,7 @@ WImage.source(
 );
 ```
 
-所有来源统一走 `WImage.source` + `WImageSource`。
+所有来源统一走 `WImage` + `WImageSource`。
 
 空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：走 `placeholderBuilder`，
 不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。
@@ -85,7 +87,7 @@ WImage.source(
 返回 `WImageErrorView`：
 
 ```dart
-WImage.source(
+WImage(
   source: WImageSource.network(url),
   slots: WImageSlots(
     errorWidgetBuilder: (context, data, error, retry) =>
@@ -128,7 +130,7 @@ WImage.source(
 ### 常用配方
 
 ```dart
-WImage.source(
+WImage(
   source: WImageSource.network(url),
   style: const WImageStyle(
     width: 40,
@@ -136,20 +138,20 @@ WImage.source(
     borderRadius: BorderRadius.all(Radius.circular(20)),
   ),
 )
-WImage.source(
+WImage(
   source: WImageSource.network(url),
   style: const WImageStyle(width: 80, height: 80),
   options: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240),
 )
-WImage.source(
+WImage(
   source: WImageSource.network(url),
   slots: WImageSlots(
     errorWidgetBuilder: (context, data, error, retry) =>
         WImageErrorView(error: error, onRetry: retry),
   ),
 )
-WImage.source(source: WImageSource.asset('assets/images/logo.png'))
-WImage.source(source: WImageSource.provider(MemoryImage(bytes)))
+WImage(source: WImageSource.asset('assets/images/logo.png'))
+WImage(source: WImageSource.provider(MemoryImage(bytes)))
 ```
 
 App 级默认占位只装一次：
@@ -174,7 +176,7 @@ await precacheImage(provider, context);
 手动重试 / 状态监听：
 
 ```dart
-WImage.source(
+WImage(
   source: WImageSource.network(url),
   onLoadStatusChanged: (status) => debugPrint('$status'),
   onProgress: (progress) => debugPrint('${progress.fraction}'),
@@ -208,7 +210,7 @@ WImageStyle.cover().square(40) // 设置 width/height 时自动清空 aspectRati
 ```dart
 ConstrainedBox(
   constraints: const BoxConstraints(maxHeight: 240),
-  child: WImage.source(
+  child: WImage(
     source: WImageSource.network(url),
     style: const WImageStyle(
       width: double.infinity, // 必须：宽度要是紧约束，否则夹高时会被缩窄

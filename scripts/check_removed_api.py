@@ -95,6 +95,7 @@ names = [
     r'\bWButton\.variant\b',
     r'\bWButtonTheme\.danger\b',
     r'\bWButtonTheme\.styleFor\b',
+    r'\bWImage\.source\b',
     r'\bunderlayWidget\b',
     r'\bWImageStyle\.(?:avatar|thumbnail)\b',
     # ui 12.0 第三批：按钮收口到 Material ButtonStyle。

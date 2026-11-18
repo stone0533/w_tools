@@ -17,7 +17,7 @@ void main() {
     testWidgets('渲染 Image 并显示占位符', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.source(
+          WImage(
             source: WImageSource.network(_url),
             slots: WImageSlots(placeholderBuilder: (context, data) => const Text('LOAD')),
           ),
@@ -31,7 +31,7 @@ void main() {
     testWidgets('httpHeaders / cacheKey / memCache 透传', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.source(
+          WImage(
             source: WImageSource.network(
               _url,
               headers: const {'Authorization': 'Bearer token'},
@@ -53,7 +53,7 @@ void main() {
     testWidgets('loadingBuilder 分支正常构建', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.source(
+          WImage(
             source: WImageSource.network(_url),
             slots: WImageSlots(
               placeholderBuilder: (_, __) => const Text('PROG'),
@@ -68,10 +68,10 @@ void main() {
     });
 
     testWidgets('同一 source 重建复用 provider', (tester) async {
-      await tester.pumpWidget(_wrap(WImage.source(source: WImageSource.network(_url))));
+      await tester.pumpWidget(_wrap(WImage(source: WImageSource.network(_url))));
       final first = tester.widget<Image>(find.byType(Image)).image;
 
-      await tester.pumpWidget(_wrap(WImage.source(source: WImageSource.network(_url))));
+      await tester.pumpWidget(_wrap(WImage(source: WImageSource.network(_url))));
       final second = tester.widget<Image>(find.byType(Image)).image;
 
       expect(identical(first, second), isTrue);
@@ -82,7 +82,7 @@ void main() {
     testWidgets('errorWidgetBuilder 的 onRetry 会换 key 重新加载', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.source(
+          WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             slots: WImageSlots(
               errorWidgetBuilder: (context, data, error, retry) => TextButton(
@@ -106,11 +106,11 @@ void main() {
 
   group('WImage 构造快捷入口', () {
     test('base64 生成显式 base64 类型', () {
-      expect(WImage.source(source: WImageSource.base64('AAAA')).source.type, WImageType.base64);
+      expect(WImage(source: WImageSource.base64('AAAA')).source.type, WImageType.base64);
     });
 
     test('file 生成显式 file 类型', () {
-      expect(WImage.source(source: WImageSource.file('/tmp/a.png')).source.type, WImageType.file);
+      expect(WImage(source: WImageSource.file('/tmp/a.png')).source.type, WImageType.file);
     });
   });
 

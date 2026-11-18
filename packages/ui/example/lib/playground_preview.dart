@@ -9,7 +9,7 @@ Widget buildPlaygroundPreview({
   required ValueChanged<WImageProgress> onProgress,
 }) {
   return switch (config.isNetwork) {
-    false => WImage.source(
+    false => WImage(
       source: WImageSource.asset('assets/demo.png'),
       style: _styleFor(config),
       options: _optionsFor(config),
@@ -17,7 +17,7 @@ Widget buildPlaygroundPreview({
       onLoadStatusChanged: (status) => onStatus(status.name),
       onProgress: (progress) => onProgress(progress),
     ),
-    true => WImage.source(
+    true => WImage(
       source: WImageSource.network(
         'https://picsum.photos/seed/wtools-playground/640/360',
         headers: const {'X-Demo': 'playground'},

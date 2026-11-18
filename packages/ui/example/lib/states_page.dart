@@ -17,7 +17,7 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('加载成功'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.base64(_pixelBase64),
             style: const WImageStyle(width: 160, height: 90, fit: BoxFit.contain),
           ),
@@ -26,7 +26,7 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('加载失败（自定义错误占位）'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.base64('@@invalid@@'),
             style: const WImageStyle(width: 160, height: 90),
             slots: WImageSlots(
@@ -41,7 +41,7 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('空数据'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.base64(''),
             style: const WImageStyle(width: 160, height: 90),
             slots: WImageSlots(
@@ -56,7 +56,7 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('加载中（placeholder）'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.network('https://example.invalid/loading.png'),
             style: const WImageStyle(width: 160, height: 90),
             slots: WImageSlots(
@@ -75,7 +75,7 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('主题默认错误占位'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.base64('@@invalid@@'),
             style: const WImageStyle(width: 160, height: 90),
           ),
@@ -102,7 +102,7 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('Web 上的 file://（其它平台为文件错误）'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.file('file:///definitely/not/here.png'),
             style: const WImageStyle(width: 160, height: 90),
             slots: WImageSlots(

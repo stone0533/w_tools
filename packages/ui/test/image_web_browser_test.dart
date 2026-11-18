@@ -12,7 +12,7 @@ void main() {
     WImageError? captured;
     await tester.pumpWidget(
       MaterialApp(
-        home: WImage.source(
+        home: WImage(
           source: WImageSource.file('/tmp/a.png'),
           slots: WImageSlots(
             errorWidgetBuilder: (context, url, error, retry) {

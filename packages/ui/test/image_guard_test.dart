@@ -42,7 +42,7 @@ void main() {
     testWidgets("data = '' 不构建任何 Image，也不进入错误态", (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.asset(''))),
+          home: Scaffold(body: WImage(source: WImageSource.asset(''))),
         ),
       );
 
@@ -55,7 +55,7 @@ void main() {
     testWidgets('纯空白同样视为没有图', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.asset('   '))),
+          home: Scaffold(body: WImage(source: WImageSource.asset('   '))),
         ),
       );
 
@@ -68,7 +68,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.asset('   '),
               slots: WImageSlots(
                 placeholderBuilder: (context, data) {
@@ -90,7 +90,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.asset(''),
               onLoadStatusChanged: statuses.add,
             ),
@@ -108,7 +108,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(source: WImageSource.network('//cdn.example.com/a.png')),
+            body: WImage(source: WImageSource.network('//cdn.example.com/a.png')),
           ),
         ),
       );
@@ -121,7 +121,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.base64('data:application/octet-stream;base64,$_pngBase64'),
             ),
           ),
@@ -139,7 +139,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(source: WImageSource.asset('  assets/images/logo.png  ')),
+            body: WImage(source: WImageSource.asset('  assets/images/logo.png  ')),
           ),
         ),
       );
@@ -155,7 +155,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(source: WImageSource.asset('https://cdn.example.com/a.png')),
+            body: WImage(source: WImageSource.asset('https://cdn.example.com/a.png')),
           ),
         ),
       );
@@ -168,7 +168,7 @@ void main() {
     testWidgets('WImage.base64 接受不带 data: 前缀的裸串', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.base64(_pngBase64))),
+          home: Scaffold(body: WImage(source: WImageSource.base64(_pngBase64))),
         ),
       );
       await _settle(tester);
@@ -180,7 +180,7 @@ void main() {
     testWidgets('WImage.file 读取真实文件', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.file(pngFile.path))),
+          home: Scaffold(body: WImage(source: WImageSource.file(pngFile.path))),
         ),
       );
       await _settle(tester);
@@ -197,7 +197,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.network('https://cdn.example.com/a.png'),
               options: config,
             ),
@@ -215,7 +215,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.asset('assets/images/logo.png'),
               options: const WImageLoadOptions(memCacheWidth: 120),
             ),
@@ -235,7 +235,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.base64('data:image/png;base64,$_pngBase64'),
               style: WImageStyle(
                 width: 10,
@@ -265,7 +265,7 @@ void main() {
           home: Scaffold(
             body: Padding(
               padding: const EdgeInsets.all(5),
-              child: WImage.source(
+              child: WImage(
                 source: WImageSource.base64('data:image/png;base64,$_pngBase64'),
                 style: const WImageStyle(width: 10, height: 10),
               ),
@@ -290,7 +290,7 @@ void main() {
           home: Scaffold(
             body: SizedBox(
               width: 200,
-              child: WImage.source(
+              child: WImage(
                 source: WImageSource.asset('assets/images/logo.png'),
                 style: const WImageStyle(aspectRatio: 2),
               ),
@@ -306,7 +306,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
+            body: WImage(
               source: WImageSource.asset('assets/images/logo.png'),
               style: const WImageStyle(
                 semanticLabel: '门店照片',

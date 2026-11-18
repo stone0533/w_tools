@@ -9,6 +9,11 @@ const _redPixel =
 
 /// README 片段的编译 / 运行回归；保持与 README 的快速开始和 WImage 配方同步。
 void main() {
+  test('README 说明 file 来源在 Web 不支持', () {
+    final readme = File('README.md').readAsStringSync();
+    expect(readme, contains('UnsupportedError'));
+  });
+
   test('README 不包含 7.0 已删除的 API', () {
     final readme = File('README.md').readAsStringSync();
     final version = RegExp(
@@ -40,7 +45,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: Center(
-            child: WImage.source(
+            child: WImage(
               source: WImageSource.base64(_redPixel),
               style: const WImageStyle(width: 32, height: 32),
               options: const WImageLoadOptions(memCacheWidth: 64),

@@ -77,7 +77,7 @@ void main() {
         Center(
           child: RepaintBoundary(
             key: boundaryKey,
-            child: WImage.source(
+            child: WImage(
               source: WImageSource.base64(_redPixel),
               style: const WImageStyle(
                 width: 64,
@@ -117,7 +117,7 @@ void main() {
           children: [
             SizedBox(
               width: 200,
-              child: WImage.source(
+              child: WImage(
                 source: WImageSource.base64(_redPixel),
                 style: const WImageStyle(aspectRatio: 2),
               ),
@@ -140,7 +140,7 @@ void main() {
       Center(
         child: RepaintBoundary(
           key: boundaryKey,
-          child: WImage.source(
+          child: WImage(
             source: source,
             options: WImageLoadOptions(gaplessPlayback: gapless),
             onLoadStatusChanged: (status) => completed = status == WImageLoadStatus.completed,
@@ -168,7 +168,7 @@ void main() {
       Center(
         child: RepaintBoundary(
           key: boundaryKey,
-          child: WImage.source(
+          child: WImage(
             source: source,
             onLoadStatusChanged: (status) => completed = status == WImageLoadStatus.completed,
             style: const WImageStyle(width: 64, height: 64),
@@ -196,7 +196,7 @@ void main() {
       Widget build() => _wrap(
         Column(
           children: [
-            WImage.source(
+            WImage(
               source: WImageSource.network('https://example.invalid/a.png'),
               style: WImageStyle(),
             ),
@@ -225,11 +225,11 @@ void main() {
         _wrap(
           Column(
             children: [
-              WImage.source(
+              WImage(
                 source: WImageSource.network('https://example.invalid/dedupe.png?token=secret'),
                 style: WImageStyle(),
               ),
-              WImage.source(
+              WImage(
                 source: WImageSource.network('https://example.invalid/dedupe.png?token=secret'),
                 style: WImageStyle(),
               ),
@@ -259,7 +259,7 @@ void main() {
         _wrap(
           Column(
             children: [
-              WImage.source(
+              WImage(
                 source: WImageSource.network('https://example.invalid/a.png'),
                 style: const WImageStyle(width: 100),
               ),
@@ -338,7 +338,7 @@ void main() {
           errorWidgetBuilder: (context, data, error, retry) => const Text('THEME_ERROR'),
         ),
         child: _wrap(
-          WImage.source(
+          WImage(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 160, height: 120),
             slots: WImageSlots(

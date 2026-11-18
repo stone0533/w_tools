@@ -20,7 +20,7 @@ void main() {
       customPlaceholder: true,
       retryCount: 0,
     );
-    expect(snippet, contains('WImage.source('));
+    expect(snippet, contains('WImage('));
     expect(snippet, contains('options: WImageLoadOptions('));
     expect(snippet, contains('slots: WImageSlots('));
     expect(snippet, contains('width: 320'));

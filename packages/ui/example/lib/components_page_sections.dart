@@ -7,7 +7,7 @@ import 'demo_widgets.dart';
 List<Widget> buildComponentsImageSections() {
   return [
     const DemoSectionTitle('WImageSlots.errorWidgetBuilder + 手动重试'),
-    WImage.source(
+    WImage(
       source: WImageSource.network('https://example.invalid/retry.png'),
       style: const WImageStyle(width: 160, height: 90),
       slots: WImageSlots(
