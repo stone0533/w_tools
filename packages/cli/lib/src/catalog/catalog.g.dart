@@ -624,7 +624,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     names: <String>["WFormFieldStyleScope"],
     package: "w_tools_form",
     section: "5. 字段组件（直接用法 / 低层细节）",
-    useFor: "单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint）",
+    useFor: "单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / 占位符）",
     dontUseFor: "整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层",
     tier: "core",
     importPath: "package:w_tools_form/w_tools_form.dart",

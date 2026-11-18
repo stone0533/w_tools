@@ -383,6 +383,27 @@ void main() {
       expect(tester.takeException(), isNotNull);
     });
 
+    testWidgets('name 为空 → 抛 ArgumentError', (tester) async {
+      final formData = WFormController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: themedScope(
+              formData: formData,
+              formBorderStyle: makeCfgConfig(),
+              child: const WFormFieldShell(
+                name: '',
+                readOnly: false,
+                child: Text('input'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isA<ArgumentError>());
+    });
+
     testWidgets('有 WFormScope → 正常渲染 + 自动注册 key', (tester) async {
       final formData = WFormController();
       await tester.pumpWidget(

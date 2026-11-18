@@ -134,8 +134,10 @@ WFormTextField(
 ## 6. `label` 弃用（9.0 删除）
 
 `WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` 的 `label`
-是历史占位符别名；8.0 起标 `@Deprecated`，请改用 `hintText`。
+是历史占位符别名；8.0 起构造参数标 `@Deprecated`，请改用 `hintText`。
 `WFormFieldButton.label` / `WFormButton.label` 不受影响。
+注意：弃用标注在构造参数上；读取已构造对象的 `label` 字段不会触发 analyzer 提示，
+请按本文迁移。
 对应构造器：`WFormTextField.new` / `WFormDropdown.new` / `WFormMultiDropdown.new` /
 `WFormDatePicker.new`。
 
@@ -255,7 +257,8 @@ WFormDatePicker(name: 'birthday', initialValue: '1998-06-18');
 
 ## 13. `hintStyle` 改名
 
-两个 `hintStyle` 含义不同，8.0 起改名，旧名保留到 9.0：
+两个 `hintStyle` 含义不同，8.0 起改名，旧名保留到 9.0。
+弃用标注在构造参数上；读取已构造对象的 `hintStyle` 字段不会触发 analyzer 提示，请按本文迁移。
 
 - 字段占位符：`WFormFieldStyle.hintStyle` → `WFormFieldStyle.placeholderStyle`；
 - 边框辅助文案：`WFormBorderStyle.hintStyle` → `WFormBorderStyle.helperStyle`。

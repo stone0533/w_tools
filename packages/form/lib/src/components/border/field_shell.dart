@@ -6,6 +6,12 @@ import 'border.dart';
 import 'border_access.dart';
 import 'read_only_scope.dart';
 
+void _validateName(String name) {
+  if (name.isEmpty) {
+    throw ArgumentError.value(name, 'name', '字段名称不能为空');
+  }
+}
+
 /// 自定义字段的外框：注册错误通道、注入只读作用域并绘制边框。
 ///
 /// 普通页面用直接字段（`WFormTextField` 等），不需要直接使用本类；
@@ -65,6 +71,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _validateName(widget.name);
     final next = WFormController.requireOf(context);
     if (!identical(_formData, next)) {
       final previous = _formData;
@@ -95,6 +102,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
   @override
   void didUpdateWidget(WFormFieldShell oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _validateName(widget.name);
 
     // name 变化后旧通道不再有意义，避免 registry 累积
     final formData = _formData;
@@ -111,6 +119,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
   @override
   Widget build(BuildContext context) {
+    _validateName(widget.name);
     // 依赖 Form 的 generation：原生 `formKey.validate()` 会写字段的
     // `errorText`，但不会 rebuild 本 Shell。没有这条依赖时，边框会继续用
     // 上一帧的 `fieldErrorText` 快照，导致和内联错误各渲染一条文案。

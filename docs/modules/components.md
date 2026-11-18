@@ -135,7 +135,7 @@
 | `WFormButton` | form | core | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
 | `WFormFieldButton` | form | core | 泛型字段值选择器：enum / int 等非 String 值 | String 值优先用 `WFormButton`；普通业务按钮用 `WButton` |
 | `WFormFieldStyle` | form | core | 页面级单行字段默认高度 / 内边距 / 文字 / 占位符样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
-| `WFormFieldStyleScope` | form | core | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
+| `WFormFieldStyleScope` | form | core | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / 占位符） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
 | `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | core | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldData.of` |
 | `WAsyncTheme` | async | core | App 根部统一默认 loading / empty / error（普通 + sliver 共用） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WRouteObserver` | app_getx | core | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
