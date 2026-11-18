@@ -1,0 +1,38 @@
+# w_tools_app 4.0.1
+WAppPlugin	class
+WAppPlugin.dependsOn	List<String>
+WAppPlugin.name	String
+WAppPlugin.navigatorObservers	List<NavigatorObserver>?
+WAppPlugin.onInit	Future<void> ()
+WAppPluginRunner	class
+WAppPluginRunner.init	Future<void> ()
+WAppPluginRunner.new	([Iterable<WAppPlugin> plugins = const []])
+WAppPluginRunner.plugins	List<WAppPlugin>
+WAppTheme	class
+WAppTheme.dark	ThemeData?
+WAppTheme.light	ThemeData?
+WAppTheme.mode	ThemeMode
+WAppTheme.new	({ this.light, this.dark, this.mode = ThemeMode.system, this.systemUiOverlayStyle, })
+WAppTheme.systemUiOverlayStyle	SystemUiOverlayStyle?
+WLanguage	class
+WLanguage._	({ required Map<String, String> supportedLanguages, required String initialLanguage, required bool explicitSelection, })
+WLanguage.changeLanguage	bool (String languageCode)
+WLanguage.currentLanguage	String
+WLanguage.currentLanguageName	String
+WLanguage.currentLocale	Locale
+WLanguage.explicitSelection	_explicit =
+WLanguage.fromConfig	(WLocaleConfig? config)
+WLanguage.hasExplicitSelection	bool
+WLanguage.languageChanges	Stream<String>
+WLanguage.languageListenable	ValueListenable<String>
+WLanguage.localeFromCode	static Locale (String languageCode)
+WLanguage.supportedLanguages	Map<String, String>
+WLanguageScope	class
+WLanguageScope.new	({ super.key, required WLanguage language, required super.child, })
+WLanguageScope.of	static WLanguage (BuildContext context)
+WLocaleConfig	class
+WLocaleConfig._	(this.supportedLanguages, this.initialLanguage, this.fallbackLanguage,)
+WLocaleConfig.fallbackLanguage	String?
+WLocaleConfig.initialLanguage	String?
+WLocaleConfig.new	({ required Map<String, String> supportedLanguages, String? initialLanguage, String? fallbackLanguage, })
+WLocaleConfig.supportedLanguages	Map<String, String>
