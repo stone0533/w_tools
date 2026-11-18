@@ -45,7 +45,7 @@ class _StepsDemoPageState extends State<StepsDemoPage> {
       color: completed ? const Color(0xFF10B981) : scheme.outlineVariant,
     );
 
-    return WScaffold.basic(
+    return demoScaffold(
       title: 'WStep',
       body: ListView(
         padding: const EdgeInsets.all(16),

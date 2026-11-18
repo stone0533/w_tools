@@ -35,22 +35,29 @@ GestureDetector / InkWell 自己拼按钮
 `WButton` 直接渲染 Material `FilledButton` / `OutlinedButton` / `TextButton`，
 视觉由 Material `ButtonStyle` 驱动（水波纹、键盘 / 焦点、禁用态都与 Material 一致）。
 
+**构造器只表达按钮类型**：
+
 ```dart
-WButton(
+WButton.filled(label: '保存', onTap: _save);
+WButton.outlined(label: '取消', onTap: _cancel);
+WButton.text(label: '查看更多', onTap: _more);
+```
+
+单按钮样式用 `style` 覆盖，类型仍由构造器决定：
+
+```dart
+WButton.filled(
   style: AppButtons.primary(context), // 返回 ButtonStyle
   label: '保存',
   onTap: _save,
 )
-
-// 或直接用语义变体（取 WButtonTheme 的派生样式）
-WButton(variant: WButtonVariant.outlined, label: '取消', onTap: _cancel);
 ```
 
 支持：
 
 ```text
-variant：filled / outlined / text / danger
-style：单个按钮的 ButtonStyle 覆盖
+构造器：WButton.filled / .outlined / .text
+style：单个按钮的 ButtonStyle 覆盖（只改属性，不改类型）
 size：WButtonSize.small / medium / large 或自定义令牌
 label / icon / content
 loading / loadingBuilder / enabled
@@ -74,7 +81,7 @@ WButtonSize 的 minWidth / minHeight 只是最小视觉尺寸，不是固定宽�
 ### 主按钮
 
 ```dart
-WButton(
+WButton.filled(
   style: AppButtons.primary(context),
   label: '保存',
   onTap: _save,
@@ -84,27 +91,50 @@ WButton(
 ### 次要按钮
 
 ```dart
-WButton(
-  variant: WButtonVariant.outlined,
+WButton.outlined(
+  style: AppButtons.secondary(context),
   label: '取消',
   onTap: _cancel,
 )
 ```
 
-### 危险操作
+### 文字按钮
 
 ```dart
-WButton(
-  variant: WButtonVariant.danger,
+WButton.text(
+  style: AppButtons.text(context),
+  label: '查看更多',
+  onTap: _more,
+)
+```
+
+### 危险操作
+
+`danger` 不是按钮类型，是项目语义样式：
+
+```dart
+WButton.filled(
+  style: AppButtons.danger(context),
   label: '删除',
   onTap: _remove,
 )
 ```
 
+`AppButtons` 的配对关系必须保持一致：
+
+```text
+AppButtons.primary / danger  → WButton.filled
+AppButtons.secondary          → WButton.outlined
+AppButtons.text               → WButton.text
+```
+
+`style` 不改变按钮类型；`TextButton.styleFrom` 配 `WButton.filled` 会得到
+FilledButton 的默认背景 + TextButton 的前景色，可能同色不可见。
+
 ### loading 提交
 
 ```dart
-WButton(
+WButton.filled(
   style: AppButtons.primary(context),
   label: '提交',
   loading: submitting,
@@ -119,7 +149,7 @@ WButton(
 ```dart
 SizedBox(
   width: double.infinity,
-  child: WButton(
+  child: WButton.filled(
     style: AppButtons.primary(context),
     label: '提交',
     onTap: _submit,
@@ -130,7 +160,7 @@ SizedBox(
 ### 图标按钮
 
 ```dart
-WButton(
+WButton.filled(
   style: AppButtons.primary(context),
   label: '添加',
   icon: Icons.add,
@@ -141,7 +171,7 @@ WButton(
 ### 纯图标按钮
 
 ```dart
-WButton(
+WButton.text(
   style: AppButtons.text(context),
   icon: Icons.close,
   semanticLabel: '关闭',
@@ -152,24 +182,33 @@ WButton(
 ## 选择规则
 
 ```text
-label / label+icon → 最简单，优先
-content            → 静态复杂内容（Row / Column / 自定义组合）
+filled   → 主操作（保存 / 提交）
+outlined → 次要操作（取消）
+text     → 低强调操作（查看更多 / 关闭）
+danger   → 用 AppButtons.danger + .filled，不要新增构造器
 ```
 
 不要同时传 `label` 和 `content`；`content` 内部的 `Text` / `Icon` 会自动继承按钮的
 前景色与文字样式（Material 的 `DefaultTextStyle` / `IconTheme`），不要再手写颜色。
 
 项目页面统一用 `AppButtons`（CLI 生成，返回 Material `ButtonStyle`）；
-全站换色用 `WButtonTheme`，单个按钮用 `WButton(style: ...)`。
-12.0 删除了 `WButtonStyle` / `WButtonStyleSet` / `WButtonMotion` /
-`WButtonSemantics` / `WButtonContentBuilder` / `WButtonResolvedStyle`（以上均已删除）。
+全站换色用 `WButtonTheme`，单个按钮用 `WButton.filled(style: ...)`。
+
+13.0 删除了：
+
+```text
+WButton(...)（无名构造器）→ WButton.filled(...)
+WButtonVariant / variant（已删除）→ WButton.filled / .outlined / .text
+不要新增 WButton.danger    → 用 WButton.filled(style: AppButtons.danger(...))
+WButtonTheme.danger（已删除）→ 项目 AppButtons.danger / style
+```
 
 状态色：
 
 ```text
 disabled / pressed / hovered / focused 由 Material ButtonStyle 解析
 AppButtons 用 FilledButton.styleFrom / OutlinedButton.styleFrom 显式给 disabled 颜色
-按钮按压反馈由 Material ink 负责；WButtonMotion 已删除
+按钮按压反馈由 Material ink 负责
 ```
 
 构造约束：
@@ -183,7 +222,7 @@ enabled=true 时至少提供 onTap 或 onLongPress
 常用状态：
 
 ```dart
-WButton(
+WButton.filled(
   label: '提交',
   loading: submitting,
   onTap: _submit,
@@ -198,7 +237,7 @@ semanticLabel: '关闭'
 
 ## WButtonTheme
 
-全站四态样式装一次即可；未覆盖的变体按 `ColorScheme` 派生：
+全站三类型样式装一次即可；未覆盖的类型按 `ColorScheme` 派生：
 
 ```dart
 theme: ThemeData(
@@ -208,11 +247,12 @@ theme: ThemeData(
       filled: FilledButton.styleFrom(backgroundColor: brand),
       outlined: OutlinedButton.styleFrom(foregroundColor: brand),
       text: TextButton.styleFrom(foregroundColor: brand),
-      danger: FilledButton.styleFrom(backgroundColor: scheme.error),
     ),
   ],
 )
 ```
+
+不再有 `danger` 槽；危险样式放项目 `AppButtons.danger` 或调用点 `style`。
 
 ## WPressable
 

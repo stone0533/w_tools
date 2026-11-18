@@ -13,8 +13,8 @@ class ScaffoldDemoPage extends StatelessWidget {
     final screen = WScreen.of(context);
     final scheme = Theme.of(context).colorScheme;
 
-    return WScaffold.basic(
-      title: 'WScaffold / WAppBar / WScreen',
+    return WScaffold(
+      appBar: const WAppBar(title: 'WScaffold / WAppBar / WScreen'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -26,16 +26,18 @@ class ScaffoldDemoPage extends StatelessWidget {
               children: [
                 DemoBox(
                   height: 280,
-                  child: WScaffold.basic(
-                    title: '订单详情',
-                    actions: [
-                      IconButton(
-                        tooltip: '搜索',
-                        onPressed: () {},
-                        icon: const Icon(Icons.search),
-                      ),
-                    ],
-                    onBack: () {},
+                  child: WScaffold(
+                    appBar: WAppBar(
+                      title: '订单详情',
+                      actions: [
+                        IconButton(
+                          tooltip: '搜索',
+                          onPressed: () {},
+                          icon: const Icon(Icons.search),
+                        ),
+                      ],
+                      onBack: () {},
+                    ),
                     floatingActionButton: FloatingActionButton.small(
                       onPressed: () {},
                       child: const Icon(Icons.add),
@@ -46,10 +48,12 @@ class ScaffoldDemoPage extends StatelessWidget {
                   ),
                 ),
                 const CodeText(
-                  "WScaffold.basic(\n"
-                  "  title: '订单详情',\n"
-                  "  actions: [IconButton(...)],\n"
-                  "  onBack: () {},\n"
+                  "WScaffold(\n"
+                  "  appBar: WAppBar(\n"
+                  "    title: '订单详情',\n"
+                  "    actions: [IconButton(...)],\n"
+                  "    onBack: () {},\n"
+                  "  ),\n"
                   "  floatingActionButton: FloatingActionButton.small(...),\n"
                   "  body: ...,\n"
                   ")",
@@ -62,11 +66,13 @@ class ScaffoldDemoPage extends StatelessWidget {
             subtitle: '有 bottomNavigationBar 时，body 不再重复加底部安全区',
             child: DemoBox(
               height: 280,
-              child: WScaffold.basic(
-                title: 'Tab 页',
-                appBarBottom: PreferredSize(
-                  preferredSize: Size.fromHeight(40),
-                  child: Center(child: WText(text: 'appBarBottom')),
+              child: WScaffold(
+                appBar: WAppBar(
+                  title: 'Tab 页',
+                  bottom: PreferredSize(
+                    preferredSize: Size.fromHeight(40),
+                    child: Center(child: WText(text: 'appBarBottom')),
+                  ),
                 ),
                 bottomNavigationBar: SizedBox(
                   height: 48,
@@ -83,8 +89,8 @@ class ScaffoldDemoPage extends StatelessWidget {
             subtitle: '渐变背景用页面层 Stack，scaffold 只负责 body / 槽位',
             child: DemoBox(
               height: 300,
-              child: WScaffold.basic(
-                title: '渐变背景',
+              child: WScaffold(
+                appBar: const WAppBar(title: '渐变背景'),
                 backgroundColor: Colors.transparent,
                 includeTopSafeArea: true,
                 systemStatusBarStyle: SystemUiOverlayStyle.light,
@@ -112,7 +118,7 @@ class ScaffoldDemoPage extends StatelessWidget {
           ),
           const DemoSection(
             title: 'WScaffold：appBar 完全覆盖',
-            subtitle: '显式 appBar 用 WScaffold；默认顶栏用 WScaffold.basic',
+            subtitle: '顶栏统一用 WAppBar；WScaffold 只负责 body / 槽位',
             child: DemoBox(
               height: 260,
               child: WScaffold(

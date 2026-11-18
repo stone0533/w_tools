@@ -1,3 +1,13 @@
+## 19.0.0
+
+### Breaking
+- 聚合依赖 `w_tools_ui: ^13.0.0`：根包 re-export 的 `WButton` 改为
+  `WButton.filled` / `.outlined` / `.text`；`WButtonVariant`、`WButtonTheme.danger`、
+  `WScaffold.basic` 删除。迁移见 `packages/ui/CHANGELOG.md` 13.0.0。
+
+### Changed
+- `w_tools_ui` 约束抬到 `^13.0.0`。
+
 ## 18.0.8
 
 ### Changed

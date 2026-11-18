@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
+/// 示例页壳：真实项目直接写 `WScaffold(appBar: WAppBar(...))`。
+WScaffold demoScaffold({
+  String? title,
+  Widget? body,
+  Widget? bottomNavigationBar,
+}) {
+  return WScaffold(
+    appBar: WAppBar(title: title),
+    body: body,
+    bottomNavigationBar: bottomNavigationBar,
+  );
+}
+
 /// 示例页通用的小组件：分区标题、受限预览框、代码片段。
 class DemoSection extends StatelessWidget {
   const DemoSection({

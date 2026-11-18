@@ -191,7 +191,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 #### 通用组件
 - **Badge** (`WBadge`): 徽章组件
-- **Button** (`WButton`): Material 按钮（`WButtonVariant` + `ButtonStyle` / `WButtonTheme`），带 loading / 语义 / 尺寸
+- **Button** (`WButton`): Material 按钮（`WButton.filled/.outlined/.text` + `ButtonStyle` / `WButtonTheme`），带 loading / 语义 / 尺寸
 - **Clip**: 直接用 Flutter 原生 `ClipRRect`（`WClipRRect` 已在 11.0 删除）
 - **GradientCircularProgressIndicator** (`WGradientCircularProgressIndicator`): 渐变圆形进度指示器
 - **Image** (`WImage`): 增强的图片组件（网络图支持自动重试；手动重试用 `WImageSlots.errorWidgetBuilder` 的 `onRetry`）
@@ -266,13 +266,13 @@ import 'package:w_tools/w_tools.dart';
 class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return WScaffold.basic(
-      title: '示例页面',
+    return WScaffold(
+      appBar: WAppBar(title: '示例页面'),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            WButton(label: '点击我', onTap: () {}),
+            WButton.filled(label: '点击我', onTap: () {}),
             const WText(text: '这是一个文本组件'),
           ],
         ),

@@ -43,12 +43,21 @@ AppScaffold(
 ## 按钮
 
 ```dart
-WButton(
+WButton.filled(
   style: AppButtons.primary(context),
   label: '提交',
   onTap: submit,
 )
 ```
+
+
+`AppButtons` 只提供样式，不改变按钮类型；必须按下面的配对使用：
+
+| `AppButtons` | `WButton` 构造器 |
+|---|---|
+| `primary` / `danger` | `WButton.filled` |
+| `secondary` | `WButton.outlined` |
+| `text` | `WButton.text` |
 
 真按钮用 `WButton`；任意 child/卡片点击用 `WPressable`；不要用 `WButton` 包任意 child。
 

@@ -3,6 +3,36 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
+WScaffold _scaffoldWithAppBar({
+  String? title,
+  Widget? titleWidget,
+  Widget? leading,
+  List<Widget> actions = const <Widget>[],
+  VoidCallback? onBack,
+  bool automaticallyImplyLeading = true,
+  WAppBarStyle? appBarStyle,
+  PreferredSizeWidget? appBarBottom,
+  Widget? body,
+  Widget? bottomNavigationBar,
+  Widget? floatingActionButton,
+}) {
+  return WScaffold(
+    appBar: WAppBar(
+      title: title,
+      titleWidget: titleWidget,
+      leading: leading,
+      actions: actions,
+      onBack: onBack,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      bottom: appBarBottom,
+      style: appBarStyle ?? const WAppBarStyle(),
+    ),
+    body: body,
+    bottomNavigationBar: bottomNavigationBar,
+    floatingActionButton: floatingActionButton,
+  );
+}
+
 void main() {
   testWidgets('WStep — 默认显示 1 基 label / 状态', (tester) async {
     await tester.pumpWidget(
@@ -546,10 +576,10 @@ void main() {
 
   testWidgets('WScaffold — title 自动生成默认 AppBar', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: WScaffold.basic(
+      MaterialApp(
+        home: _scaffoldWithAppBar(
           title: '标题',
-          body: Text('body'),
+          body: const Text('body'),
         ),
       ),
     );
@@ -574,12 +604,12 @@ void main() {
 
   testWidgets('WScaffold — 状态栏只计算一次', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: MediaQuery(
-          data: MediaQueryData(padding: EdgeInsets.only(top: 24)),
-          child: WScaffold.basic(
+          data: const MediaQueryData(padding: EdgeInsets.only(top: 24)),
+          child: _scaffoldWithAppBar(
             title: '标题',
-            body: Text('body'),
+            body: const Text('body'),
           ),
         ),
       ),
@@ -624,14 +654,14 @@ void main() {
 
   testWidgets('WScaffold — appBarBottom 会触发默认 AppBar', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: WScaffold.basic(
+      MaterialApp(
+        home: _scaffoldWithAppBar(
           title: '标题',
-          appBarBottom: PreferredSize(
+          appBarBottom: const PreferredSize(
             preferredSize: Size.fromHeight(20),
             child: Text('tab'),
           ),
-          body: Text('body'),
+          body: const Text('body'),
         ),
       ),
     );
@@ -794,13 +824,13 @@ void main() {
       MaterialApp(
         home: MediaQuery(
           data: data,
-          child: const WScaffold.basic(
+          child: _scaffoldWithAppBar(
             title: '标题',
-            appBarBottom: PreferredSize(
+            appBarBottom: const PreferredSize(
               preferredSize: Size.fromHeight(20),
               child: Text('tab'),
             ),
-            body: Text('body'),
+            body: const Text('body'),
           ),
         ),
       ),
@@ -811,10 +841,10 @@ void main() {
 
   testWidgets('WScaffold — 空标题仍渲染顶栏（回归：曾静默不渲染）', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: WScaffold.basic(
+      MaterialApp(
+        home: _scaffoldWithAppBar(
           title: '',
-          body: Text('body'),
+          body: const Text('body'),
         ),
       ),
     );
@@ -827,7 +857,7 @@ void main() {
     var taps = 0;
     await tester.pumpWidget(
       MaterialApp(
-        home: WScaffold.basic(
+        home: _scaffoldWithAppBar(
           title: '标题',
           automaticallyImplyLeading: false,
           onBack: () => taps++,
@@ -843,12 +873,12 @@ void main() {
 
   testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: WScaffold.basic(
+      MaterialApp(
+        home: _scaffoldWithAppBar(
           title: '标题',
-          body: Text('body'),
-          bottomNavigationBar: Text('nav'),
-          floatingActionButton: FloatingActionButton(onPressed: null),
+          body: const Text('body'),
+          bottomNavigationBar: const Text('nav'),
+          floatingActionButton: const FloatingActionButton(onPressed: null),
         ),
       ),
     );
@@ -938,20 +968,9 @@ void main() {
     expect(custom.current, Colors.orange);
     expect(custom.upcoming, Colors.grey);
   });
-  test('WScaffold.basic 必须提供 title 或 titleWidget', () {
+  test('WAppBar title 与 titleWidget 互斥', () {
     expect(
-      () => WScaffold.basic(body: const SizedBox.shrink()),
-      throwsAssertionError,
-    );
-  });
-
-  test('WScaffold.basic title 与 titleWidget 互斥', () {
-    expect(
-      () => WScaffold.basic(
-        title: 'B',
-        titleWidget: const Text('B'),
-        body: const SizedBox.shrink(),
-      ),
+      () => WAppBar(title: 'B', titleWidget: const Text('B')),
       throwsAssertionError,
     );
   });

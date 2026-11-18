@@ -13,24 +13,25 @@ Widget _buildButtons(BuildContext context) {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      WButton(icon: Icons.star, label: 'Primary', onTap: () {}),
+      WButton.filled(icon: Icons.star, label: 'Primary', onTap: () {}),
       const SizedBox(height: 8),
-      WButton(
-        variant: WButtonVariant.outlined,
+      WButton.outlined(
         icon: Icons.add,
         label: 'Secondary',
         onTap: () {},
       ),
       const SizedBox(height: 8),
-      WButton(
-        variant: WButtonVariant.text,
+      WButton.text(
         icon: Icons.info_outline,
         label: 'Text',
         onTap: () {},
       ),
       const SizedBox(height: 8),
-      WButton(
-        variant: WButtonVariant.danger,
+      WButton.filled(
+        style: FilledButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          foregroundColor: Theme.of(context).colorScheme.onError,
+        ),
         icon: Icons.delete_outline,
         label: 'Danger',
         onTap: () {},

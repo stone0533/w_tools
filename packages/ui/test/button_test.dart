@@ -10,33 +10,31 @@ Widget _wrap(Widget child, {ThemeData? theme}) => MaterialApp(
 
 void main() {
   group('WButton 变体与 Material 集成', () {
-    testWidgets('四种变体分别渲染 Material 按钮', (tester) async {
+    testWidgets('三种构造器分别渲染 Material 按钮', (tester) async {
       await tester.pumpWidget(
         _wrap(
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              WButton(label: 'filled', onTap: () {}),
-              WButton(
-                variant: WButtonVariant.outlined,
+              WButton.filled(label: 'filled', onTap: () {}),
+              WButton.outlined(
                 label: 'outlined',
                 onTap: () {},
               ),
-              WButton(variant: WButtonVariant.text, label: 'text', onTap: () {}),
-              WButton(variant: WButtonVariant.danger, label: 'danger', onTap: () {}),
+              WButton.text(label: 'text', onTap: () {}),
             ],
           ),
         ),
       );
 
-      expect(find.byType(FilledButton), findsNWidgets(2));
+      expect(find.byType(FilledButton), findsOneWidget);
       expect(find.byType(OutlinedButton), findsOneWidget);
       expect(find.byType(TextButton), findsOneWidget);
     });
 
     testWidgets('点击触发 onTap', (tester) async {
       var taps = 0;
-      await tester.pumpWidget(_wrap(WButton(label: '保存', onTap: () => taps++)));
+      await tester.pumpWidget(_wrap(WButton.filled(label: '保存', onTap: () => taps++)));
       await tester.tap(find.text('保存'));
       await tester.pump();
       expect(taps, 1);
@@ -45,7 +43,7 @@ void main() {
     testWidgets('长按触发 onLongPress', (tester) async {
       var longs = 0;
       await tester.pumpWidget(
-        _wrap(WButton(label: '长按', onLongPress: () => longs++)),
+        _wrap(WButton.filled(label: '长按', onLongPress: () => longs++)),
       );
       await tester.longPress(find.text('长按'));
       await tester.pumpAndSettle();
@@ -57,7 +55,7 @@ void main() {
       final focusNode = FocusNode();
       addTearDown(focusNode.dispose);
       await tester.pumpWidget(
-        _wrap(WButton(label: '键盘', focusNode: focusNode, onTap: () => taps++)),
+        _wrap(WButton.filled(label: '键盘', focusNode: focusNode, onTap: () => taps++)),
       );
       focusNode.requestFocus();
       await tester.pump();
@@ -67,16 +65,26 @@ void main() {
     });
 
     testWidgets('未传 style 时使用 ColorScheme.primary', (tester) async {
-      await tester.pumpWidget(_wrap(WButton(label: '主按钮', onTap: () {})));
+      await tester.pumpWidget(_wrap(WButton.filled(label: '主按钮', onTap: () {})));
       final style = tester.widget<FilledButton>(find.byType(FilledButton)).style!;
       final scheme = Theme.of(tester.element(find.byType(FilledButton))).colorScheme;
       expect(style.backgroundColor?.resolve({}), scheme.primary);
       expect(style.foregroundColor?.resolve({}), scheme.onPrimary);
     });
 
-    testWidgets('danger 使用 ColorScheme.error', (tester) async {
+    testWidgets('危险色通过 style 表达', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(variant: WButtonVariant.danger, label: '删除', onTap: () {})),
+        _wrap(
+          Builder(
+            builder: (context) => WButton.filled(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              label: '删除',
+              onTap: () {},
+            ),
+          ),
+        ),
       );
       final style = tester.widget<FilledButton>(find.byType(FilledButton)).style!;
       final scheme = Theme.of(tester.element(find.byType(FilledButton))).colorScheme;
@@ -87,7 +95,7 @@ void main() {
   group('WButton 内容', () {
     testWidgets('label + icon 使用 WIconText', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(icon: Icons.add, label: '新增', onTap: () {})),
+        _wrap(WButton.filled(icon: Icons.add, label: '新增', onTap: () {})),
       );
       expect(find.byType(WIconText), findsOneWidget);
     });
@@ -95,7 +103,7 @@ void main() {
     testWidgets('content 支持静态复杂内容', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton(
+          WButton.filled(
             content: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [Icon(Icons.star), SizedBox(width: 4), Text('复杂内容')],
@@ -109,23 +117,23 @@ void main() {
 
     testWidgets('content 与 label/icon 互斥', (tester) async {
       expect(
-        () => WButton(content: const Text('x'), label: 'y', onTap: () {}),
+        () => WButton.filled(content: const Text('x'), label: 'y', onTap: () {}),
         throwsAssertionError,
       );
       expect(
-        () => WButton(onTap: () {}),
+        () => WButton.filled(onTap: () {}),
         throwsAssertionError,
       );
     });
 
     testWidgets('纯图标按钮要求 semanticLabel', (tester) async {
       expect(
-        () => WButton(icon: Icons.close, onTap: () {}),
+        () => WButton.filled(icon: Icons.close, onTap: () {}),
         throwsAssertionError,
       );
       await tester.pumpWidget(
         _wrap(
-          WButton(icon: Icons.close, semanticLabel: '关闭', onTap: () {}),
+          WButton.filled(icon: Icons.close, semanticLabel: '关闭', onTap: () {}),
         ),
       );
       expect(find.byIcon(Icons.close), findsOneWidget);
@@ -136,7 +144,7 @@ void main() {
     testWidgets('loading 阻止点击、显示 spinner 并保持尺寸', (tester) async {
       var taps = 0;
       Widget build({required bool loading}) => _wrap(
-        WButton(label: '提交', loading: loading, onTap: () => taps++),
+        WButton.filled(label: '提交', loading: loading, onTap: () => taps++),
       );
       await tester.pumpWidget(build(loading: false));
       final normalSize = tester.getSize(find.byType(FilledButton));
@@ -152,7 +160,7 @@ void main() {
 
     testWidgets('loading 语义是 liveRegion，默认英文文案', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(label: '提交', loading: true, onTap: () {})),
+        _wrap(WButton.filled(label: '提交', loading: true, onTap: () {})),
       );
       expect(
         find.byWidgetPredicate(
@@ -168,7 +176,7 @@ void main() {
     testWidgets('loadingLabel 覆盖默认文案', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton(
+          WButton.filled(
             label: '提交',
             loading: true,
             loadingLabel: '正在提交',
@@ -182,7 +190,7 @@ void main() {
     testWidgets('禁用时不触发点击', (tester) async {
       var taps = 0;
       await tester.pumpWidget(
-        _wrap(WButton(label: '禁用', enabled: false, onTap: () => taps++)),
+        _wrap(WButton.filled(label: '禁用', enabled: false, onTap: () => taps++)),
       );
       await tester.tap(find.byType(FilledButton), warnIfMissed: false);
       await tester.pump();
@@ -194,13 +202,13 @@ void main() {
     });
 
     testWidgets('禁用按钮可以不提供回调', (tester) async {
-      await tester.pumpWidget(_wrap(const WButton(label: '禁用', enabled: false)));
+      await tester.pumpWidget(_wrap(const WButton.filled(label: '禁用', enabled: false)));
       expect(find.text('禁用'), findsOneWidget);
     });
 
     testWidgets('isSelected 进入 Semantics', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(label: '标签', isSelected: true, onTap: () {})),
+        _wrap(WButton.filled(label: '标签', isSelected: true, onTap: () {})),
       );
       expect(
         find.byWidgetPredicate(
@@ -213,7 +221,7 @@ void main() {
     testWidgets('semanticLabel / hint 覆盖内容朗读', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton(
+          WButton.filled(
             label: '❤',
             semanticLabel: '收藏',
             semanticHint: '双击收藏',
@@ -236,7 +244,7 @@ void main() {
     testWidgets('tooltip 包一层 Tooltip', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton(
+          WButton.filled(
             icon: Icons.favorite,
             semanticLabel: '收藏',
             tooltip: '收藏',
@@ -251,7 +259,7 @@ void main() {
   group('WButton 尺寸与主题', () {
     testWidgets('WButtonSize 映射到最小尺寸与内边距', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(size: WButtonSize.small, label: '小', onTap: () {})),
+        _wrap(WButton.filled(size: WButtonSize.small, label: '小', onTap: () {})),
       );
       final style = tester.widget<FilledButton>(find.byType(FilledButton)).style!;
       expect(style.minimumSize?.resolve({}), const Size(48, 32));
@@ -265,7 +273,7 @@ void main() {
     testWidgets('单按钮 style 的 padding 覆盖 WButtonSize', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton(
+          WButton.filled(
             label: '自定义',
             style: const ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
             onTap: () {},
@@ -289,7 +297,7 @@ void main() {
       );
       await tester.pumpWidget(
         _wrap(
-          WButton(label: '主题', onTap: () {}),
+          WButton.filled(label: '主题', onTap: () {}),
           theme: theme,
         ),
       );
@@ -310,7 +318,7 @@ void main() {
       );
       await tester.pumpWidget(
         _wrap(
-          WButton(
+          WButton.filled(
             label: '覆盖',
             style: const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(Color(0xFF00FF00)),
@@ -327,7 +335,7 @@ void main() {
     testWidgets('暗色主题 / RTL / 大字号下可构建', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton(icon: Icons.add, label: '构建', onTap: () {}),
+          WButton.filled(icon: Icons.add, label: '构建', onTap: () {}),
           theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
         ),
       );
@@ -341,7 +349,7 @@ void main() {
               data: const MediaQueryData(textScaler: TextScaler.linear(2)),
               child: Scaffold(
                 body: Center(
-                  child: WButton(icon: Icons.add, label: '构建', onTap: () {}),
+                  child: WButton.filled(icon: Icons.add, label: '构建', onTap: () {}),
                 ),
               ),
             ),

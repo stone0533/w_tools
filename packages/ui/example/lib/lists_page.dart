@@ -32,7 +32,7 @@ class _ListsDemoPageState extends State<ListsDemoPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return WScaffold.basic(
+    return demoScaffold(
       title: 'WListView / 通知 / keepAlive',
       body: ListView(
         padding: const EdgeInsets.all(16),

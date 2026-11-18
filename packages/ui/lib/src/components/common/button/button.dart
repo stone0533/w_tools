@@ -4,11 +4,12 @@ import '../../../internal/ui_strings.dart';
 import '../../text/icon_text.dart';
 import 'button_size.dart';
 import 'button_theme.dart';
-import 'button_variant.dart';
 
 export 'button_size.dart';
 export 'button_theme.dart';
-export 'button_variant.dart';
+
+/// 按钮类型（构造器决定，不再作为公开参数）。
+enum _WButtonKind { filled, outlined, text }
 
 /// 按钮。
 ///
@@ -16,11 +17,18 @@ export 'button_variant.dart';
 /// `TextButton`），因此主题、水波纹、键盘 / 焦点、禁用态都与 Material 一致；
 /// 全站样式用 `WButtonTheme`，单个按钮用 [style] 覆盖。
 ///
+/// 构造器只表达按钮类型：
+/// - [WButton.filled]：主按钮（`FilledButton`）；
+/// - [WButton.outlined]：描边按钮（`OutlinedButton`）；
+/// - [WButton.text]：文字按钮（`TextButton`）。
+///
+/// 危险色不是类型，用 `WButton.filled(style: ...)` 或项目 `AppButtons.danger` 表达。
+///
 /// 只负责按钮语义、loading、最小尺寸与图标 + 文字内容。
 class WButton extends StatelessWidget {
-  const WButton({
+  /// 主按钮（`FilledButton`）。
+  const WButton.filled({
     super.key,
-    this.variant = WButtonVariant.filled,
     this.style,
     this.size = WButtonSize.medium,
     this.label,
@@ -38,7 +46,8 @@ class WButton extends StatelessWidget {
     this.isSelected,
     this.focusNode,
     this.autofocus = false,
-  }) : assert(
+  }) : _kind = _WButtonKind.filled,
+       assert(
          content != null || label != null || icon != null,
          'WButton: content / label / icon 至少提供一个',
        ),
@@ -55,8 +64,83 @@ class WButton extends StatelessWidget {
          'WButton: 纯图标按钮请提供 semanticLabel',
        );
 
-  /// 语义变体；视觉由 `WButtonTheme` 对应的 `ButtonStyle` 决定。
-  final WButtonVariant variant;
+  /// 描边按钮（`OutlinedButton`）。
+  const WButton.outlined({
+    super.key,
+    this.style,
+    this.size = WButtonSize.medium,
+    this.label,
+    this.icon,
+    this.content,
+    this.loading = false,
+    this.loadingBuilder,
+    this.enabled = true,
+    this.onTap,
+    this.onLongPress,
+    this.semanticLabel,
+    this.semanticHint,
+    this.loadingLabel = '',
+    this.tooltip,
+    this.isSelected,
+    this.focusNode,
+    this.autofocus = false,
+  }) : _kind = _WButtonKind.outlined,
+       assert(
+         content != null || label != null || icon != null,
+         'WButton: content / label / icon 至少提供一个',
+       ),
+       assert(
+         content == null || (label == null && icon == null),
+         'WButton: content 与 label + icon 只能选择一种',
+       ),
+       assert(
+         !enabled || loading || onTap != null || onLongPress != null,
+         'WButton: 可交互按钮至少提供 onTap 或 onLongPress',
+       ),
+       assert(
+         icon == null || label != null || content != null || semanticLabel != null || loading,
+         'WButton: 纯图标按钮请提供 semanticLabel',
+       );
+
+  /// 文字按钮（`TextButton`）。
+  const WButton.text({
+    super.key,
+    this.style,
+    this.size = WButtonSize.medium,
+    this.label,
+    this.icon,
+    this.content,
+    this.loading = false,
+    this.loadingBuilder,
+    this.enabled = true,
+    this.onTap,
+    this.onLongPress,
+    this.semanticLabel,
+    this.semanticHint,
+    this.loadingLabel = '',
+    this.tooltip,
+    this.isSelected,
+    this.focusNode,
+    this.autofocus = false,
+  }) : _kind = _WButtonKind.text,
+       assert(
+         content != null || label != null || icon != null,
+         'WButton: content / label / icon 至少提供一个',
+       ),
+       assert(
+         content == null || (label == null && icon == null),
+         'WButton: content 与 label + icon 只能选择一种',
+       ),
+       assert(
+         !enabled || loading || onTap != null || onLongPress != null,
+         'WButton: 可交互按钮至少提供 onTap 或 onLongPress',
+       ),
+       assert(
+         icon == null || label != null || content != null || semanticLabel != null || loading,
+         'WButton: 纯图标按钮请提供 semanticLabel',
+       );
+
+  final _WButtonKind _kind;
 
   /// 单按钮样式覆盖（Material [ButtonStyle]）；优先级高于 [size] 与 `WButtonTheme`。
   final ButtonStyle? style;
@@ -107,7 +191,12 @@ class WButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final themed = WButtonTheme.of(context).styleFor(variant);
+    final buttonTheme = WButtonTheme.of(context);
+    final themed = switch (_kind) {
+      _WButtonKind.filled => buttonTheme.filled!,
+      _WButtonKind.outlined => buttonTheme.outlined!,
+      _WButtonKind.text => buttonTheme.text!,
+    };
     // 优先级：单按钮 style > WButtonSize > WButtonTheme。
     // ButtonStyle.merge 是「this 优先」，所以按低 → 高依次 merge。
     final sized = _withSize(size, themed, theme);
@@ -123,22 +212,22 @@ class WButton extends StatelessWidget {
       },
     );
 
-    Widget button = switch (variant) {
-      WButtonVariant.filled || WButtonVariant.danger => FilledButton(
+    Widget button = switch (_kind) {
+      _WButtonKind.filled => FilledButton(
         style: style,
         onPressed: onPressed,
         focusNode: focusNode,
         autofocus: autofocus,
         child: body,
       ),
-      WButtonVariant.outlined => OutlinedButton(
+      _WButtonKind.outlined => OutlinedButton(
         style: style,
         onPressed: onPressed,
         focusNode: focusNode,
         autofocus: autofocus,
         child: body,
       ),
-      WButtonVariant.text => TextButton(
+      _WButtonKind.text => TextButton(
         style: style,
         onPressed: onPressed,
         focusNode: focusNode,

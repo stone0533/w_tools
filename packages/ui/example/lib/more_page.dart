@@ -48,7 +48,7 @@ class MorePage extends StatelessWidget {
       ),
     ];
 
-    return WScaffold.basic(
+    return demoScaffold(
       title: '更多示例',
       body: ListView(
         padding: const EdgeInsets.all(16),

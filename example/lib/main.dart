@@ -107,7 +107,7 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
               },
             ),
             const SizedBox(height: 24),
-            WButton(
+            WButton.filled(
               label: '提交',
               onTap: _submit,
             ),

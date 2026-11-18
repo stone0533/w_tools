@@ -80,6 +80,10 @@ void main() {
       ).readAsStringSync();
       expect(appButtons, contains('class AppButtons'));
       expect(appButtons, contains('ButtonStyle primary'));
+      expect(appButtons, contains('AppButtons 只提供样式，不改变按钮类型'));
+      expect(appButtons, contains('配合 `WButton.filled` 使用'));
+      expect(appButtons, contains('配合 `WButton.outlined` 使用'));
+      expect(appButtons, contains('配合 `WButton.text` 使用'));
       final appBoxes = File(
         p.join(root.path, 'lib/app/ui/app_boxes.dart'),
       ).readAsStringSync();

@@ -83,7 +83,7 @@ WNotificationListener 的百分比只在 depth 0 的 ScrollUpdateNotification �
 
 ## 图标 + 文字
 
-图标 + 文字一行用 `WIconText`（`explain WIconText`）；不要手拼 `Row + Icon + Text`，中文行盒会让图标偏高。纯图标 / 需要按钮语义用 `WButton(icon: ...)`。
+图标 + 文字一行用 `WIconText`（`explain WIconText`）；不要手拼 `Row + Icon + Text`，中文行盒会让图标偏高。纯图标 / 需要按钮语义用 `WButton.filled(icon: ...)`。
 
 ## 轻提示
 

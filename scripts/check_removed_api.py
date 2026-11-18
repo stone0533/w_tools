@@ -90,6 +90,11 @@ names = [
     r'hasChildSemanticsWhenDisabled',
     r'\bWImageErrorView\.compact\b',
     r'\bWScaffold\.underlayWidget\b',
+    r'\bWScaffold\.basic\b',
+    r'\bWButtonVariant\b',
+    r'\bWButton\.variant\b',
+    r'\bWButtonTheme\.danger\b',
+    r'\bWButtonTheme\.styleFor\b',
     r'\bunderlayWidget\b',
     r'\bWImageStyle\.(?:avatar|thumbnail)\b',
     # ui 12.0 第三批：按钮收口到 Material ButtonStyle。

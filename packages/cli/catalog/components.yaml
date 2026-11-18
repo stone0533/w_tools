@@ -6,12 +6,14 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '7-wscaffold---增强脚手架'
     section: '1. 页面骨架与导航'
-    useFor: '页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区'
+    useFor: '页面壳：显式 WAppBar / 任意 appBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区'
     dontUseFor: '任意顶部叠放用页面层 Container/Stack'
     usage: |
-      WScaffold.basic(
-        title: '首页',
-        actions: [IconButton(onPressed: ..., icon: Icon(Icons.search))],
+      WScaffold(
+        appBar: WAppBar(
+          title: '首页',
+          actions: [IconButton(onPressed: ..., icon: Icon(Icons.search))],
+        ),
         floatingActionButton: FloatingActionButton(onPressed: ..., child: Icon(Icons.add)),
         drawer: Drawer(...),
         bottomSheet: ...,
@@ -19,10 +21,9 @@ components:
         body: ...,
       )
       // 非 WNavBar 底栏：WScaffold(bottomNavigationBarSafeArea: true, ...)
-      // 覆盖顶栏：WScaffold(appBar: WAppBar(...), body: ...)
     pitfalls:
       - '不要手拼 Scaffold + SafeArea；页面壳统一用 WScaffold'
-      - '默认顶栏用 WScaffold.basic（title / actions）；显式 appBar 用 WScaffold(appBar: ...)，两者不再混用'
+      - '顶栏统一显式传 appBar: WAppBar(...)；13.0 删除了 WScaffold.basic'
       - 'drawer / endDrawer / bottomSheet / persistentFooterButtons / extendBody 已透传，不需要为此改用原生 Scaffold'
       - '有 bottomNavigationBar 时 WScaffold 不再给 body 加底部安全区；底栏不是 WNavBar（已默认 SafeArea）时传 bottomNavigationBarSafeArea: true'
     related: ['`WAppBar`', '`WNavBar`']
@@ -184,7 +185,7 @@ components:
     docsAnchor: '22-wicontext---图标--文字'
     section: '2. 文本与图标'
     useFor: '图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text'
-    dontUseFor: '纯图标 / 需要按钮语义用 `WButton(icon: ...)`；复杂多行内容用 `WButton(content: ...)`'
+    dontUseFor: '纯图标 / 需要按钮语义用 `WButton.filled(icon: ...)`；复杂多行内容用 `WButton.filled(content: ...)`'
     usage: |
       WIconText(icon: Icons.star, text: '收藏');
       WIconText(icon: Icons.location_on, text: '上海市', variant: WTextVariant.body);
@@ -295,19 +296,21 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '2-wbutton---按钮组件'
     section: '3. 按钮与操作'
-    useFor: 'Material 按钮（variant + ButtonStyle），带 loading / 语义 / 尺寸'
+    useFor: 'Material 按钮：filled / outlined / text 三个构造器，带 loading / 语义 / 尺寸'
     dontUseFor: '任意 child 点击用 `WPressable`；表单值选择用 `WFormButton`'
     usage: |
-      WButton(label: '保存', onTap: save);
-      WButton(variant: WButtonVariant.outlined, label: '取消', onTap: cancel);
-      WButton(variant: WButtonVariant.danger, label: '删除', onTap: remove);
-      WButton(label: '提交', loading: true, onTap: save);
-      WButton(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
-      WButton(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
-      WButton(label: '品牌', style: FilledButton.styleFrom(backgroundColor: brand), onTap: save);
+      WButton.filled(label: '保存', onTap: save);
+      WButton.outlined(label: '取消', onTap: cancel);
+      WButton.text(label: '查看更多', onTap: more);
+      WButton.filled(label: '提交', loading: true, onTap: save);
+      WButton.filled(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
+      WButton.filled(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
+      // 危险色是 style / 项目 AppButtons，不是构造器
+      WButton.filled(style: AppButtons.danger(context), label: '删除', onTap: remove);
     pitfalls:
       - '视觉走 Material ButtonStyle（FilledButton / OutlinedButton / TextButton），不要自己拿 DecoratedBox 拼'
-      - '项目页面优先用 AppButtons（CLI 生成，返回 ButtonStyle）；全站换色用 WButtonTheme'
+      - 'style 只覆盖属性，不改变按钮类型；AppButtons.primary/danger 配 .filled，secondary 配 .outlined，text 配 .text'
+      - '13.0 删除了无名 WButton(...)、WButtonVariant 与 WButtonTheme.danger；危险色用 style'
       - 'loading 时按钮自动不可点；不必再传 enabled: false'
       - 'content 与 label/icon 不能同时传；icon-only 要提供 semanticLabel'
       - 'toggle 按钮用 isSelected；纯图标按钮仍需 tooltip / semanticLabel'
@@ -317,8 +320,8 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '2-wbutton---按钮组件'
     section: '3. 按钮与操作'
-    useFor: '全站按钮四态 ButtonStyle（filled / outlined / text / danger），ThemeExtension'
-    dontUseFor: '单个按钮覆盖用 `WButton(style: ButtonStyle(...))`，不要改全局主题'
+    useFor: '全站按钮三类型 ButtonStyle（filled / outlined / text），ThemeExtension'
+    dontUseFor: '单个按钮覆盖用 `WButton.filled(style: ButtonStyle(...))`，不要改全局主题'
     usage: |
       ThemeData(
         colorScheme: scheme,
@@ -330,19 +333,10 @@ components:
         ],
       )
     pitfalls:
-      - '只覆盖需要的变体；缺省字段回退到 ColorScheme 派生值'
+      - '只覆盖需要的类型；缺省字段回退到 ColorScheme 派生值'
+      - '13.0 删除了 danger 槽：危险色放项目 AppButtons / style，不要塞回主题'
       - '12.0 删除了 WButtonStyle / WButtonStyleSet，传 Material ButtonStyle'
     related: ['`WButton`']
-    teach: false
-  - name: '`WButtonVariant`'
-    package: 'w_tools_ui'
-    docsAnchor: '2-wbutton---按钮组件'
-    section: '3. 按钮与操作'
-    useFor: '按钮语义变体：filled / outlined / text / danger'
-    dontUseFor: '不要用它控制尺寸 / 圆角；那些走 WButtonTheme 或 ButtonStyle'
-    usage: |
-      WButton(variant: WButtonVariant.outlined, label: '取消', onTap: cancel);
-    related: ['`WButton`', '`WButtonTheme`']
     teach: false
   - name: '`WPressable`'
     package: 'w_tools_ui'
@@ -368,7 +362,7 @@ components:
       WActionRow(
         spacing: 8,
         onScroll: (offset) { ... },
-        children: [WButton(...), WButton(...)],
+        children: [WButton.filled(...), WButton.filled(...)],
       );
       WSelectableRow(
         itemCount: 4,
@@ -1965,7 +1959,7 @@ components:
     dontUseFor: '不要用它控制宽度；宽度由父布局决定；颜色 / 边框走 WButtonTheme'
     usage: |
       const WButtonSize(name: 'hero', minHeight: 56, fontSize: 17, fontWeight: FontWeight.w700);
-      WButton(size: WButtonSize.large, label: '保存', onTap: save);
+      WButton.filled(size: WButtonSize.large, label: '保存', onTap: save);
     pitfalls:
       - '视觉尺寸可以更小，tapTargetSize 默认 48 保证点击区域'
     related: ['`WButton`']

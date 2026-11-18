@@ -12,7 +12,7 @@
 <!-- catalog:1:start -->
 | 组件 | 子包 | 层级 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- | --- |
-| `WScaffold` | ui | core | 页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
+| `WScaffold` | ui | core | 页面壳：显式 WAppBar / 任意 appBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
 | `WAppBar` | ui | core | 标准顶部导航栏（leading/title/actions/bottom、leadingWidth/actionsPadding/shadow） | 任意叠放/覆盖布局在页面层用 Container/Stack |
 | `WAppBarStyle` | ui | core | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 / leadingWidth / actionsPadding / 阴影 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | core | 底部 tab 栏；controller 只维护 currentIndex，由页面 State dispose | 不要自己写 `BottomNavigationBar` |
@@ -43,7 +43,7 @@
 | 组件 | 子包 | 层级 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- | --- |
 | `WText` / `WTextVariant` / `WTextStyles` | ui | core | 语义文字样式、overrides、maxLines、textScaler | 不要再用已移除的 `WTextConfig`，改用 `WTextStyles` |
-| `WIconText` | ui | core | 图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text | 纯图标 / 需要按钮语义用 `WButton(icon: ...)`；复杂多行内容用 `WButton(content: ...)` |
+| `WIconText` | ui | core | 图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text | 纯图标 / 需要按钮语义用 `WButton.filled(icon: ...)`；复杂多行内容用 `WButton.filled(content: ...)` |
 | `WImage` | ui | core | 网络图/资源图（缓存、占位；自动重试用 retryCount） | 不要裸用 `Image.network` |
 | `WImageSource` | ui | core | WImage 的来源：network / asset / file / base64 / provider | 不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse |
 | `WImageStyle` | ui | core | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
@@ -77,9 +77,8 @@
 <!-- catalog:3:start -->
 | 组件 | 子包 | 层级 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- | --- |
-| `WButton` | ui | core | Material 按钮（variant + ButtonStyle），带 loading / 语义 / 尺寸 | 任意 child 点击用 `WPressable`；表单值选择用 `WFormButton` |
-| `WButtonTheme` | ui | core | 全站按钮四态 ButtonStyle（filled / outlined / text / danger），ThemeExtension | 单个按钮覆盖用 `WButton(style: ButtonStyle(...))`，不要改全局主题 |
-| `WButtonVariant` | ui | core | 按钮语义变体：filled / outlined / text / danger | 不要用它控制尺寸 / 圆角；那些走 WButtonTheme 或 ButtonStyle |
+| `WButton` | ui | core | Material 按钮：filled / outlined / text 三个构造器，带 loading / 语义 / 尺寸 | 任意 child 点击用 `WPressable`；表单值选择用 `WFormButton` |
+| `WButtonTheme` | ui | core | 全站按钮三类型 ButtonStyle（filled / outlined / text），ThemeExtension | 单个按钮覆盖用 `WButton.filled(style: ButtonStyle(...))`，不要改全局主题 |
 | `WPressable` | ui | core | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
 | `WActionRow` / `WSelectableRow` | ui | core | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | core | 角标数字 / 圆点 | 不要用于长文案；多字提示用 WText |

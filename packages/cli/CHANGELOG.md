@@ -1,3 +1,15 @@
+## 2.4.0
+
+### Changed
+- `init` 的 `w_tools_ui` 约束抬到 `^13.0.0`（WButton named constructors / WScaffold 删除
+  `.basic`）。
+- `app_scaffold` 模板改为显式 `WScaffold(appBar: WAppBar(...))`，不再使用 `.basic`。
+- `ui_README` 的按钮示例改为 `WButton.filled(...)`，并补 `AppButtons` → `WButton`
+  构造器配对表。
+- `app_buttons` 模板给四个方法补配对注释（primary / danger → `.filled`，
+  secondary → `.outlined`，text → `.text`），并说明 style 不改变按钮类型。
+- 新增 example 配对回归测试，断言 Material 类型与前景 / 背景不同色。
+
 ## 2.3.11
 
 ### Changed
