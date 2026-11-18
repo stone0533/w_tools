@@ -115,7 +115,7 @@
 | `WScreenData` | ui | core | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WScreenScope` | ui | core | 子树内的屏幕 / 字体缩放注入，替代全局 delegate | 不要和全局 delegate 混用；scope 优先 |
 | `WFormReadOnly` | form | core | 读取当前子树是否只读（WForm / 字段自动注入） | 不要手写只读作用域；局部只读用 WForm(readOnly: true) 或字段 readOnly |
-| `WFormFieldShell` | form | core | 字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | 普通字段不要手写外框；自定义字段不要用它绕开 FormField |
+| `WFormFieldShell` | form | core | 字段外层装配：错误通道 / 只读作用域 / 边框 / 焦点（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | 普通字段不要手写外框；它是外层装配，不是字段实现，不要用它绕开 FormField |
 | `WAsyncErrorView` / `WAsyncErrorBanner` | async | core | 默认整块错误视图 / 保留旧数据时的错误条 | 不要传异常原文；业务错误弹窗用 Toast / 表单错误，不用它 |
 <!-- catalog:4:end -->
 

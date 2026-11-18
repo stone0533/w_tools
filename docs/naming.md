@@ -221,7 +221,9 @@
 - 试用角色：`Slots` / `Settings` / `Params` 目前是窄角色，但都允许在新代码使用（不需要先转正）；
   出现第二个使用方后按 §9 评估是否转正；`Params` 暂无公开类型，暂不推广。
 - 常见构件名词（不是角色后缀，确有其物时才用）：`Loader` / `Formatter` / `Interceptor` /
-  `Mapper` / `Handler` / `Strings` / `Frame`。新增这类词前先看能否归入上表，不要造同义词。
+  `Mapper` / `Handler` / `Strings` / `Frame` / `Shell`。
+  `Shell` 指外层装配容器：提供边框 / 错误 / 只读等横切能力，不持有值、不实现字段协议。
+  新增这类词前先看能否归入上表，不要造同义词。
 
 同义择一：
 

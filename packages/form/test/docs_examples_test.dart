@@ -219,6 +219,19 @@ void main() {
     expect(formBordersOf(form).has('amount'), isTrue);
   });
 
+  test('WFormFieldShell 的 Shell 命名与职责说明存在', () {
+    final naming = File('../../docs/naming.md').readAsStringSync();
+    final shell = File('lib/src/components/border/field_shell.dart').readAsStringSync();
+    final catalog = File('../../packages/cli/catalog/components.yaml').readAsStringSync();
+    final module = File('../../docs/modules/form_module.md').readAsStringSync();
+
+    expect(naming, contains('Shell'));
+    expect(naming, contains('外层装配'));
+    expect(shell, contains('外层装配'));
+    expect(catalog, contains('外层装配'));
+    expect(module, contains('外层装配'));
+  });
+
   test('example README 的 WFormTextField 示例不使用已弃用 label', () {
     final lines = File('example/README.md').readAsLinesSync();
     for (var i = 0; i < lines.length; i++) {

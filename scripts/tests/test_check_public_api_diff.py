@@ -65,6 +65,22 @@ class PublicApiDiffTest(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_required_param_can_become_optional(self):
+        changes = [
+            (
+                'WFormFieldShell.new',
+                'WFormFieldShell (String name, {required bool readOnly, })',
+                'WFormFieldShell (String name, {bool readOnly = false, })',
+            )
+        ]
+        errors = check_notes(
+            changes,
+            changelog='## 8.1.0\n\n### Changed\n- WFormFieldShell.new readOnly 默认 false\n',
+            migration='',
+            current={'WFormFieldShell.new': 'WFormFieldShell (...)'},
+        )
+        self.assertEqual(errors, [])
+
     def test_method_required_param_still_requires_breaking(self):
         changes = [
             (

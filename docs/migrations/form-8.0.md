@@ -274,3 +274,9 @@ WFormBorderStyle.fromTheme(theme, hintStyle: TextStyle(fontSize: 12));
 const WFormFieldStyle(placeholderStyle: TextStyle(color: Colors.grey));
 WFormBorderStyle.fromTheme(theme, helperStyle: TextStyle(fontSize: 12));
 ```
+
+## 14. 8.1 补充：`WFormFieldShell.new`
+
+`WFormFieldShell.new` 的 `readOnly` 从必填改为可选，默认 `false`；这是源码兼容的签名放宽。
+外层 `WForm(readOnly: true)` 仍然强制只读；子控件自身 `enabled: false` 时仍需显式传
+`readOnly: true`，否则边框不会显示只读态。详见 `form-8.1.md`。

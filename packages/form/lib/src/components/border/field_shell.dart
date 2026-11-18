@@ -12,7 +12,10 @@ void _validateName(String name) {
   }
 }
 
-/// 自定义字段的外框：注册错误通道、注入只读作用域并绘制边框。
+/// 自定义字段的外层装配：注册错误通道、注入只读作用域并绘制边框。
+///
+/// 它是“字段的 Shell”，只负责外层装配：不持有 value，也不代替
+/// `FormBuilderField`。`name` 必须与内部字段的 name 一致；复合容器可用分组名。
 ///
 /// 普通页面用直接字段（`WFormTextField` 等），不需要直接使用本类；
 /// 需要接 `flutter_form_builder` 自定义字段时，用它包住字段以复用
@@ -50,7 +53,7 @@ class WFormFieldShell extends StatefulWidget {
     required this.name,
     this.hintTextList,
     this.isTransparentBackground,
-    required this.readOnly,
+    this.readOnly = false,
     this.enableFocusBorder = true,
     this.rendersInlineError = true,
     required this.child,

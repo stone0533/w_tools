@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- 聚合依赖 `w_tools_form: ^8.1.0`：`WFormFieldShell.readOnly` 默认 false，外层
+  `WForm(readOnly: true)` 仍生效。
+
 ## 19.0.1
 
 ### Changed

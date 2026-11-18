@@ -6,7 +6,7 @@ const subpackageConstraints = <String, String>{
   'w_tools_async_ui': '^1.1.0',
   'w_tools_app': '^4.0.1',
   'w_tools_app_getx': '^3.1.0',
-  'w_tools_form': '^8.0.1',
+  'w_tools_form': '^8.1.0',
   'w_tools_ui': '^13.0.0',
   'w_tools_api': '^6.3.0',
   'w_tools_toast': '^2.1.1',

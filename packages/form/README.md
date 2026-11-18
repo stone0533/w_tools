@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^8.0.1
+  w_tools_form: ^8.1.0
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` 依赖约束）。

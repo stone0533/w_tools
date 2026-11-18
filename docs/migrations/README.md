@@ -45,6 +45,7 @@
 - [6.0](form-6.0.md)：移除单项图标参数，内部类型不再导出，`WFormFieldButton<T>`
 - [7.0](form-7.0.md)：`WFormController.borders` 收口、`WFormInputFormatters` 禁止实例化、删除 `WFormValidatorSettings.copy()`
 - [8.0](form-8.0.md)：删除 `clearValue` / `formEntered` / `isAllEntered` / `closeKeyboard` / `WFormCustomValidator` / `WFormInputFormatters`
+- [8.1](form-8.1.md)：`WFormFieldShell.readOnly` 默认 false
 
 ## async
 
