@@ -1,7 +1,7 @@
 # 删除 `WScaffold.basic`：决策记录与执行清单
 
 - 日期：2026-11-18
-- 状态：**已实现（2026-11-18）**；代码、测试、迁移、版本已落地，未发布
+- 状态：**已发布（2026-11-18）**；随 `w_tools_ui` 13.0.0 / `w_tools` 19.0.0 上线
 - 目标版本：`w_tools_ui` **13.0.0**（12.0.1 → 13.0.0；breaking）
 - 决策：**删除 `WScaffold.basic`**，不做“默认构造器反转 + `.custom`”方案；页面统一用
   `WScaffold(appBar: WAppBar(...))`。
@@ -100,3 +100,11 @@ python3 scripts/check_public_api_diff.py --package ui
 bash scripts/check_docs.sh
 bash scripts/preflight.sh --changed
 ```
+
+
+---
+
+## 发布结果（2026-11-18）
+
+- 与 WButton named constructors 同一个 PR #326 / 发布波次。
+- ui 13.0.0、root 19.0.0 已发布；`WScaffold.basic` 已从 13.0.0 移除。

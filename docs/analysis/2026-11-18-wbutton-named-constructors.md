@@ -1,7 +1,7 @@
 # `WButton` 改用 named constructors：决策记录与执行清单
 
 - 日期：2026-11-18
-- 状态：**已实现（2026-11-18）**；代码、测试、迁移、版本已落地，未发布
+- 状态：**已发布（2026-11-18）**；`w_tools_ui` 13.0.0 / `w_tools_cli` 2.4.0 / `w_tools` 19.0.0
 - 目标版本：`w_tools_ui` **13.0.0**（12.0.1 → 13.0.0；breaking）
 - 决策：采用 **3a. named constructors**（构造器只表达按钮类型）：
   - 新增 `WButton.filled` / `WButton.outlined` / `WButton.text`；
@@ -182,3 +182,12 @@ python3 scripts/check_public_api_diff.py --package ui
 bash scripts/check_docs.sh
 bash scripts/preflight.sh --changed
 ```
+
+
+---
+
+## 发布结果（2026-11-18）
+
+- PR #326 合并；ui 13.0.0 / cli 2.4.0 发布；快照 PR #327 合并；root 19.0.0 发布。
+- `python3 scripts/release_status.py --online --check`：状态正常。
+- `check_publish_drift`：ui / cli / root 无漂移。
