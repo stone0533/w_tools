@@ -74,7 +74,7 @@ void main() {
     }
   });
 
-  testWidgets('Playground 代码面板使用 6.0 的 WImage.source', (tester) async {
+  testWidgets('Playground 代码面板使用 6.0 的 WImage', (tester) async {
     await tester.pumpWidget(const WUiExampleApp());
 
     final list = find.byType(ListView).first;
@@ -86,7 +86,7 @@ void main() {
     await tester.pump();
 
     final snippet = tester.widget<SelectableText>(find.byType(SelectableText).first).data!;
-    expect(snippet, contains('WImage.source('));
+    expect(snippet, contains('WImage('));
     expect(snippet, contains('WImageSource.'));
     expect(snippet, isNot(contains('WImage.network')));
     expect(snippet, isNot(contains('WImage.asset(')));

@@ -30,7 +30,7 @@ part 'image_state_builders.dart';
 
 /// 图片组件
 ///
-/// 统一使用 [WImage.source] + [WImageSource]；不再提供按字符串自动判定的旧构造器。
+/// 统一使用 [WImage] + [WImageSource]；不再提供按字符串自动判定的旧构造器。
 ///
 /// 提供占位、错误处理、进度回调与网络自动重试；手动重试通过
 /// `WImageSlots.errorWidgetBuilder` 的 `onRetry` 参数触发。
@@ -55,8 +55,8 @@ class WImage extends StatefulWidget {
   /// 类型化的进度回调（网络图或带 chunk 的自定义 provider）
   final ValueChanged<WImageProgress>? onProgress;
 
-  /// 显式来源 + 不可变样式（推荐入口）
-  factory WImage.source({
+  /// 显式来源 + 不可变样式（唯一入口）。
+  factory WImage({
     Key? key,
     required WImageSource source,
     WImageStyle style = const WImageStyle(),

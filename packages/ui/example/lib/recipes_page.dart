@@ -21,7 +21,7 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('头像：WImage + 正方形 + 全圆角'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.asset('assets/demo.png'),
             style: WImageStyle(
               width: 72,
@@ -37,7 +37,7 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('缩略图：WImage + 正方形 + 解码上限'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.asset('assets/demo.png'),
             style: const WImageStyle(width: 96, height: 96),
             options: const WImageLoadOptions(memCacheWidth: 288, memCacheHeight: 288),
@@ -50,13 +50,13 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('封面：WImage + WImageStyle.cover'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.asset('assets/demo.png'),
             style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12),
           ),
         ),
         const _Code(
-          'WImage.source(source: ..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))',
+          'WImage(source: ..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))',
         ),
         const SizedBox(height: 24),
         const _SectionTitle('宽度铺满 + 高度上限：ConstrainedBox(maxHeight) + fitWidth'),
@@ -64,7 +64,7 @@ class RecipesPage extends StatelessWidget {
         _Card(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 96),
-            child: WImage.source(
+            child: WImage(
               source: WImageSource.asset('assets/demo.png'),
               style: const WImageStyle(
                 width: double.infinity,
@@ -81,19 +81,19 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('资源路径：直接传完整路径'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.asset('assets/demo.png'),
             style: const WImageStyle(width: 120, height: 68),
           ),
         ),
         const _Code(
-          "WImage.source(source: WImageSource.asset('assets/demo.png'))",
+          "WImage(source: WImageSource.asset('assets/demo.png'))",
         ),
         const SizedBox(height: 24),
         const _SectionTitle('内存字节：WImageSource.provider(MemoryImage(...))'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.provider(MemoryImage(bytes)),
             style: const WImageStyle(width: 64, height: 64),
           ),
@@ -102,7 +102,7 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('任意 provider：WImageSource.provider(...)'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.provider(provider),
             style: const WImageStyle(width: 64, height: 64),
           ),
@@ -111,7 +111,7 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('内置错误 + 重试'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.source(
+          child: WImage(
             source: WImageSource.network('https://example.invalid/retry.png'),
             style: const WImageStyle(width: 160, height: 90),
             options: const WImageLoadOptions(retryCount: 1),

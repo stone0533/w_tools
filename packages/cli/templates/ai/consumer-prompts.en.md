@@ -690,7 +690,7 @@ Likewise, if the AI says analyze / test passed but pastes no raw output, treat i
 <!-- @endif -->
 [ ] lists have refresh / pagination / footer (when applicable)
 <!-- @if:ui -->
-[ ] images use WImage.source with decode limits
+[ ] images use WImage with decode limits
 <!-- @endif -->
 [ ] route arguments and results are correct
 [ ] keyboard / SafeArea / overflow checked

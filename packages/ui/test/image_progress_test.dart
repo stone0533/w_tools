@@ -64,7 +64,7 @@ void main() {
           placeholderBuilder: (context, data) => const Text('THEME_PROGRESS'),
         ),
         child: MaterialApp(
-          home: WImage.source(
+          home: WImage(
             source: WImageSource.provider(provider),
             style: const WImageStyle(width: 64, height: 64),
           ),

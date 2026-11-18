@@ -304,7 +304,7 @@ banned:
   - id: no-raw-image
     pattern: 'Image\.asset\('
     mode: regex
-    use: 'WImage.source(source: WImageSource.asset(...))'
+    use: 'WImage(source: WImageSource.asset(...))'
     reason: '项目要求统一图片入口'
     level: warn
     paths: ['lib/app/modules/**']

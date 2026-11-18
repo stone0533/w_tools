@@ -63,7 +63,7 @@ dart run w_tools_cli:w_tools explain <组件名>
 - 按 [`docs/agents/ui.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/ui.md)：
   - 页面骨架用 `AppScaffold`（`init` 生成）；仓库内页面用 `WScaffold` + `WAppBar`
   - 文本用 `WText` + `WTextStyles`
-  - 图片用 `WImage.source(source: WImageSource.asset(...))` / `WImageSource.network(...)`，禁止裸 `Image.asset`
+  - 图片用 `WImage(source: WImageSource.asset(...))` / `WImageSource.network(...)`，禁止裸 `Image.asset`
   - 表单用 `WForm` + `WFormTextField` 等直接字段
   - 间距用原生 `SizedBox` / `Padding`（`WSizeBox` / `WPadding` 5.0 已删除），适配值用 `WScreen.w/h`
 - `tokens` 只给设计 token，不会自动生成页面代码；组件映射必须结合项目 toolkit。

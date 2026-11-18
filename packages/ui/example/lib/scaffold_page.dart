@@ -257,7 +257,7 @@ class ScaffoldDemoPage extends StatelessWidget {
             title: '资源路径',
             subtitle: '12.0 删除了全局 WAssets.imagePath；直接传完整路径',
             child: CodeText(
-              "WImage.source(source: WImageSource.asset('assets/images/logo.png'))",
+              "WImage(source: WImageSource.asset('assets/images/logo.png'))",
             ),
           ),
         ],

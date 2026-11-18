@@ -44,7 +44,7 @@
 | --- | --- | --- | --- | --- |
 | `WText` / `WTextVariant` / `WTextStyles` | ui | core | 语义文字样式、overrides、maxLines、textScaler | 不要再用已移除的 `WTextConfig`，改用 `WTextStyles` |
 | `WIconText` | ui | core | 图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text | 纯图标 / 需要按钮语义用 `WButton.filled(icon: ...)`；复杂多行内容用 `WButton.filled(content: ...)` |
-| `WImage` | ui | core | 网络图/资源图（缓存、占位；自动重试用 retryCount） | 不要裸用 `Image.network` |
+| `WImage` | ui | core | 图片组件（network / asset / file / base64 / provider；缓存、占位、重试） | 不要裸用 `Image.network` |
 | `WImageSource` | ui | core | WImage 的来源：network / asset / file / base64 / provider | 不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse |
 | `WImageStyle` | ui | core | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
 | `WImageLoadOptions` | ui | core | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |

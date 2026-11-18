@@ -23,7 +23,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 重构取舍（2026-11）
 
-- **catalog 粒度**：70 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
+- **catalog 粒度**：54 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
   需要精确命中，合并会降低可发现性。
 - **token 层**：暂不引入 `WUiTokens`。当前颜色走 `ColorScheme`，尺寸走
   `WButtonSize` / `WStepStyle`，阴影/渐变走 `WShadows` / `WGradients`；
@@ -109,7 +109,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 4. WImage - 图片组件
 
-- 统一入口：`WImage.source(source: WImageSource..., style:, options:, slots:)`；7.0 起只接受 `options:`。
+- 统一入口：`WImage(source: WImageSource..., style:, options:, slots:)`；7.0 起只接受 `options:`。
 - 来源用 `WImageSource.network / asset / file / base64 / provider`，类型由调用方显式选择；
   12.0 删除了 `WImageSource.parse` 的字符串猜测。
 - `WImageSource.asset(name)` 接收**完整资源路径**（如 `assets/images/logo.png`）；

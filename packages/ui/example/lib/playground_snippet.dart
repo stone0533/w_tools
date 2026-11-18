@@ -12,7 +12,7 @@ String buildPlaygroundSnippet({
   required bool customPlaceholder,
   required int retryCount,
 }) {
-  final buffer = StringBuffer('WImage.source(\n');
+  final buffer = StringBuffer('WImage(\n');
   if (isNetwork) {
     buffer.writeln("  source: WImageSource.network('https://…'),");
   } else {

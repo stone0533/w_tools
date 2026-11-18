@@ -204,16 +204,16 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '4-wimage---图片组件'
     section: '2. 文本与图标'
-    useFor: '网络图/资源图（缓存、占位；自动重试用 retryCount）'
+    useFor: '图片组件（network / asset / file / base64 / provider；缓存、占位、重试）'
     dontUseFor: '不要裸用 `Image.network`'
     usage: |
-      WImage.source(source: WImageSource.network(url));
-      WImage.source(source: WImageSource.asset('assets/images/logo.png'));
-      WImage.source(
+      WImage(source: WImageSource.network(url));
+      WImage(source: WImageSource.asset('assets/images/logo.png'));
+      WImage(
         source: WImageSource.network(url),
         options: const WImageLoadOptions(memCacheWidth: 800, retryCount: 2),
       );
-      WImage.source(
+      WImage(
         source: WImageSource.network(url),
         slots: WImageSlots(
           errorWidgetBuilder: (context, data, error, retry) =>
@@ -306,7 +306,14 @@ components:
       WButton.filled(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
       WButton.filled(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
       // 危险色是 style / 项目 AppButtons，不是构造器
-      WButton.filled(style: AppButtons.danger(context), label: '删除', onTap: remove);
+      WButton.filled(
+        style: FilledButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          foregroundColor: Theme.of(context).colorScheme.onError,
+        ),
+        label: '删除',
+        onTap: remove,
+      );
     pitfalls:
       - '视觉走 Material ButtonStyle（FilledButton / OutlinedButton / TextButton），不要自己拿 DecoratedBox 拼'
       - 'style 只覆盖属性，不改变按钮类型；AppButtons.primary/danger 配 .filled，secondary 配 .outlined，text 配 .text'
@@ -1919,7 +1926,7 @@ components:
     useFor: '图片加载进度（downloadedBytes / totalBytes / fraction / isComplete）'
     dontUseFor: '不要把 downloadedBytes 当总大小；总大小未知时看 fraction == null'
     usage: |
-      WImage.source(
+      WImage(
         source: WImageSource.network(url),
         onProgress: (progress) =>
             setState(() => _percent = progress.fraction),
@@ -1943,7 +1950,7 @@ components:
     useFor: '图片加载状态（idle / loading / completed / failed）'
     dontUseFor: '不要当业务状态机；只表示图片加载阶段'
     usage: |
-      WImage.source(
+      WImage(
         source: WImageSource.network(url),
         onLoadStatusChanged: (status) {
           if (status == WImageLoadStatus.failed) { ... }

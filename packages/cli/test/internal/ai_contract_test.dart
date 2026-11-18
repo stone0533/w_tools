@@ -139,6 +139,26 @@ void main() {
       }
     });
 
+    test('ui_module 的 catalog 数量声明与 catalog 一致', () {
+      final count = catalog.where((e) => e.package == 'w_tools_ui').length;
+      final text = File('../../docs/modules/ui_module.md').readAsStringSync();
+      expect(text, contains('$count 条'));
+    });
+
+    test('WImage 描述覆盖全部来源', () {
+      final entry = findComponent('WImage');
+      expect(entry?.useFor, contains('file'));
+      expect(entry?.useFor, contains('base64'));
+      expect(entry?.useFor, contains('provider'));
+    });
+
+    test('WButton usage 不依赖项目级 AppButtons', () {
+      final entry = findComponent('WButton');
+      expect(entry, isNotNull);
+      expect(entry!.usage, isNot(contains('AppButtons.')));
+      expect(entry.usage, contains('FilledButton.styleFrom'));
+    });
+
     test('ui 高频子 API 能通过 explain 查到', () {
       const names = <String>[
         'WButton',

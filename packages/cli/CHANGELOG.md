@@ -1,3 +1,9 @@
+## 2.6.0
+
+### Changed
+- `init` 的 `w_tools_ui` 约束抬到 `^14.0.0`（`WImage.source` 改为无名 `WImage`）。
+- `ui_README` / 模板中的 `WImage.source` 示例改为 `WImage(source: ...)`。
+
 ## 2.5.0
 
 ### Changed

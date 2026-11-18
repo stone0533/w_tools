@@ -680,7 +680,7 @@ dart run w_tools_cli:w_tools explain <组件名> --format=prompt
 <!-- @endif -->
 [ ] 列表有刷新 / 分页 / footer（如涉及）
 <!-- @if:ui -->
-[ ] 图片用 WImage.source，限制解码尺寸
+[ ] 图片用 WImage，限制解码尺寸
 <!-- @endif -->
 [ ] 路由参数和返回结果正确
 [ ] 键盘 / SafeArea / overflow 检查
