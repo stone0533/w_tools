@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
   w_tools_async_ui:
     path: ../
-  w_tools_async: ^7.0.1
+  w_tools_async: ^8.0.0
 
 dev_dependencies:
   flutter_test:

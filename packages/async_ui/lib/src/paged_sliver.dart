@@ -5,8 +5,8 @@ import 'package:w_tools_async/w_tools_async.dart';
 
 /// 自定义滚动壳里的分页内容。
 ///
-/// 只负责四态和 ready 分支；不包含 `SmartRefresher` / `RefreshController`，
-/// 也不包含 footer。header / footer 由调用方自己的滚动壳负责。
+/// 只负责四态和 ready 分支；不包含刷新壳 / footer / 文案。
+/// header / footer 由调用方自己的滚动壳负责。
 ///
 /// 标准页面优先用 [WAsyncPagedList]。
 class WAsyncPagedSliver<T> extends StatelessWidget {
@@ -42,8 +42,7 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
 
   /// 错误态重试；为 null 时使用 [WAsyncPagedController.refresh]。
   ///
-  /// 自建 `SmartRefresher` 时传 `refreshController.requestRefresh`，
-  /// 让重试走页面刷新头。
+  /// 自建 `RefreshIndicator` 时把 `onRetry` 接到自己的刷新入口（例如 `controller.refresh`）。
   final VoidCallback? onRetry;
 
   @override

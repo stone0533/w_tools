@@ -1649,21 +1649,23 @@ const String agentsApp = r'''
 const String agentsAsync = r'''
 - **异步区块**（`explain WAsyncSection` / `explain WAsyncPagedList`；分页 controller：
   `explain WAsyncPagedController`）：业务页面单区块用 `WAsyncController` + `WAsyncSection`（默认 onRetry =
-  controller.load），分页用 `WAsyncPagedList`（内部 SmartRefresher；header/footer 可覆盖），
+  controller.load），分页用 `WAsyncPagedList`（内部 RefreshIndicator；自动 loadMore；自定义刷新壳用 WAsyncPagedSliver），
   自定义滚动用 `WAsyncPagedSliver`；`WAsyncView` / `WAsyncStateSliver` 只用于库 / 设计系统 /
   自定义扩展。分页 footer 只读 `snapshot.footerStatus`（hidden / loading / failed / noMore /
   loadMore），`loadMore` 失败只写 `snapshot.loadMoreError`，不要维护 `hasLoadedMorePage`；
   多个独立区块每块一个 controller，不要用 `data != null` 代替四态；`WAsyncStatus` /
   `WAsyncStrings` 走 `WAsyncTheme`；结果分支 `WAsyncSuccess` / `WAsyncFailure` /
-  `WAsyncCancelled`，取消异常 `WCancellationException`；纯执行用 `WAsync.tryRun` / `run`，
-  独立区块用 `WAsync.settle`；`WAsyncView.state` 是 `ValueListenable` 不是 `Rx`，外层 `Obx` 要保留。
+  `WAsyncCancelled`，取消异常 `WCancellationException`；纯执行原语用 `WAsync.tryRun` / `run`，
+  默认 hooks 用 `WAsyncExecutor(WAsyncHooks(...))` 注入，没有全局 `defaultHooks`；
+  单次 `hooks` 覆盖；独立区块用 `WAsync.settle`；`WAsyncView.state` 是 `ValueListenable`
+  不是 `Rx`，外层 `Obx` 要保留。
 ''';
 
 const String agentsAsyncUi = r'''
 - **Async 规范入口**（`explain WAsyncSection` / `explain WAsyncPagedList`）：业务页面单区块用
-  `WAsyncSection`，标准分页用 `WAsyncPagedList`（内部 SmartRefresher；header/footer 可覆盖），
+  `WAsyncSection`，标准分页用 `WAsyncPagedList`（内部 RefreshIndicator；自动 loadMore；自定义刷新壳用 WAsyncPagedSliver），
   自定义滚动用 `WAsyncPagedSliver`；业务入口查询用 `list --tier=app`。不要维护
-  `hasLoadedMorePage`，分页只读 `snapshot.footerStatus`；`WAsyncView` / `WAsyncStateSliver`
+  `hasLoadedMorePage`，分页只读 `snapshot.footerStatus`（默认 footer 文案走 `WAsyncTheme.strings`，可用 `footerBuilder` 覆盖）；`WAsyncView` / `WAsyncStateSliver`
   只用于库 / 设计系统 / 明确的自定义扩展。
 ''';
 
@@ -1780,23 +1782,22 @@ const String agentsAppEn = r'''
 ''';
 
 const String agentsAsyncEn = r'''
-- **Async blocks** (`explain WAsyncSection` / `explain WAsyncPagedList`; paged controller:
-  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection` for one block
-  (onRetry=controller.load) and `WAsyncPagedList` for paged lists; `WAsyncPagedSliver` for custom
-  scroll. `WAsyncView` / `WAsyncStateSliver` are for libraries/design systems. Footer reads only
+- **Async blocks** (`explain WAsyncSection` / `WAsyncPagedList`; paged controller:
+  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection`
+  (onRetry=controller.load) and `WAsyncPagedList` for paged lists; `WAsyncPagedSliver`.
+  `WAsyncView` / `WAsyncStateSliver` are library-only. `WAsyncStatus` /
+  `WAsyncStrings` come from `WAsyncTheme`. Footer reads
   `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); `loadMore` failure
-  writes `snapshot.loadMoreError`; do not maintain `hasLoadedMorePage`; one controller per
-  independent block; do not use `data != null` for the four states; `WAsyncStatus` /
-  `WAsyncStrings` come from `WAsyncTheme`; branch on `WAsyncSuccess` / `WAsyncFailure` /
-  `WAsyncCancelled`, cancellation throws `WCancellationException`; use `WAsync.tryRun` / `run`
-  for pure execution and `WAsync.settle` for independent sections; `WAsyncView.state` is a
-  `ValueListenable`, not `Rx`, keep the outer `Obx`.
+  writes `snapshot.loadMoreError`; no `hasLoadedMorePage`; don't use `data != null` for states; branch on `WAsyncSuccess` /
+  `WAsyncFailure` / `WAsyncCancelled`; cancellation throws `WCancellationException`; execution uses `WAsync.tryRun` / `run`; default hooks via `WAsyncExecutor(WAsyncHooks(...))`;
+  no global defaultHooks; per-call hooks override; use `WAsync.settle`;
+  `WAsyncView.state` is `ValueListenable`, keep outer `Obx`.
 ''';
 
 const String agentsAsyncUiEn = r'''
 - **Async entries** (`explain WAsyncSection` / `explain WAsyncPagedList`): use
   `WAsyncSection` / `WAsyncPagedList` for blocks / paging; `WAsyncPagedSliver` for custom scroll;
-  `list --tier=app`. Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus`.
+  `list --tier=app`. Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus` (default footer copy comes from `WAsyncTheme.strings`; `footerBuilder` can override).
   `WAsyncView`/`WAsyncStateSliver` are library/design-system.
 ''';
 

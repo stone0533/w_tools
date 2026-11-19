@@ -6,10 +6,10 @@ import 'cancel_token.dart';
 export 'async_result.dart';
 export 'cancel_token.dart';
 
-/// 执行入口的默认生命周期回调。
+/// 执行入口的生命周期回调值对象。
 ///
-/// 项目在 composition root 设置一次 `WAsync.defaultHooks`；单次调用可用
-/// [WAsync.run] 等入口的 `hooks` 参数覆盖，或传 [WAsyncHooks.none] 关闭默认。
+/// 默认值由 [WAsyncExecutor] 携带；单次调用可用 [WAsync.run] 等入口的
+/// `hooks` 参数指定，或传 [WAsyncHooks.none] 关闭回调。
 ///
 /// 只作用于显式执行入口；[WAsyncController] / [WAsyncPagedController] 的内部
 /// load / refresh / loadMore 不继承，页面四态由 WAsyncView / WAsyncSection 管理。
@@ -41,13 +41,6 @@ class WAsyncHooks {
 /// 以失败的 Future 返回 [ArgumentError]。
 class WAsync {
   WAsync._();
-
-  /// 显式执行入口的默认生命周期回调；测试中应重置为 [WAsyncHooks.none]。
-  ///
-  /// 不作用于 [WAsyncController] / [WAsyncPagedController] 的内部请求。
-  /// remove-in: 8.0.0
-  @Deprecated('Use WAsyncExecutor; defaultHooks will be removed in 8.0.0')
-  static WAsyncHooks defaultHooks = const WAsyncHooks();
 
   /// 执行单个异步操作并返回结果对象。
   ///
@@ -314,8 +307,7 @@ class WAsync {
   }
 
   static WAsyncHooks _resolveHooks(WAsyncHooks? hooks) {
-    // ignore: deprecated_member_use_from_same_package
-    return hooks ?? defaultHooks;
+    return hooks ?? WAsyncHooks.none;
   }
 
   static void _notifyStart(void Function()? onStart) {

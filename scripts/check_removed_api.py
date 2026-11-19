@@ -33,6 +33,7 @@ names = [
     r'\bWAsyncStateBuilder\b', r'\bWAsyncActivity\b', r'\bWAsyncOptions\b',
     r'\bWAsyncThemeViews\b', r'\bWAsyncTokenPageLoader\b', r'\bWAsyncRetryErrorHandler\b',
     r'WAsync\.(?:parallel|pool|serial|first|map)\b',
+    r'WAsync\.defaultHooks\b',
     r'WAsyncState\.ofList\b',
     r'WAsyncController\.(?:withToken|listWithToken|retry|reload)\b',
     r'WAsyncPagedController\.(?:withToken|withPage|withPageToken|page|initialPage|'
@@ -50,6 +51,7 @@ names = [
     r'\bWAsyncPagedFooter\b',
     r'WAsyncPagedList\.strings\b',
     r'WAsyncPagedSliver\.(?:ready|footer|strings)\b',
+    r'WAsyncPagedList\.(?:refreshController|header|footer)\b',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # app_getx 2.0：全局语言状态与静态路由栈收口。
     r'\bWAppConfig\b', r'WLocaleConfig\.defaultLanguage', r'WLanguage\.languageStream',
@@ -176,6 +178,7 @@ patterns = [
 removed_dependencies = [
     r'\bbadges\b',
     r'\bform_builder_validators\b',
+    r'\bpull_to_refresh\b',
 ]
 dependency_patterns = [re.compile(pattern) for pattern in removed_dependencies]
 removal = re.compile(r'删除|移除|不再提供|不再依赖|迁移|removed', re.IGNORECASE)

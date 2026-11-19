@@ -827,30 +827,59 @@ components:
     related: ['WAsyncController', 'WAsyncView', 'WAsyncPagedList']
     teach: true
 
+  - name: '`WAsyncRefreshIndicatorStyle`'
+    package: 'w_tools_async_ui'
+    tier: app
+    docsAnchor: 'wasyncpagedlist'
+    section: '4. View'
+    useFor: '标准 WAsyncPagedList 的 RefreshIndicator 样式：颜色 / 背景 / 线宽 / 位移 / 触发模式'
+    dontUseFor: '不解决自定义刷新头动画或完成 / 失败文案；这些用 WAsyncPagedSliver 自建壳'
+    usage: |
+      WAsyncPagedList<Gift>(
+        controller: gifts,
+        itemBuilder: (context, gift) => GiftTile(gift),
+        refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle(
+          color: Color(0xFF00A86B),
+          backgroundColor: Colors.white,
+          strokeWidth: 2,
+        ),
+      )
+    pitfalls:
+      - '只映射 RefreshIndicator 的样式，不包含自定义 header'
+      - 'null 字段回退到 Flutter 默认值'
+      - '需要刷新完成 / 失败文案时使用 WAsyncPagedSliver + 自建滚动壳'
+    related: ['WAsyncPagedList']
+    teach: true
+
   - name: '`WAsyncPagedList`'
     package: 'w_tools_async_ui'
     tier: app
     docsAnchor: 'wasyncpagedlist'
     section: '4. View'
-    useFor: '标准分页列表的规范入口；内部处理刷新、上拉和 generation；header/footer 可覆盖'
-    dontUseFor: '自定义 ready sliver 用 `WAsyncPagedSliver`；不要在 WAsyncPagedList 外再传 footerStatus / footerChanges'
+    useFor: '标准分页列表；RefreshIndicator 下拉刷新 + 滚动阈值自动 loadMore + 内置 footer'
+    dontUseFor: '自定义下拉头 / 上拉壳用 `WAsyncPagedSliver` + 自己的滚动壳；pull_to_refresh 已移除'
     usage: |
+      final reloadRequests = ValueNotifier<int>(0);
       WAsyncPagedList<Gift>(
         controller: gifts,
         itemBuilder: (context, gift) => GiftTile(gift),
         emptyBuilder: (context) => const EmptyView(), // 可选
-        header: AppRefreshHeader(),                  // 可选；SmartRefresher header
-        footer: CustomFooter(                         // 可选；SmartRefresher footer
-          builder: (context, _) => AppFooter(controller: gifts),
+        reloadRequests: reloadRequests,                // 可选；程序化刷新
+        autoLoadThreshold: 200,                        // 可选；滚动自动加载
+        footerBuilder: (context, snapshot) =>           // 可选；默认内置
+            AppFooter(snapshot),
+        refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle(
+          color: Color(0xFF00A86B),
+          backgroundColor: Colors.white,
         ),
-        refreshController: refreshController,         // 可选；外部持有 / dispose
       )
     pitfalls:
       - '不自动 refresh；页面在 controller 的 initState / onInit 调 refresh()'
-      - '要带动画的程序化刷新时传 refreshController，再调 requestRefresh()'
-      - '外部 refreshController 由 app dispose；不传时组件内部创建并 dispose'
-      - 'header/footer 原样转给 SmartRefresher；不传时使用其默认样式'
-      - 'app footer 读 controller.snapshot；重试调 controller.loadMore()，不要依赖内部 RefreshController'
+      - '下拉刷新是标准 RefreshIndicator；需要自定义刷新头用 WAsyncPagedSliver'
+      - '上拉加载改为滚动阈值自动触发；autoLoadThreshold:null 可关闭'
+      - '默认 footer 展示 loading / 重试 / 没有更多；footerBuilder 可覆盖'
+      - '标准刷新头用 refreshIndicatorStyle 配颜色 / 背景；自定义头用 WAsyncPagedSliver'
+      - '程序化刷新用 reloadRequests.value++；不需要外部刷新控制器'
       - 'loadMore 失败只更新 footer，不清空列表；不要额外 toast'
       - '不要维护 hasLoadedMorePage；footer 只读 snapshot.footerStatus'
     related: ['WAsyncPagedController', 'WAsyncPagedSliver', 'WAsyncPagedFooterStatus']
@@ -864,23 +893,26 @@ components:
     useFor: '自定义 CustomScrollView 里的分页内容；.custom 支持 readySliverBuilder'
     dontUseFor: '标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncSection 单区块'
     usage: |
-      CustomScrollView(
-        slivers: [
-          WAsyncPagedSliver<Gift>.custom(
-            controller: gifts,
-            readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
-            onRetry: refreshController.requestRefresh, // 让重试走页面 header
-          ),
-          SliverToBoxAdapter(child: AppFooter(controller: gifts)),
-        ],
+      RefreshIndicator(
+        onRefresh: gifts.refresh,
+        child: CustomScrollView(
+          slivers: [
+            WAsyncPagedSliver<Gift>.custom(
+              controller: gifts,
+              readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
+              onRetry: gifts.refresh,
+            ),
+            SliverToBoxAdapter(child: AppFooter(controller: gifts)),
+          ],
+        ),
       )
     pitfalls:
-      - '只负责四态和 ready 分支；不包含 SmartRefresher / RefreshController'
-      - '不包含 footer / 文案；header / footer 由页面自己的滚动壳负责'
-      - '自建 SmartRefresher 时传 onRetry: refreshController.requestRefresh，错误重试才会走 header'
+      - '只负责四态和 ready 分支；不包含刷新壳 / footer / 文案'
+      - 'header / footer 由页面自己的滚动壳负责'
+      - '自建滚动壳的错误重试传 onRetry: gifts.refresh，或接自己的刷新入口'
       - '不自动 refresh；页面 controller 负责首屏请求'
     related: ['WAsyncPagedList', 'WAsyncStateSliver']
-    teach: false
+    teach: true
 
   - name: '`WAsyncController`'
     package: 'w_tools_async'
@@ -1052,7 +1084,7 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '6-wlistview---列表'
     section: '7. 状态与反馈'
-    useFor: '列表（独立滚动 / SmartRefresher sliver）'
+    useFor: '列表（独立滚动 / 自定义滚动壳 sliver）'
     dontUseFor: '不要把 WListViewSliver 直接放进非 sliver 子树'
     usage: |
       WListView(sliver: WListViewSliver.list(itemCount: n, itemBuilder: ...));
@@ -1060,7 +1092,7 @@ components:
       WListView(sliver: WListViewSliver.grid(itemCount: n, gridDelegate: ..., itemBuilder: ...));
       WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap: 24, itemBuilder: ...));
     pitfalls:
-      - '嵌 SmartRefresher / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳'
+      - '嵌自定义滚动壳 / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳'
       - 'shrinkWrap: true 与 emptyFill: true 同时用会断言'
       - 'overlap 只调整布局；重叠区域的 hit test 不可靠，点击放在 item 内部，不要依赖重叠区'
     related: ['`WKeepAliveWrapper`', '`WNotificationListener`']
@@ -1246,7 +1278,7 @@ components:
       await appAsync.run(() => api.save());
     pitfalls:
       - 'WAsyncHooks 只是回调值对象，不持有执行逻辑'
-      - 'WAsync.defaultHooks 已 deprecated；改用 WAsyncExecutor'
+      - '默认 hooks 由 WAsyncExecutor 携带，没有全局默认 hooks'
       - 'WAsyncHooks.none 可关闭本次 hooks'
     related: ['WAsyncExecutor', 'WAsync']
     teach: true
@@ -1318,9 +1350,8 @@ components:
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onStart / onFinally 管 loading；onFinally 在成功 / 失败 / 取消都执行'
-      - 'WAsyncHooks / defaultHooks 配置一次；显式回调 > hooks > defaultHooks'
-      - 'defaultHooks 已 deprecated；优先用 WAsyncExecutor'
-      - '本次关闭默认传 hooks: WAsyncHooks.none；测试必须重置 defaultHooks'
+      - '默认 hooks 配置在 WAsyncExecutor；显式回调 > hooks > executor 默认'
+      - '本次关闭 hooks 传 WAsyncHooks.none；没有全局 defaultHooks 可重置'
       - 'retry / timeout 的钩子整次一次；settle 是 batch-level，整批一次'
       - '成功用返回值，不提供 onSuccess；onError 只是通知，不会吞异常'
       - 'run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
@@ -2236,7 +2267,7 @@ components:
     package: 'w_tools_async'
     docsAnchor: '5-theme'
     section: '5. Theme'
-    useFor: '全局默认文案：empty / errorTitle / retry / loading'
+    useFor: '全局默认文案：empty / errorTitle / retry / loading / noMore'
     dontUseFor: '不要用它写业务文案；项目应注入本地化，默认文案是英文'
     usage: |
       const WAsyncStrings(
@@ -2244,6 +2275,7 @@ components:
         errorTitle: '加载失败',
         retry: '重试',
         loading: '加载中',
+        noMore: '没有更多',
       )
     pitfalls:
       - '项目应注入本地化文案；默认是英文'

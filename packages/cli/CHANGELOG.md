@@ -1,3 +1,17 @@
+## 2.8.0
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^8.0.0`。
+- catalog 移除 `WAsync.defaultHooks`，默认 hooks 改用 `WAsyncExecutor`。
+
+## 2.7.0
+
+### Changed
+- `init` 的 `w_tools_async_ui` 约束抬到 `^2.0.0`：`WAsyncPagedList` 去掉
+  `refreshController` / `header` / `footer` 和 `pull_to_refresh` 依赖。
+- catalog 的 `WAsyncPagedList` 改用 `reloadRequests` / `autoLoadThreshold` /
+  `footerBuilder`；程序化刷新不再需要 `RefreshController`。
+
 ## 2.6.0
 
 ### Changed

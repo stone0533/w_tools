@@ -1,13 +1,9 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
 void main() {
-  setUp(() => WAsync.defaultHooks = WAsyncHooks.none);
-  tearDown(() => WAsync.defaultHooks = WAsyncHooks.none);
-
   group('WAsyncResult', () {
     test('tryRun 成功返回 WAsyncSuccess', () async {
       final result = await WAsync.tryRun(() async => 42);
@@ -115,93 +111,6 @@ void main() {
         throwsStateError,
       );
       expect(reported, isTrue, reason: 'onError 应被调用，但不能吞掉 run 的异常');
-    });
-  });
-
-  group('WAsyncHooks defaults', () {
-    test('defaultHooks 对 run / tryRun 生效', () async {
-      final events = <String>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('start'),
-        onFinally: () => events.add('finally'),
-      );
-
-      expect(await WAsync.run(() async => 1), 1);
-      expect(await WAsync.tryRun(() async => 2), isA<WAsyncSuccess<int>>());
-      expect(events, ['start', 'finally', 'start', 'finally']);
-    });
-
-    test('defaultHooks.onError 对 tryRun 失败生效', () async {
-      final errors = <Object>[];
-      WAsync.defaultHooks = WAsyncHooks(onError: errors.add);
-      final result = await WAsync.tryRun<int>(() async => throw StateError('boom'));
-      expect(result, isA<WAsyncFailure<int>>());
-      expect(errors.single, isA<StateError>());
-    });
-
-    test('显式回调覆盖 defaultHooks', () async {
-      final events = <String>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('default-start'),
-        onFinally: () => events.add('default-finally'),
-      );
-      await WAsync.run(
-        () async => 1,
-        onStart: () => events.add('custom-start'),
-        onFinally: () => events.add('custom-finally'),
-      );
-      expect(events, ['custom-start', 'custom-finally']);
-    });
-
-    test('本次 hooks 覆盖 defaultHooks', () async {
-      final events = <String>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('default-start'),
-        onFinally: () => events.add('default-finally'),
-      );
-      await WAsync.run(
-        () async => 1,
-        hooks: WAsyncHooks(
-          onStart: () => events.add('hooks-start'),
-          onFinally: () => events.add('hooks-finally'),
-        ),
-      );
-      expect(events, ['hooks-start', 'hooks-finally']);
-    });
-
-    test('WAsyncHooks.none 关闭默认', () async {
-      final events = <String>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('start'),
-        onFinally: () => events.add('finally'),
-      );
-      await WAsync.run(
-        () async => 1,
-        hooks: WAsyncHooks.none,
-      );
-      expect(events, isEmpty);
-    });
-
-    test('defaultHooks 对 retry / timeout / settle 生效', () async {
-      final events = <String>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('start'),
-        onFinally: () => events.add('finally'),
-      );
-
-      await WAsync.retry<int>(
-        () async => 1,
-        retryCount: 0,
-        retryDelay: Duration.zero,
-      );
-      await WAsync.timeout<int>(
-        () async => 1,
-        const Duration(seconds: 1),
-      );
-      await WAsync.settle<int>([() async => 1, () async => 2]);
-
-      expect(events.where((event) => event == 'start'), hasLength(3));
-      expect(events.where((event) => event == 'finally'), hasLength(3));
     });
   });
 

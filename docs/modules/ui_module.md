@@ -190,8 +190,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - 普通 / 分隔线 / 网格 / 重叠列表分别用
   `WListViewSliver.list / separated / grid / overlap`，外层统一由 `WListView` 承载。
 - `WListView` 的 controller 由页面持有并 `dispose`；不要在 build 里 new。
-- 与 `SmartRefresher` 组合时，刷新壳在外、`WListView` 在内；不要把 `SmartRefresher`
-  包在 `WAsyncView` 外面（异步场景见 `docs/agents/async.md`）。
+- 与 `RefreshIndicator` / 自定义刷新壳组合时，刷新壳在外、`WListView` 在内；
+  不要把刷新壳包在 `WAsyncView` 外面（异步场景见 `docs/agents/async.md`）。
 - 头部 / 尾部 / 空状态通过对应 slot 传入，不要在 itemBuilder 里用 index 判断。
 - `WListViewSliver.overlap` 只调整布局；重叠区域的 hit test 不可靠，点击放在 item 内部。
 

@@ -30,11 +30,13 @@ WAsyncSection<List<Gift>>(
 
 标准用法见 [packages/async_ui/README.md](../../packages/async_ui/README.md) 的「标准分页」；这里只记录边界：
 
-- 内部持有 `RefreshController` 和 `SmartRefresher`；
-- 统一处理下拉刷新、上拉加载、generation、`loadFailed / loadNoData / loadComplete`；
-- `header` / `footer` 直接转给 `SmartRefresher`；不传时使用其默认样式；
-- `refreshController` 可选；外部传入时支持带动画的 `requestRefresh()` / `isRefresh`；
-- app 自定义 footer 读 `controller.snapshot`，重试调用 `controller.loadMore()`；
+- 下拉刷新使用 Flutter `RefreshIndicator`；
+- 滚动接近底部时按 `autoLoadThreshold` 自动 `controller.loadMore()`；
+- 默认 footer 读 `controller.snapshot`，展示 loading / 失败重试 / 没有更多；
+- `footerBuilder` 可替换 footer；`reloadRequests` 负责程序化刷新；
+- `refreshIndicatorStyle` 配置标准 `RefreshIndicator` 的颜色 / 背景 / 线宽 / 位移 /
+  触发模式；自定义刷新头仍用 `WAsyncPagedSliver`；
+- 不持有外部刷新控制器；需要完全自定义刷新头 / 上拉壳时用 `WAsyncPagedSliver`；
 - 不在组件内自动发起首屏请求。
 
 ## WAsyncPagedSliver
@@ -43,9 +45,8 @@ WAsyncSection<List<Gift>>(
 
 - 只返回四态 sliver（`WAsyncStateSliver<List<T>>`）；
 - 支持 `WAsyncPagedSliver.custom(readySliverBuilder: ...)`（叠卡 / 自定义 sliver）；
-- 不包含 `SmartRefresher` / `RefreshController`；
-- 不包含 footer / 文案；header / footer 由调用方自己的滚动壳负责；
-- 自建 `SmartRefresher` 时传 `onRetry: refreshController.requestRefresh`；
+- 不包含刷新壳 / footer / 文案；header / footer 由调用方自己的滚动壳负责；
+- 自建 `RefreshIndicator` 时传 `onRetry: gifts.refresh`，或接自己的刷新入口；
 - 给 NestedScrollView、overlap 卡片、自定义滚动壳使用；
 - 标准页面优先用 `WAsyncPagedList`。
 

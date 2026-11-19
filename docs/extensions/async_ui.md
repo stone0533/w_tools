@@ -58,31 +58,37 @@ Widget build(BuildContext context) {
   return WAsyncPagedList<Gift>(
     controller: gifts,
     itemBuilder: (context, gift) => GiftTile(gift),
-    // 可选：直接覆盖 SmartRefresher 的 header / footer。
-    header: const AppRefreshHeader(),
-    footer: CustomFooter(
-      builder: (context, _) => AppFooter(controller: gifts),
+    reloadRequests: reloadRequests, // 可选；程序化刷新
+    autoLoadThreshold: 200,         // 可选；滚动自动加载
+    footerBuilder: (context, snapshot) => AppFooter(snapshot), // 可选
+    refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle( // 可选
+      color: Color(0xFF00A86B),
+      backgroundColor: Colors.white,
     ),
-    refreshController: refreshController, // 可选；外部持有 / dispose
   );
 }
 ```
 
-`WAsyncPagedList` 的 `header` / `footer` 原样转给 `SmartRefresher`；不传时使用其默认样式。
-app 自定义 footer 读 `gifts.snapshot`，重试调用 `gifts.loadMore()`。
+`WAsyncPagedList` 下拉刷新用 Flutter `RefreshIndicator`；滚动接近底部时自动
+`gifts.loadMore()`。默认 footer 读 `gifts.snapshot`，展示 loading / 失败重试 /
+没有更多。`refreshIndicatorStyle` 配置标准头的颜色 / 背景 / 线宽等，不提供自定义
+刷新头动画或完成 / 失败文案。
 
-需要带动画的程序化刷新时，传外部 `RefreshController`：
+需要完全自定义刷新头 / 上拉壳时，用 `WAsyncPagedSliver` + 自己的滚动壳：
 
 ```dart
-final refreshController = RefreshController();
-
-WAsyncPagedList<Gift>(
-  controller: gifts,
-  itemBuilder: (context, gift) => GiftTile(gift),
-  refreshController: refreshController,
-);
-
-refreshController.requestRefresh();
+RefreshIndicator(
+  onRefresh: gifts.refresh,
+  child: CustomScrollView(
+    slivers: [
+      WAsyncPagedSliver<Gift>(
+        controller: gifts,
+        itemBuilder: (context, gift) => GiftTile(gift),
+      ),
+      SliverToBoxAdapter(child: AppFooter(controller: gifts)),
+    ],
+  ),
+)
 ```
 
 ## 反例
@@ -91,7 +97,7 @@ refreshController.requestRefresh();
 | --- | --- |
 | 业务页面直接 `WAsyncView` | `WAsyncSection` |
 | 业务页面直接 `WAsyncStateSliver` + 自建刷新壳 | `WAsyncPagedList` / `WAsyncPagedSliver` |
-| 在 `WAsyncPagedList` 外再包一层 `SmartRefresher` | 用 `WAsyncPagedList.header` / `footer` |
+| 在 `WAsyncPagedList` 外再包一层刷新壳 | 标准页面直接用 `WAsyncPagedList`；自定义用 `WAsyncPagedSliver` |
 | 自建 `footerStatus` + `footerChanges` 双入口 | `WAsyncPagedList` 的 snapshot |
 | 维护 `hasLoadedMorePage` | `snapshot.footerStatus` |
 | 在多个独立区块之间共享一个 loading bool | 每块一个 controller + `WAsyncSection` |

@@ -1,3 +1,9 @@
+## 21.0.0
+
+### Breaking
+- `w_tools_async` 约束抬到 `^8.0.0`：删除 `WAsync.defaultHooks`，默认 hooks 改用
+  `WAsyncExecutor`。
+
 ## 20.0.0
 
 ### Breaking

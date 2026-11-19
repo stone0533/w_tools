@@ -54,7 +54,7 @@
 | `w_tools_api` | `dio` |
 | `w_tools_map_google` | `google_maps_flutter` |
 | `w_tools_async` | `flutter`（无第三方强依赖） |
-| `w_tools_async_ui` | `flutter`、`pull_to_refresh` |
+| `w_tools_async_ui` | `flutter` |
 | `w_tools_core` | `encrypt`、`crypto`、`convert`、`logger`、`shared_preferences`、`synchronized` |
 
 除 `app_getx → app`、`map_google → map` 两对契约关系外，库子包之间没有相互依赖，可单独引入；

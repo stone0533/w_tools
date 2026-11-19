@@ -10,7 +10,7 @@ import 'async_theme_views.dart';
 /// - ready → [readySliverBuilder]；
 /// - loading / empty / failed（无数据）→ [SliverFillRemaining]；
 /// - failed + 旧数据 → [WAsyncErrorBanner]（列表上方）+ ready sliver；
-/// - refreshing + 旧数据 → ready sliver；刷新进度由外层 `SmartRefresher` 负责。
+/// - refreshing + 旧数据 → ready sliver；刷新进度由外层刷新壳负责。
 ///
 /// 始终返回同一个 [SliverMainAxisGroup]，并用固定首槽保证 failed + 旧数据 /
 /// refreshing 切换时 ready 子树不被重建。

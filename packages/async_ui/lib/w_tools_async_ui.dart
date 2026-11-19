@@ -5,4 +5,5 @@
 
 export 'src/async_section.dart';
 export 'src/paged_list.dart';
+export 'src/refresh_indicator_style.dart';
 export 'src/paged_sliver.dart';

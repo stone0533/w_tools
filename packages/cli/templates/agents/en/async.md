@@ -1,11 +1,10 @@
-- **Async blocks** (`explain WAsyncSection` / `explain WAsyncPagedList`; paged controller:
-  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection` for one block
-  (onRetry=controller.load) and `WAsyncPagedList` for paged lists; `WAsyncPagedSliver` for custom
-  scroll. `WAsyncView` / `WAsyncStateSliver` are for libraries/design systems. Footer reads only
+- **Async blocks** (`explain WAsyncSection` / `WAsyncPagedList`; paged controller:
+  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection`
+  (onRetry=controller.load) and `WAsyncPagedList` for paged lists; `WAsyncPagedSliver`.
+  `WAsyncView` / `WAsyncStateSliver` are library-only. `WAsyncStatus` /
+  `WAsyncStrings` come from `WAsyncTheme`. Footer reads
   `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); `loadMore` failure
-  writes `snapshot.loadMoreError`; do not maintain `hasLoadedMorePage`; one controller per
-  independent block; do not use `data != null` for the four states; `WAsyncStatus` /
-  `WAsyncStrings` come from `WAsyncTheme`; branch on `WAsyncSuccess` / `WAsyncFailure` /
-  `WAsyncCancelled`, cancellation throws `WCancellationException`; use `WAsync.tryRun` / `run`
-  for pure execution and `WAsync.settle` for independent sections; `WAsyncView.state` is a
-  `ValueListenable`, not `Rx`, keep the outer `Obx`.
+  writes `snapshot.loadMoreError`; no `hasLoadedMorePage`; don't use `data != null` for states; branch on `WAsyncSuccess` /
+  `WAsyncFailure` / `WAsyncCancelled`; cancellation throws `WCancellationException`; execution uses `WAsync.tryRun` / `run`; default hooks via `WAsyncExecutor(WAsyncHooks(...))`;
+  no global defaultHooks; per-call hooks override; use `WAsync.settle`;
+  `WAsyncView.state` is `ValueListenable`, keep outer `Obx`.

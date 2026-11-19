@@ -15,10 +15,10 @@
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^1.1.0
+  w_tools_async_ui: ^2.0.0
 ```
 
-要求 Flutter 3.38+。
+要求 Flutter 3.38+、`w_tools_async ^8.0.0`。
 
 ## 单区块
 
@@ -90,86 +90,120 @@ Widget build(BuildContext context) {
   return WAsyncPagedList<Gift>(
     controller: gifts,
     itemBuilder: (context, gift) => GiftTile(gift),
-    // 可选：直接传 SmartRefresher 的 header / footer。
-    header: const AppRefreshHeader(),
-    footer: CustomFooter(
-      builder: (context, _) => ValueListenableBuilder(
-        valueListenable: gifts.snapshot,
-        builder: (context, snapshot, _) => AppFooter(
-          status: snapshot.footerStatus,
-          onRetry: gifts.loadMore,
-        ),
-      ),
-    ),
-    refreshController: refreshController, // 可选；外部持有 / dispose
+    reloadRequests: reloadRequests, // 可选；程序化重载
+    autoLoadThreshold: 200,         // 可选；距底部 200 触发 loadMore
+    footerBuilder: (context, snapshot) => AppFooter(snapshot), // 可选
+    refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle(
+      color: Color(0xFF00A86B),
+      backgroundColor: Colors.white,
+    ), // 可选；标准刷新头样式
   );
 }
 ```
 
-需要带动画的程序化刷新时，传入外部 `RefreshController`：
+下拉刷新由 Flutter `RefreshIndicator` 提供；滚动接近底部时自动
+`controller.loadMore()`。默认 footer 根据 `snapshot.footerStatus` 展示：
+
+```text
+loading  → 转圈
+failed   → “重试”按钮
+noMore   → “没有更多了”
+hidden / loadMore → 不显示
+```
+
+### 程序化刷新
 
 ```dart
-final refreshController = RefreshController();
+final reloadRequests = ValueNotifier<int>(0);
 
 WAsyncPagedList<Gift>(
   controller: gifts,
   itemBuilder: (context, gift) => GiftTile(gift),
-  refreshController: refreshController,
+  reloadRequests: reloadRequests,
 );
 
-refreshController.requestRefresh(); // 有下拉 header 动画
-if (refreshController.isRefresh) {
-  // 刷新在飞，避免重复 requestRefresh
-}
+// 换筛选 / 点“刷新”
+reloadRequests.value++;
 ```
 
-`WAsyncPagedList` 内部持有 `RefreshController`，统一处理下拉刷新、上拉加载、
-generation 和 `loadFailed / loadNoData / loadComplete`。
+`reloadRequests` 会复用 `RefreshIndicator` 的刷新动画；刷新中再次触发时，
+最新请求完成后才收起，不会由旧请求提前收尾。业务不需要持有外部刷新控制器。
 
-- `header` / `footer` 原样转给 `SmartRefresher`；
-- 不传时使用 `SmartRefresher` 的默认 header / footer；
-- `refreshController` 可选；外部传入时由 app dispose，不传时组件内部创建并 dispose；
-- app 自定义 footer 时，读 `controller.snapshot`，重试调用 `controller.loadMore()`；
-  不要依赖内部 `RefreshController`；
-- 不要再在页面里拼 `footerStatus` / `footerChanges` 两套参数。
-
-## 自定义滚动
+### 刷新头样式
 
 ```dart
-CustomScrollView(
-  slivers: [
-    WAsyncPagedSliver<Gift>(
-      controller: gifts,
-      itemBuilder: (context, gift) => GiftTile(gift),
-    ),
-    SliverToBoxAdapter(
-      child: AppFooter(controller: gifts),
-    ),
-  ],
+WAsyncPagedList<Gift>(
+  controller: gifts,
+  itemBuilder: (context, gift) => GiftTile(gift),
+  refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle(
+    color: Color(0xFF00A86B),
+    backgroundColor: Colors.white,
+    strokeWidth: 2,
+    displacement: 40,
+    edgeOffset: 0,
+    triggerMode: RefreshIndicatorTriggerMode.onEdge,
+  ),
 )
 ```
 
-需要 NestedScrollView / overlap 卡片时用 `.custom`：
+`WAsyncRefreshIndicatorStyle` 只映射 Flutter `RefreshIndicator` 的样式：
+
+```text
+颜色 / 背景 / 线宽 / 位移 / 边缘偏移 / 触发模式
+```
+
+不支持自定义刷新头、完成 / 失败文案或下拉动画；这些用
+`WAsyncPagedSliver` + 自己的滚动壳。
+
+### 自定义 footer
 
 ```dart
-WAsyncPagedSliver<Gift>.custom(
+WAsyncPagedList<Gift>(
   controller: gifts,
-  readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
-  onRetry: refreshController.requestRefresh, // 错误重试走页面 header
+  itemBuilder: (context, gift) => GiftTile(gift),
+  footerBuilder: (context, snapshot) {
+    return switch (snapshot.footerStatus) {
+      WAsyncPagedFooterStatus.loading => const AppLoadingFooter(),
+      WAsyncPagedFooterStatus.failed => AppFailedFooter(
+          onRetry: gifts.loadMore,
+        ),
+      WAsyncPagedFooterStatus.noMore => const AppNoMoreFooter(),
+      _ => const SizedBox.shrink(),
+    };
+  },
+)
+```
+
+### 自定义刷新头 / 上拉壳
+
+`WAsyncPagedList` 只提供标准 `RefreshIndicator` + 自动加载。需要完全自定义
+下拉动画或 pull-up 手势时，用 `WAsyncPagedSliver` + 自己的滚动壳：
+
+```dart
+RefreshIndicator(
+  onRefresh: gifts.refresh,
+  child: CustomScrollView(
+    slivers: [
+      WAsyncPagedSliver<Gift>(
+        controller: gifts,
+        itemBuilder: (context, gift) => GiftTile(gift),
+      ),
+      SliverToBoxAdapter(child: AppFooter(controller: gifts)),
+    ],
+  ),
 )
 ```
 
 `WAsyncPagedSliver` 只负责四态和 ready 分支：
 
-- 不包含 `SmartRefresher` / `RefreshController`；
-- 不包含 footer / 文案；
+- 不包含刷新壳 / footer / 文案；
 - header / footer 由页面自己的滚动壳负责；
-- 自建滚动壳的错误重试传 `onRetry: refreshController.requestRefresh`。
+- 错误重试可以传 `onRetry: gifts.refresh`，或在自建壳里走自己的刷新入口。
 
 ## 边界
 
 - 不自动 load / refresh；页面 controller 自己负责首屏请求。
-- 不持有 controller；`WAsyncPagedList` 只持有内部的 `RefreshController`。
+- 不持有 controller；`WAsyncPagedList` 不持有外部刷新控制器。
 - 不包含已删除的执行组合子（`parallel` / `pool` / `serial` / `first` / `map`）；这些已被
   `Future.wait` / `WAsync.settle` / `Future.any` / for 替代。
 - 不包含全局 loading / toast / 登录失效；这些是 app 层策略。

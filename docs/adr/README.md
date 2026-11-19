@@ -30,6 +30,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 | [0013](0013-async-ui-extension-package.md) | async 的规范应用层独立成可选包 `w_tools_async_ui` | 已采纳 | 2026-11-17 |
 | [0014](0014-async-default-hooks.md) | WAsync 默认生命周期钩子：值对象 + `defaultHooks` + 单次 `hooks` | 已采纳 | 2026-11-17 |
 | [0015](0015-async-executor.md) | 用 `WAsyncExecutor` 实例替代全局 `defaultHooks` | 已采纳 | 2026-11-17 |
+| [0016](0016-async-paged-refresh-style.md) | `WAsyncPagedList` 标准 RefreshIndicator 样式对象 | 已采纳 | 2026-11-19 |
 
 ### 版本与发布
 

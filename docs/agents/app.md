@@ -122,7 +122,7 @@ class AsyncExecutorPlugin with WAppPlugin {
 ```
 
 在 `WAppOptions.plugins` 注册；`onInit` 在 `runApp` 前执行。业务用
-`Get.find<WAsyncExecutor>().run(...)`，不要再用全局 `WAsync.defaultHooks`。
+`Get.find<WAsyncExecutor>().run(...)`，全局默认 hooks 已删除。
 
 ## 包裹应用（不需要插件）
 

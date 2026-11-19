@@ -1,3 +1,30 @@
+## 2.0.0
+
+### Breaking
+- `WAsyncPagedList.new` 构造参数变化：删除 `refreshController`、`header`、`footer`，
+  新增 `reloadRequests` / `autoLoadThreshold` / `footerBuilder`。
+  不再依赖 `pull_to_refresh` / `SmartRefresher` / `RefreshController`。
+- 下拉刷新改用 Flutter `RefreshIndicator`；自定义下拉头 / 上拉 footer
+  改用 `WAsyncPagedSliver` + 自己的滚动壳。
+
+### Added
+- `WAsyncPagedList.reloadRequests`：程序化刷新，不需要外部 controller。
+- `WAsyncPagedList.autoLoadThreshold`：滚动接近底部时自动 `loadMore`。
+- `WAsyncPagedList.footerBuilder`：自定义底部状态展示；默认展示 loading /
+  失败重试 / 没有更多。
+- `WAsyncPagedList.refreshIndicatorStyle` / `WAsyncRefreshIndicatorStyle`：
+  配置标准 `RefreshIndicator` 的颜色、背景、线宽、位移和触发模式。
+- 内置 footer 展示 `WAsyncPagedSnapshot.footerStatus`，失败可点击重试。
+
+### Changed
+- `w_tools_async` 最低版本抬到 `^8.0.0`。
+- 上拉加载改为滚动阈值自动触发；不再有 pull-up footer 手势。
+- 程序化刷新与并发刷新统一走 `RefreshIndicator` 和 generation gate。
+
+### Fixed
+- `reloadRequests` 在刷新进行中再次触发时，旧请求不会提前收起刷新状态；
+  最新请求完成后才结束。
+
 ## 1.1.0
 
 ### Added

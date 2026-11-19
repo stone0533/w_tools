@@ -12,6 +12,19 @@ class ExecutionPage extends StatefulWidget {
 class _ExecutionPageState extends State<ExecutionPage> {
   final _logs = <String>[];
   int _retryAttempt = 0;
+  late final WAsyncExecutor _executor;
+
+  @override
+  void initState() {
+    super.initState();
+    _executor = WAsyncExecutor(
+      WAsyncHooks(
+        onStart: () => _log('executor: start'),
+        onError: (error) => _log('executor: error $error'),
+        onFinally: () => _log('executor: finally'),
+      ),
+    );
+  }
 
   void _log(String message) {
     if (mounted) setState(() => _logs.insert(0, message));
@@ -29,6 +42,20 @@ class _ExecutionPageState extends State<ExecutionPage> {
       _log('run: $result');
     } catch (error) {
       _log('run error: $error');
+    }
+  }
+
+  Future<void> _runWithExecutor() async {
+    try {
+      final result = await _executor.run<String>(
+        () async {
+          await Future<void>.delayed(const Duration(milliseconds: 120));
+          return 'executor 执行成功';
+        },
+      );
+      _log('executor: $result');
+    } catch (error) {
+      _log('executor: error $error');
     }
   }
 
@@ -119,6 +146,10 @@ class _ExecutionPageState extends State<ExecutionPage> {
             runSpacing: 8,
             children: [
               FilledButton(onPressed: _run, child: const Text('执行')),
+              FilledButton.tonal(
+                onPressed: _runWithExecutor,
+                child: const Text('executor'),
+              ),
               FilledButton.tonal(
                 onPressed: _retry,
                 child: const Text('重试 3 次'),

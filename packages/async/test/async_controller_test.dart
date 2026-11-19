@@ -1,13 +1,9 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
 void main() {
-  setUp(() => WAsync.defaultHooks = WAsyncHooks.none);
-  tearDown(() => WAsync.defaultHooks = WAsyncHooks.none);
-
   group('WAsyncController', () {
     test('load 成功进入 ready', () async {
       final controller = WAsyncController<int>((_) async => 1);
@@ -207,15 +203,17 @@ void main() {
       expect(controller.state.value.data, 2);
     });
 
-    test('replaceData 的 isEmpty 抛错当前同步抛出', () {
+    test('replaceData 的 isEmpty 抛错转为 failed，不让 replaceData reject', () {
       final controller = WAsyncController<int>(
         (_) async => 1,
         isEmpty: (_) => throw StateError('isEmpty boom'),
       );
       addTearDown(controller.dispose);
 
-      // 当前行为：同步抛出；若决定与 load 一样转 failed，改这条用例 + 代码。
-      expect(() => controller.replaceData(1), throwsStateError);
+      controller.replaceData(1);
+
+      expect(controller.state.value.isFailed, isTrue);
+      expect(controller.state.value.error, isA<StateError>());
     });
 
     test('list 的 state.data 是不可变列表（与 Paged 一致）', () async {
@@ -289,45 +287,6 @@ void main() {
       controller.replaceData(2);
 
       expect(controller.state.value.isLoading, isTrue);
-    });
-  });
-
-  group('WAsyncController defaultHooks', () {
-    test('load 不继承 defaultHooks', () async {
-      final events = <String>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('start'),
-        onError: (_) => events.add('error'),
-        onFinally: () => events.add('finally'),
-      );
-      final controller = WAsyncController<int>((_) async => 1);
-      addTearDown(controller.dispose);
-
-      await controller.load();
-
-      expect(controller.state.value.isReady, isTrue);
-      expect(events, isEmpty);
-    });
-
-    test('load 失败时 controller.onError 保留，defaultHooks 不触发', () async {
-      final events = <String>[];
-      final errors = <Object>[];
-      WAsync.defaultHooks = WAsyncHooks(
-        onStart: () => events.add('start'),
-        onError: (_) => events.add('error'),
-        onFinally: () => events.add('finally'),
-      );
-      final controller = WAsyncController<int>(
-        (_) async => throw StateError('boom'),
-        onError: errors.add,
-      );
-      addTearDown(controller.dispose);
-
-      await controller.load();
-
-      expect(controller.state.value.isFailed, isTrue);
-      expect(events, isEmpty);
-      expect(errors.single, isA<StateError>());
     });
   });
 }

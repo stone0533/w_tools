@@ -10,12 +10,14 @@ class WAsyncStrings {
     this.errorTitle = 'Something went wrong',
     this.retry = 'Retry',
     this.loading = 'Loading',
+    this.noMore = 'No more',
   });
 
   final String empty;
   final String errorTitle;
   final String retry;
   final String loading;
+  final String noMore;
 
   @override
   bool operator ==(Object other) =>
@@ -26,5 +28,5 @@ class WAsyncStrings {
       other.loading == loading;
 
   @override
-  int get hashCode => Object.hash(empty, errorTitle, retry, loading);
+  int get hashCode => Object.hash(empty, errorTitle, retry, loading, noMore);
 }
