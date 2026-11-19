@@ -64,7 +64,14 @@ void main() {
     expect(events, ['override-start', 'override-finally']);
   });
 
-  test('WAsyncExecutor 对 retry / timeout / settle 生效', () async {
+  test('WAsyncExecutor.settle 是 tryAll 的 deprecated alias', () async {
+    const executor = WAsyncExecutor(WAsyncHooks.none);
+    // ignore: deprecated_member_use_from_same_package
+    final results = await executor.settle<int>([() async => 1]);
+    expect(results.single, isA<WAsyncSuccess<int>>());
+  });
+
+  test('WAsyncExecutor 对 retry / timeout / tryAll 生效', () async {
     final events = <String>[];
     final executor = WAsyncExecutor(
       WAsyncHooks(
@@ -79,7 +86,7 @@ void main() {
       retryDelay: Duration.zero,
     );
     await executor.timeout<int>(() async => 1, const Duration(seconds: 1));
-    await executor.settle<int>([() async => 1, () async => 2]);
+    await executor.tryAll<int>([() async => 1, () async => 2]);
 
     expect(events.where((event) => event == 'start'), hasLength(3));
     expect(events.where((event) => event == 'finally'), hasLength(3));

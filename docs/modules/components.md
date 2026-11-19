@@ -25,8 +25,8 @@
 | `WAppTheme` | app | core | 应用外观：亮/暗主题、主题模式、系统栏 | 不要用 WAsyncTheme；它是 Widget，本类型是配置 |
 | `WAsyncResult` | async | core | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
 | `WAsyncHooks` | async | core | 执行入口的生命周期回调值对象：onStart / onError / onFinally | 不要在这里放 loading / toast 实现；用 WAsyncExecutor 携带默认值 |
-| `WAsyncExecutor` | async | core | 携带默认 WAsyncHooks 的实例执行器：run / tryRun / retry / timeout / settle | 不要做成全局单例；在 composition root 创建并注入；controller 不使用它 |
-| `WAsync` | async | core | 无 UI 异步执行（tryRun / run / retry / timeout / settle） | 页面四态用 `WAsyncController` + `WAsyncView`；并发组合用 Future.wait / package:async |
+| `WAsyncExecutor` | async | core | 携带默认 WAsyncHooks 的实例执行器：run / tryRun / retry / timeout / tryAll | 不要做成全局单例；在 composition root 创建并注入；controller 不使用它 |
+| `WAsync` | async | core | 无 UI 异步执行（tryRun / run / retry / timeout / tryAll） | 页面四态用 `WAsyncController` + `WAsyncView`；并发组合用 Future.wait / package:async |
 | `WCancelToken` | async | core | 协作式取消：传给 WAsync 或 Controller 的 loader | 取消后不可复用；新请求要新建 token |
 | `WStepState` | ui | core | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |
 | `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | core | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | 不要在 builder 里返回 Expanded；外层已经包了 Expanded |

@@ -59,14 +59,14 @@ void main() {
     expect(find.textContaining('提交成功'), findsOneWidget);
   });
 
-  testWidgets('执行页覆盖 settle', (tester) async {
+  testWidgets('执行页覆盖 tryAll', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
     await tester.tap(find.text('执行 API'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'settle'));
+    await tester.tap(find.widgetWithText(FilledButton, 'tryAll'));
     await tester.pumpAndSettle();
-    expect(find.text('settle: ok, fail, ok'), findsOneWidget);
+    expect(find.text('tryAll: ok, fail, ok'), findsOneWidget);
   });
 
   testWidgets('Sliver 页面展示四态 sliver', (tester) async {

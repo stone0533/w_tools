@@ -1,3 +1,8 @@
+## 21.0.1
+
+### Changed
+- `w_tools_async` 约束抬到 `^8.1.0`，接入 `WAsync.tryAll`，`settle` 进入废弃期。
+
 ## 21.0.0
 
 ### Breaking

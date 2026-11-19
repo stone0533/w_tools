@@ -25,7 +25,8 @@ class WAsyncStrings {
       other.empty == empty &&
       other.errorTitle == errorTitle &&
       other.retry == retry &&
-      other.loading == loading;
+      other.loading == loading &&
+      other.noMore == noMore;
 
   @override
   int get hashCode => Object.hash(empty, errorTitle, retry, loading, noMore);

@@ -76,6 +76,37 @@ void main() {
     expect(find.text('theme-error'), findsOneWidget);
   });
 
+  test('WAsyncStrings 相等性与 hashCode 都包含 noMore', () {
+    const a = WAsyncStrings(noMore: 'A');
+    const b = WAsyncStrings(noMore: 'B');
+
+    expect(a == b, isFalse);
+    expect(a.hashCode, isNot(b.hashCode));
+  });
+
+  testWidgets('只改 noMore 也会通知 WAsyncTheme 依赖重建', (tester) async {
+    Widget build(String noMore) {
+      return WAsyncTheme(
+        strings: WAsyncStrings(noMore: noMore),
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) {
+              final strings = WAsyncTheme.maybeOf(context)!.strings;
+              return Text(strings.noMore);
+            },
+          ),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(build('A'));
+    expect(find.text('A'), findsOneWidget);
+
+    await tester.pumpWidget(build('B'));
+    expect(find.text('B'), findsOneWidget);
+    expect(find.text('A'), findsNothing);
+  });
+
   testWidgets('切换 strings 会通知依赖的 WAsyncView 重建', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(const WAsyncState<int>.empty());
     addTearDown(state.dispose);

@@ -440,9 +440,9 @@ void main() {
     });
   });
 
-  group('settle', () {
+  group('tryAll', () {
     test('保留每个结果与顺序', () async {
-      final results = await WAsync.settle<int>([
+      final results = await WAsync.tryAll<int>([
         () async => 1,
         () async => throw StateError('boom'),
         () async => 3,
@@ -457,7 +457,7 @@ void main() {
     test('限制并发且保持顺序', () async {
       var active = 0;
       var peak = 0;
-      final results = await WAsync.settle<int>(
+      final results = await WAsync.tryAll<int>(
         List.generate(5, (index) {
           return () async {
             active++;
@@ -480,7 +480,7 @@ void main() {
     test('取消时返回 Cancelled 而不是整批抛错', () async {
       final token = WCancelToken();
       final never = Completer<int>();
-      final future = WAsync.settle<int>(
+      final future = WAsync.tryAll<int>(
         [() => never.future, () => never.future],
         cancelToken: token,
       );
@@ -493,16 +493,16 @@ void main() {
     });
 
     test('空集合返回空列表；并发数非法抛 ArgumentError', () async {
-      expect(await WAsync.settle<int>([]), isEmpty);
+      expect(await WAsync.tryAll<int>([]), isEmpty);
       await expectLater(
-        WAsync.settle<int>([], concurrency: 0),
+        WAsync.tryAll<int>([], concurrency: 0),
         throwsArgumentError,
       );
     });
 
     test('onStart / onFinally 整批一次，onError 按失败任务', () async {
       final events = <String>[];
-      final results = await WAsync.settle<int>(
+      final results = await WAsync.tryAll<int>(
         [
           () async {
             events.add('task1');
@@ -526,7 +526,7 @@ void main() {
 
     test('空集合不触发 onStart / onFinally', () async {
       final events = <String>[];
-      final results = await WAsync.settle<int>(
+      final results = await WAsync.tryAll<int>(
         [],
         onStart: () => events.add('start'),
         onFinally: () => events.add('finally'),
@@ -538,7 +538,7 @@ void main() {
     test('已取消 token 不触发 onStart / onFinally', () async {
       final events = <String>[];
       final token = WCancelToken()..cancel('stop');
-      final results = await WAsync.settle<int>(
+      final results = await WAsync.tryAll<int>(
         [() async => 1],
         cancelToken: token,
         onStart: () => events.add('start'),
@@ -550,7 +550,7 @@ void main() {
 
     test('onError 按失败任务逐个通知', () async {
       final errors = <Object>[];
-      final results = await WAsync.settle<int>(
+      final results = await WAsync.tryAll<int>(
         [
           () async => throw Exception('a'),
           () async => 1,
@@ -610,10 +610,21 @@ void main() {
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
 
-    test('settle 等待期间取消', () async {
+    test('settle 仍是 tryAll 的 deprecated alias', () async {
+      // ignore: deprecated_member_use_from_same_package
+      final results = await WAsync.settle<int>([
+        () async => 1,
+        () async => throw StateError('x'),
+      ]);
+      expect(results, hasLength(2));
+      expect(results[0], isA<WAsyncSuccess<int>>());
+      expect(results[1], isA<WAsyncFailure<int>>());
+    });
+
+    test('tryAll 等待期间取消', () async {
       final token = WCancelToken();
       final never = Completer<int>();
-      final future = WAsync.settle<int>(
+      final future = WAsync.tryAll<int>(
         [() => never.future],
         cancelToken: token,
       );

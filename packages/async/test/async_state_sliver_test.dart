@@ -104,6 +104,32 @@ void main() {
     expect(find.text('Retry'), findsNothing);
   });
 
+  testWidgets('nullable T 的 ready(null) 仍渲染 silvers', (tester) async {
+    final state = ValueNotifier<WAsyncState<String?>>(
+      const WAsyncState<String?>.ready(null),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              WAsyncStateSliver<String?>(
+                state: state,
+                readySliverBuilder: (context, value) => SliverToBoxAdapter(
+                  child: Text('ready-${value ?? 'null'}'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('ready-null'), findsOneWidget);
+  });
+
   testWidgets('未传 onRetry 时自定义 error / banner builder 仍会收到 null', (tester) async {
     var errorBuilderCalls = 0;
     var bannerBuilderCalls = 0;

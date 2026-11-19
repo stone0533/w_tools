@@ -21,6 +21,9 @@ import 'async_theme_views.dart';
 ///
 /// 没有重试入口时（[onRetry] 为 null）[errorBuilder] / [errorBannerBuilder] 仍会收到
 /// `null` 的 retry，由 builder 决定是否渲染按钮；包内默认视图不带按钮。
+///
+/// `T` 可空时，`ready(null)` 仍会调用 [readySliverBuilder]；只有非 null 的旧数据
+/// 才会在 failed 时进入 banner + ready 分支。
 class WAsyncStateSliver<T> extends StatelessWidget {
   const WAsyncStateSliver({
     super.key,

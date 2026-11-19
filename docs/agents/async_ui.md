@@ -20,7 +20,7 @@
   明确的自定义扩展。
 - 不要维护 `hasLoadedMorePage`；分页 footer 只读 `snapshot.footerStatus`。
 - 不要把 `parallel` / `pool` / `serial` / `first` / `map` 加回来；执行仍用
-  `Future.wait` / `WAsync.settle` / `Future.any` / for。
+  `Future.wait` / `WAsync.tryAll` / `Future.any` / for。
 - 不把全局 loading / toast / 登录失效塞进 async_ui；这些是 app 层策略。
 
 完整说明：[docs/extensions/async_ui.md](../extensions/async_ui.md)、[README](../../packages/async_ui/README.md)。

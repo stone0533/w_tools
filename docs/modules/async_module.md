@@ -3,7 +3,7 @@
 `w_tools_async` 负责异步执行、四态状态、Controller、分页与异步视图。
 
 - 页面区块：`WAsyncController` + `WAsyncView`。
-- 纯执行：`WAsync.tryRun` / `WAsync.run` / `WAsync.retry` / `WAsync.timeout` / `WAsync.settle`。
+- 纯执行：`WAsync.tryRun` / `WAsync.run` / `WAsync.retry` / `WAsync.timeout` / `WAsync.tryAll`。
 - 分页：`WAsyncPagedController` + `WAsyncPagedSnapshot`。
 - 全局默认视图：`WAsyncTheme`。
 
@@ -23,7 +23,7 @@
 | 纯执行，不抛异常 | `WAsync.tryRun` |
 | 纯执行，失败抛异常 | `WAsync.run` |
 | 重试 / 超时 | `WAsync.retry` / `WAsync.timeout` |
-| 独立区块并行，保留每个结果 | `WAsync.settle` |
+| 独立区块并行，保留每个结果 | `WAsync.tryAll` |
 | 全局默认 loading / empty / error | `WAsyncTheme` / `WAsyncStrings` |
 
 ## 模块结构
@@ -57,7 +57,7 @@ lib/src/view/
 | `run` | 返回成功值；失败抛原始异常 |
 | `retry` | 重试后返回成功值；最终失败抛异常 |
 | `timeout` | 超时抛 `TimeoutException` |
-| `settle` | 并发执行任务工厂，单个失败不抛错，每个结果按输入顺序返回 |
+| `tryAll` | 并发执行任务工厂，单个失败不抛错，每个结果按输入顺序返回 |
 
 普通并发直接用 `Future.wait` / `Future.any`；本包只保留和「多区块页面」直接相关的入口。
 参数错误（`concurrency < 1`、负数的 `retryCount` / `retryDelay` / `timeout`）以失败的
@@ -74,13 +74,13 @@ Future 返回 `ArgumentError`。
 - `run` / `tryRun` / `retry` / `timeout` 支持 `onStart` / `onFinally`：`onStart` 在任务前，
   `onFinally` 在成功 / 失败 / 取消后（且在 `onError` 之后）；已取消 token 不触发；
 - `retry` / `timeout` 的钩子包住整次操作，不按 attempt 重复；`onRetry` 仍按 attempt 调用；
-- `settle` 的 `onStart` / `onFinally` 是 **batch-level**，整批各一次；空集合 / 已取消 token 不触发；
+- `tryAll` 的 `onStart` / `onFinally` 是 **batch-level**，整批各一次；空集合 / 已取消 token 不触发；
 - 成功结果用返回值 / `WAsyncSuccess`，不提供 `onSuccess`；
 - `onStart` / `onFinally` 自身异常被忽略，不影响任务结果；
 - executor 在 composition root 创建一次；测试创建独立 executor，不依赖全局重置；
 - `WAsyncController` / `WAsyncPagedController` 内部 `load` / `refresh` / `loadMore`
   不读取 executor hooks；页面四态由 view 管理；
-- `settle` 的 `onError` 按**失败任务个数**通知，不是按批次；
+- `tryAll` 的 `onError` 按**失败任务个数**通知，不是按批次；
 - 取消是协作式的：`WCancelToken` 在开始、结束、重试等待等边界检查，不中止已经开始的
   Future；取消后不可复用；
 - 取消与失败同轮竞态：非 `Error` 按取消处理，`Error` 仍返回 `WAsyncFailure`，避免把编程
@@ -202,5 +202,5 @@ cd packages/async
 flutter test
 ```
 
-当前 8.0.0；迁移见 [async-8.0](../migrations/async-8.0.md)。
+当前 8.1.0；迁移见 [async-8.0](../migrations/async-8.0.md) / [async-8.1](../migrations/async-8.1.md)。
 AI 路由见 [docs/agents/async.md](../agents/async.md)。

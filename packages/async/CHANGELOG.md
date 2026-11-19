@@ -2,6 +2,17 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 8.1.0
+
+### Added
+- `WAsync.tryAll` / `WAsyncExecutor.tryAll`：`settle` 的新名称，行为不变。
+
+### Deprecated
+- `WAsync.settle` / `WAsyncExecutor.settle`：改用 `tryAll`；`remove-in: 9.0.0`。
+### Fixed
+- `WAsyncStrings` 的相等性补上 `noMore`，与 `hashCode` 保持一致；只改 `noMore`
+  时 `WAsyncTheme` 也会通知依赖重建。
+
 ## 8.0.0
 
 ### Breaking

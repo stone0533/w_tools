@@ -535,6 +535,24 @@ void main() {
     expect(retries, 1);
   });
 
+  testWidgets('nullable T 的 ready(null) 仍渲染内容', (tester) async {
+    final state = ValueNotifier<WAsyncState<String?>>(
+      const WAsyncState<String?>.ready(null),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WAsyncView<String?>(
+          state: state,
+          readyBuilder: (context, value) => Text('ready-${value ?? 'null'}'),
+        ),
+      ),
+    );
+
+    expect(find.text('ready-null'), findsOneWidget);
+  });
+
   testWidgets('未传 onRetry 时 errorBuilder 仍会收到 null', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom'),

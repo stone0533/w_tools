@@ -116,17 +116,17 @@ class _ExecutionPageState extends State<ExecutionPage> {
     }
   }
 
-  Future<void> _settle() async {
-    final results = await WAsync.settle<String>(
+  Future<void> _tryAll() async {
+    final results = await WAsync.tryAll<String>(
       [
         () async => 'banner',
         () async => throw Exception('columns failed'),
         () async => 'notice',
       ],
-      onError: (error) => _log('settle onError: $error'),
+      onError: (error) => _log('tryAll onError: $error'),
     );
     final summary = results.map((result) => result.isSuccess ? 'ok' : 'fail').join(', ');
-    _log('settle: $summary');
+    _log('tryAll: $summary');
   }
 
   @override
@@ -163,8 +163,8 @@ class _ExecutionPageState extends State<ExecutionPage> {
                 child: const Text('执行并取消'),
               ),
               FilledButton.tonal(
-                onPressed: _settle,
-                child: const Text('settle'),
+                onPressed: _tryAll,
+                child: const Text('tryAll'),
               ),
             ],
           ),

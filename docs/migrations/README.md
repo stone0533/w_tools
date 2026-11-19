@@ -60,6 +60,7 @@
 - [7.0](async-7.0.md)：执行层收敛（删 parallel/pool/serial/first/map）、分页改 `snapshot`、删 `WAsyncStateBuilder` / `onRetryError`、错误视图不再渲染原文
 
 - [8.0](async-8.0.md)：删除 `WAsync.defaultHooks`，默认 hooks 改用 `WAsyncExecutor`
+- [8.1](async-8.1.md)：`settle` 改名 `tryAll`，旧名 9.0 删除
 
 ## async_ui
 

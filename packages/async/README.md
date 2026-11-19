@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^8.0.0
+  w_tools_async: ^8.1.0
 ```
 
 要求 Flutter 3.38+。
@@ -99,7 +99,9 @@ WAsyncView<List<Gift>>(
 | 一次性动作 + 默认 hooks | `WAsyncExecutor` |
 | 无 UI 执行，不抛异常 | `WAsync.tryRun` + `WAsyncResult` |
 | 无 UI 执行，失败抛异常 | `WAsync.run` / `retry` / `timeout` |
-| 独立区块并行，保留每个结果 | `WAsync.settle` |
+| 独立区块并行，保留每个结果 | `WAsync.tryAll` |
+
+> `WAsync.settle` 是旧名，已标记 `@Deprecated`，9.0.0 删除；新代码用 `WAsync.tryAll`。
 | 让 loader 感知取消 | Controller 的 loader 接收 `WCancelToken` |
 | 单区块本地替换 / 乐观更新 | `WAsyncController.replaceData` |
 | 四态快照 | `WAsyncState` / `WAsyncStatus` |
@@ -155,7 +157,7 @@ final result = await WAsync.tryRun(() => api.gift(id));
 - 失败与取消同轮竞态：非 `Error` 按取消处理，`Error` 仍返回 failure。
 
 不再提供 `WAsync.map` / `parallel` / `pool` / `serial` / `first`：并发直接用
-`Future.wait` / `Future.any`，限流用 `settle(concurrency:)`。
+`Future.wait` / `Future.any`，限流用 `tryAll(concurrency:)`。
 
 ## loading 框 / 生命周期钩子
 
@@ -222,7 +224,7 @@ class AsyncExecutorPlugin with WAppPlugin {
 
 ### 单次调用
 
-`WAsync.run` / `WAsync.tryRun` / `WAsync.retry` / `WAsync.timeout` / `WAsync.settle`
+`WAsync.run` / `WAsync.tryRun` / `WAsync.retry` / `WAsync.timeout` / `WAsync.tryAll`
 都支持 `onStart` / `onFinally`，不需要 app 再写通用 `_withLoading` 包装：
 
 ```dart
@@ -241,17 +243,17 @@ await WAsync.run(
 - 回调自身异常会被忽略，不影响任务结果；
 - `retry` / `timeout` 的 `onStart` / `onFinally` 包住整次操作，不按 attempt 重复；
   `onRetry` 仍按 attempt 调用；
-- `settle` 的 `onStart` / `onFinally` 是 **batch-level**，整批各一次；
+- `tryAll` 的 `onStart` / `onFinally` 是 **batch-level**，整批各一次；
   `onError` 仍按失败任务调用；空集合 / 进入时已取消的 token 不触发。
 
 并发操作仍建议在 app 层用引用计数管理全局 loading；`WAsync` 只保证钩子成对触发。
 
 ## 独立区块并行
 
-`settle` 只处理任务工厂，单个失败不会让整批抛错，结果顺序与输入一致：
+`tryAll` 只处理任务工厂，单个失败不会让整批抛错，结果顺序与输入一致：
 
 ```dart
-final results = await WAsync.settle<HomeSection>([
+final results = await WAsync.tryAll<HomeSection>([
   () => api.banners(),
   () => api.columns(),
   () => api.notices(),

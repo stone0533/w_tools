@@ -6,5 +6,5 @@
   `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); `loadMore` failure
   writes `snapshot.loadMoreError`; no `hasLoadedMorePage`; don't use `data != null` for states; branch on `WAsyncSuccess` /
   `WAsyncFailure` / `WAsyncCancelled`; cancellation throws `WCancellationException`; execution uses `WAsync.tryRun` / `run`; default hooks via `WAsyncExecutor(WAsyncHooks(...))`;
-  no global defaultHooks; per-call hooks override; use `WAsync.settle`;
+  no global defaultHooks; per-call hooks override; use `WAsync.tryAll`;
   `WAsyncView.state` is `ValueListenable`, keep outer `Obx`.

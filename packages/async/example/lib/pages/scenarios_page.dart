@@ -5,8 +5,8 @@ import 'package:w_tools_async/w_tools_async.dart';
 
 /// 真实场景页：
 /// - 提交订单：retry + timeout + cancel
-/// - App 启动：settle + 手动 loading
-/// - 上传：settle 限流
+/// - App 启动：tryAll + 手动 loading
+/// - 上传：tryAll 限流
 /// - 搜索：tryRun + 旧请求取消
 class ScenariosPage extends StatefulWidget {
   const ScenariosPage({super.key});
@@ -75,7 +75,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
     if (mounted) setState(() => _bootstrapping = true);
 
     try {
-      final results = await WAsync.settle<String>([
+      final results = await WAsync.tryAll<String>([
         () => Future.delayed(const Duration(milliseconds: 300), () => '配置'),
         () => Future.delayed(const Duration(milliseconds: 200), () => '用户'),
         () => Future.delayed(const Duration(milliseconds: 400), () => '通知'),
@@ -95,7 +95,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
     _uploadToken?.cancel('superseded');
     final token = _uploadToken = WCancelToken();
     try {
-      final results = await WAsync.settle<String>(
+      final results = await WAsync.tryAll<String>(
         List.generate(6, (index) {
           return () async {
             await Future<void>.delayed(Duration(milliseconds: 150 + index * 30));
@@ -218,7 +218,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
           ),
           _ScenarioCard(
             title: 'App 启动',
-            subtitle: 'settle（保留每个结果）',
+            subtitle: 'tryAll（保留每个结果）',
             actions: [
               FilledButton.tonal(
                 onPressed: _bootstrap,
@@ -228,7 +228,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
           ),
           _ScenarioCard(
             title: '上传文件',
-            subtitle: 'settle(concurrency: 2)',
+            subtitle: 'tryAll(concurrency: 2)',
             actions: [
               FilledButton.tonal(
                 onPressed: _upload,

@@ -28,12 +28,12 @@ setState(() {
 只要 `mobile-region-codes` 超时，`setState` 不会执行：`columnList` 和 `banners`
 即使成功也不会赋值，banner 区就一直为空。
 
-## 正确写法：用 `settle`
+## 正确写法：用 `tryAll`
 
-`WAsync.settle` 保留每个结果，单个失败不会让整批抛错；结果顺序与输入一致。
+`WAsync.tryAll` 保留每个结果，单个失败不会让整批抛错；结果顺序与输入一致。
 
 ```dart
-final results = await WAsync.settle<Object?>([
+final results = await WAsync.tryAll<Object?>([
   () => api.mobileRegionCodes(),
   () => api.registerColumnList(),
   () => api.homeBanners(),
@@ -54,8 +54,8 @@ setState(() {
 });
 ```
 
-`settle` 的参数是任务工厂 `Future<T> Function()`，要写 `() => api.xxx()`，
-不要直接传 `api.xxx()`（那样请求在进入 `settle` 前就已经启动，限流也失效）。
+`tryAll` 的参数是任务工厂 `Future<T> Function()`，要写 `() => api.xxx()`，
+不要直接传 `api.xxx()`（那样请求在进入 `tryAll` 前就已经启动，限流也失效）。
 每个失败任务会触发一次 `onError` 通知，但不会改变结果列表。
 
 如果几个请求返回不同类型，也可以用 record `.wait`（并行且每个结果独立）：
@@ -73,14 +73,14 @@ final (codes, columns, banners) = await (
 
 ## 边界
 
-- `settle` 失败后其他任务**不会自动取消**；需要整体取消时传同一个 `WCancelToken`；
+- `tryAll` 失败后其他任务**不会自动取消**；需要整体取消时传同一个 `WCancelToken`；
 - `onError` 是通知回调，不会把失败变成成功；
-- 独立区块用 `settle`（或 record `.wait`）；原子页面用 `Future.wait` + 页面级错误；
+- 独立区块用 `tryAll`（或 record `.wait`）；原子页面用 `Future.wait` + 页面级错误；
 - 不要在多个独立区块之间共享一个加载布尔；每个区块自己的 loading 由自己的状态负责。
 
 ## UI 多区块：每块一个 Controller + View
 
-纯执行用 `settle`；如果是**页面上的多个独立区块**，用多个 `WAsyncController` +
+纯执行用 `tryAll`；如果是**页面上的多个独立区块**，用多个 `WAsyncController` +
 `WAsyncView`，不要用一个 `data != null` 手动拼四态：
 
 ```dart
