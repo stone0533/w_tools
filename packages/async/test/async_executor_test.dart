@@ -1,17 +1,8 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
 void main() {
-  setUp(() => WAsync.defaultHooks = WAsyncHooks.none);
-  tearDown(() => WAsync.defaultHooks = WAsyncHooks.none);
-
-  test('WAsyncExecutor 使用自己的 hooks，不读取 defaultHooks', () async {
-    final globalEvents = <String>[];
-    WAsync.defaultHooks = WAsyncHooks(
-      onStart: () => globalEvents.add('global-start'),
-      onFinally: () => globalEvents.add('global-finally'),
-    );
+  test('WAsyncExecutor 使用自己的 hooks', () async {
     final events = <String>[];
     final executor = WAsyncExecutor(
       WAsyncHooks(
@@ -23,7 +14,6 @@ void main() {
     expect(await executor.run(() async => 1), 1);
 
     expect(events, ['start', 'finally']);
-    expect(globalEvents, isEmpty);
   });
 
   test('WAsyncExecutor.run / tryRun 保留失败语义', () async {

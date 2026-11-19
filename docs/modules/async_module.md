@@ -70,7 +70,7 @@ Future 返回 `ArgumentError`。
   `onError` / `onRetry` 自身抛错会被忽略；
 - `WAsyncHooks` 是回调值对象；`WAsyncExecutor` 携带默认 hooks，在 composition root
   创建并注入；单次 `hooks` 可覆盖，`WAsyncHooks.none` 可关闭默认；
-- `WAsync.defaultHooks` 已 deprecated，保留到 8.0.0；新的默认配置用 `WAsyncExecutor`；
+- 没有全局 `defaultHooks`；默认配置用 `WAsyncExecutor` 实例；
 - `run` / `tryRun` / `retry` / `timeout` 支持 `onStart` / `onFinally`：`onStart` 在任务前，
   `onFinally` 在成功 / 失败 / 取消后（且在 `onError` 之后）；已取消 token 不触发；
 - `retry` / `timeout` 的钩子包住整次操作，不按 attempt 重复；`onRetry` 仍按 attempt 调用；
@@ -79,7 +79,7 @@ Future 返回 `ArgumentError`。
 - `onStart` / `onFinally` 自身异常被忽略，不影响任务结果；
 - executor 在 composition root 创建一次；测试创建独立 executor，不依赖全局重置；
 - `WAsyncController` / `WAsyncPagedController` 内部 `load` / `refresh` / `loadMore`
-  不继承 executor / defaultHooks；页面四态由 view 管理；
+  不读取 executor hooks；页面四态由 view 管理；
 - `settle` 的 `onError` 按**失败任务个数**通知，不是按批次；
 - 取消是协作式的：`WCancelToken` 在开始、结束、重试等待等边界检查，不中止已经开始的
   Future；取消后不可复用；
@@ -152,7 +152,7 @@ footer 用 `AnimatedBuilder(animation: controller.snapshot)` 重建。派生规�
 - 没有更多：成功翻过页 → `noMore`，第一页就到底 → `hidden`；
 - 其余 → `loadMore`。
 
-完整代码与 SmartRefresher 组合见 [paged-list 配方](../recipes/paged-list.md)。
+完整代码与分页壳见 [paged-list 配方](../recipes/paged-list.md)。
 
 ## 4. View
 
@@ -171,7 +171,7 @@ footer 用 `AnimatedBuilder(animation: controller.snapshot)` 重建。派生规�
 - ready → `readySliverBuilder`；
 - loading / empty / failed（无数据）→ `SliverFillRemaining`；
 - failed + 旧数据 → 错误条（列表上方）+ ready sliver；
-- refreshing + 旧数据 → ready sliver，刷新进度由外层 `SmartRefresher` 负责；
+- refreshing + 旧数据 → ready sliver，刷新进度由外层刷新壳负责；
 - 始终返回同一个 `SliverMainAxisGroup`，ready 子树不会被重建。
 
 `readySliverBuilder` 必须返回 sliver；loading / empty / error 的 theme builder 返回普通
@@ -202,5 +202,5 @@ cd packages/async
 flutter test
 ```
 
-当前 7.4.0；迁移见 [async-7.0](../migrations/async-7.0.md)。
+当前 8.0.0；迁移见 [async-8.0](../migrations/async-8.0.md)。
 AI 路由见 [docs/agents/async.md](../agents/async.md)。

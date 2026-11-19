@@ -59,6 +59,12 @@
 - [6.0](async-6.0.md)：Controller 改 `onError`、`onError` 去 nullable、error builder retry 可空
 - [7.0](async-7.0.md)：执行层收敛（删 parallel/pool/serial/first/map）、分页改 `snapshot`、删 `WAsyncStateBuilder` / `onRetryError`、错误视图不再渲染原文
 
+- [8.0](async-8.0.md)：删除 `WAsync.defaultHooks`，默认 hooks 改用 `WAsyncExecutor`
+
+## async_ui
+
+- [2.0](async_ui-2.0.md)：去掉 `pull_to_refresh`，`WAsyncPagedList` 改 `RefreshIndicator` + 自动加载
+
 ## toast
 
 - [1.2](toast-1.2.md)：`WToastStyle` 拆分

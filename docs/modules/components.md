@@ -108,7 +108,8 @@
 | `WFormBorderStyle` | form | core | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式 | 配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口 |
 | `WAsyncView` | async | core | 普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；业务页面优先用 WAsyncSection；不要省略 onRetry 还期待默认重试按钮 |
 | `WAsyncSection` | async_ui | app | 业务页面单区块四态的规范入口；支持 per-block builder 与自定义 onRetry | 分页用 WAsyncPagedList；纯执行用 WAsync；不要在本组件里塞全局 loading |
-| `WAsyncPagedList` | async_ui | app | 标准分页列表的规范入口；内部处理刷新、上拉和 generation；header/footer 可覆盖 | 自定义 ready sliver 用 `WAsyncPagedSliver`；不要在 WAsyncPagedList 外再传 footerStatus / footerChanges |
+| `WAsyncRefreshIndicatorStyle` | async_ui | app | 标准 WAsyncPagedList 的 RefreshIndicator 样式：颜色 / 背景 / 线宽 / 位移 / 触发模式 | 不解决自定义刷新头动画或完成 / 失败文案；这些用 WAsyncPagedSliver 自建壳 |
+| `WAsyncPagedList` | async_ui | app | 标准分页列表；RefreshIndicator 下拉刷新 + 滚动阈值自动 loadMore + 内置 footer | 自定义下拉头 / 上拉壳用 `WAsyncPagedSliver` + 自己的滚动壳；pull_to_refresh 已移除 |
 | `WAsyncPagedSliver` | async_ui | app | 自定义 CustomScrollView 里的分页内容；.custom 支持 readySliverBuilder | 标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncSection 单区块 |
 | `WAsyncStateSliver` | async | core | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncSection`；标准分页用 `WAsyncPagedList`；自定义滚动用 `WAsyncPagedSliver`；不要用原语重写分页/footer |
 | `WRouteStack` | app_getx | core | 路由栈操作（`app.routeStack`） | 不要跨 WApp 操作路由栈；每个 WApp 持有自己的栈 |
@@ -140,7 +141,7 @@
 | `WAsyncTheme` | async | core | App 根部统一默认 loading / empty / error（普通 + sliver 共用） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WRouteObserver` | app_getx | core | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WFormTextFieldData` | form | core | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | 不要在 builder 外构造或缓存；插槽内只读 |
-| `WAsyncStrings` | async | core | 全局默认文案：empty / errorTitle / retry / loading | 不要用它写业务文案；项目应注入本地化，默认文案是英文 |
+| `WAsyncStrings` | async | core | 全局默认文案：empty / errorTitle / retry / loading / noMore | 不要用它写业务文案；项目应注入本地化，默认文案是英文 |
 | `WAsyncErrorWidgetBuilder` | async | core | error / errorBanner builder 的类型 | 不要直接显示 error 原文；不要返回 sliver |
 <!-- catalog:5:end -->
 
@@ -163,7 +164,7 @@
 | `WToast` | toast | core | 轻提示；带遮罩的提示用 `WToast.showModal`（点遮罩关、不穿透、超时兜底） | 提示不要直接用 `WToast.showCustomDialog`（BotToast 直通口：默认关不掉且点击穿透）；确认框用 Flutter `showDialog` |
 | `WToastStyle` | toast | core | Toast 的时长 / 对齐 / 背景 / 动画等样式 | 不要为单条 toast 重复造主题；全局用 WToastTheme |
 | `WGradientCircularProgressIndicator` | ui | core | 确定 / 不确定进度的渐变圆环 | 不确定进度用 `indeterminate: true`，不要传假 value 假装旋转 |
-| `WListView` / `WListViewSliver` | ui | core | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
+| `WListView` / `WListViewSliver` | ui | core | 列表（独立滚动 / 自定义滚动壳 sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | core | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListener` | ui | core | 声明式监听滚动通知 / 百分比；新代码优先 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
 <!-- catalog:7:end -->

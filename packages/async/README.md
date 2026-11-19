@@ -12,12 +12,12 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^7.4.0
+  w_tools_async: ^8.0.0
 ```
 
 要求 Flutter 3.38+。
 
-从 6.x 升级：见 [docs/migrations/async-7.0.md](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
+从 7.x 升级：见 [docs/migrations/async-8.0.md](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-8.0.md)。
 
 业务页面的规范入口在可选包 [`w_tools_async_ui`](https://github.com/stone0533/w_tools/blob/main/packages/async_ui/README.md)：单区块 `WAsyncSection`、
 标准分页 `WAsyncPagedList`；核心包继续只提供原语。
@@ -78,7 +78,7 @@ ready    → readyBuilder
 ```dart
 WAsyncView<List<Gift>>(
   state: controller.state,
-  readyBuilder: (context, gifts) => SmartRefresher(
+  readyBuilder: (context, gifts) => RefreshIndicator(
     onRefresh: controller.load,
     child: ListView(...),
   ),
@@ -96,6 +96,7 @@ WAsyncView<List<Gift>>(
 | `CustomScrollView` 的 sliver 四态 | `WAsyncStateSliver` |
 | 分页 | `WAsyncPagedController` / `WAsyncPagedSnapshot` |
 | 全局默认视图 / 文案 | `WAsyncTheme` / `WAsyncStrings` |
+| 一次性动作 + 默认 hooks | `WAsyncExecutor` |
 | 无 UI 执行，不抛异常 | `WAsync.tryRun` + `WAsyncResult` |
 | 无 UI 执行，失败抛异常 | `WAsync.run` / `retry` / `timeout` |
 | 独立区块并行，保留每个结果 | `WAsync.settle` |
@@ -195,10 +196,7 @@ await appAsync.run(task, hooks: WAsyncHooks.none);
 
 `WAsyncExecutor` 不是全局静态；测试可以创建独立实例，多个 app / 模块可以注入不同实例。
 `WAsyncController` / `WAsyncPagedController` 完全不使用 executor，页面四态仍由
-`WAsyncSection` / `WAsyncPagedList` 管理。
-
-`WAsync.defaultHooks` 已 deprecated，保留到 8.0.0；旧代码可以暂时继续，但新代码用
-`WAsyncExecutor`。
+`WAsyncSection` / `WAsyncPagedList` 管理。`WAsync.defaultHooks` 已在 8.0 删除。
 
 如果项目使用 `WAppPlugin`，在插件里创建并注册 executor：
 
@@ -424,7 +422,7 @@ CustomScrollView(
 - `readySliverBuilder` 必须返回 sliver；
 - loading / empty / failed 用 `SliverFillRemaining`；
 - failed + 旧数据时错误条在列表上方；ready 子树保持同一 element；
-- refreshing 默认不额外加进度，交给外层 `SmartRefresher`。
+- refreshing 默认不额外加进度，交给外层刷新壳（`RefreshIndicator` 或自建壳）。
 
 ## 主题
 

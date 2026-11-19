@@ -2,6 +2,20 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 8.0.0
+
+### Breaking
+- 删除 `WAsync.defaultHooks`；默认 hooks 改由 `WAsyncExecutor` 实例携带，
+  或每次显式传 `hooks:`。
+- 不传 `hooks` 时等价于 `WAsyncHooks.none`，不再有隐式全局默认。
+
+### Added
+- `WAsyncStrings.noMore`：分页 footer 的“没有更多”文案。
+
+### Fixed
+- `WAsyncController.replaceData` 的 `isEmpty` / `normalize` 回调抛错时转为
+  `failed`，与 `load()` 的异常语义一致。
+
 ## 7.4.0
 
 ### Added

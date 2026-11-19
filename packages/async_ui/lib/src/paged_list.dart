@@ -1,135 +1,291 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:w_tools_async/w_tools_async.dart';
+
+import 'refresh_indicator_style.dart';
 
 /// 标准分页列表。
 ///
-/// 内部持有 [RefreshController] 和 [SmartRefresher]，统一处理：
-/// - 下拉刷新；
-/// - 上拉加载更多；
-/// - footer 的五种状态；
-/// - 刷新 generation（旧 refresh 不提前收新 header）；
-/// - footer 重试；
-/// - 追加失败只更新 footer，不替换列表。
+/// 使用 Flutter [RefreshIndicator] 做下拉刷新，滚动接近底部时自动调用
+/// [WAsyncPagedController.loadMore]；footer 根据
+/// [WAsyncPagedController.snapshot] 展示 loading / 失败重试 / 没有更多。
 ///
 /// [controller] 由页面持有；请在 `initState` / `onInit` 调
 /// `controller.refresh()`，不要在这里自动发起首屏请求。
 ///
-/// 标准壳不暴露 header / footer：需要设计稿口径的刷新头 / footer 或自定义
-/// ready sliver 时，用 `WAsyncPagedSliver` + 自己的 `SmartRefresher`。
+/// 程序化刷新用 [reloadRequests]：每次递增触发一次重载。
+///
+/// 需要完全自定义刷新头 / 上拉壳时，用 [WAsyncPagedSliver] + 自己的滚动壳。
 class WAsyncPagedList<T> extends StatefulWidget {
   const WAsyncPagedList({
     super.key,
     required this.controller,
     required this.itemBuilder,
     this.emptyBuilder,
-    this.header,
-    this.footer,
-    this.refreshController,
+    this.reloadRequests,
+    this.autoLoadThreshold = 200,
+    this.footerBuilder,
+    this.refreshIndicatorStyle,
   });
 
   final WAsyncPagedController<T> controller;
   final Widget Function(BuildContext context, T item) itemBuilder;
   final WidgetBuilder? emptyBuilder;
 
-  /// 可选的刷新控制器；传入时由调用方持有 / dispose。
+  /// 程序化重载入口；每次 `value++` 触发一次刷新。
   ///
-  /// 不传时组件内部创建并 dispose。传入后可以：
-  /// `requestRefresh()` 触发带动画的下拉刷新，或读 `isRefresh` 防重复请求。
-  final RefreshController? refreshController;
+  /// 业务不需要持有外部刷新控制器。内部优先复用
+  /// [RefreshIndicator.show] 的动画；页面未挂载时直接刷新 controller。
+  final ValueListenable<int>? reloadRequests;
 
-  /// 直接传给 [SmartRefresher.header]；为 null 时使用其默认 header。
-  final Widget? header;
-
-  /// 直接传给 [SmartRefresher.footer]；为 null 时使用其默认 footer。
+  /// 距离底部多少像素时自动触发 [WAsyncPagedController.loadMore]。
   ///
-  /// app 自定义 footer 时，建议监听 `controller.snapshot`，重试调用
-  /// `controller.loadMore()`；不要依赖内部 `RefreshController`。
-  final Widget? footer;
+  /// `null` 表示关闭自动加载；默认 200。
+  final double? autoLoadThreshold;
+
+  /// 自定义 footer；不传时使用内置的 loading / 失败重试 / 没有更多。
+  final Widget Function(BuildContext context, WAsyncPagedSnapshot<T> snapshot)? footerBuilder;
+
+  /// 标准 [RefreshIndicator] 的样式；null 时使用 Flutter 默认样式。
+  ///
+  /// 只支持颜色 / 背景 / 线宽 / 位移 / 触发模式，不支持自定义刷新头动画或
+  /// 完成 / 失败文案；这些用 `WAsyncPagedSliver` 自建壳。
+  final WAsyncRefreshIndicatorStyle? refreshIndicatorStyle;
 
   @override
   State<WAsyncPagedList<T>> createState() => _WAsyncPagedListState<T>();
 }
 
 class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
-  late RefreshController _refreshController;
-  bool _ownsRefreshController = false;
+  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+  final ScrollController _scrollController = ScrollController();
+  ValueListenable<int>? _reloadRequests;
+  ValueListenable<WAsyncPagedSnapshot<T>>? _snapshot;
+
   int _refreshId = 0;
+  bool _autoLoadCheckScheduled = false;
+  Future<void>? _refreshFuture;
+  Future<void>? _activeRefresh;
+  bool _refreshRequested = false;
+  bool _autoLoadInFlight = false;
 
   @override
   void initState() {
     super.initState();
-    _attachRefreshController(widget.refreshController);
+    _bindReloadRequests();
+    _snapshot = widget.controller.snapshot;
+    _snapshot!.addListener(_onSnapshotChanged);
   }
 
-  void _attachRefreshController(RefreshController? provided) {
-    _ownsRefreshController = provided == null;
-    _refreshController = provided ?? RefreshController();
+  void _onSnapshotChanged() {
+    _scheduleAutoLoadCheck();
+  }
+
+  void _bindReloadRequests() {
+    _reloadRequests = widget.reloadRequests;
+    _reloadRequests?.addListener(_onReloadRequested);
+  }
+
+  void _unbindReloadRequests() {
+    _reloadRequests?.removeListener(_onReloadRequested);
+    _reloadRequests = null;
+  }
+
+  Future<void> _onRefresh() {
+    _refreshRequested = true;
+    return _refreshFuture ??= _drainRefresh();
+  }
+
+  Future<void> _drainRefresh() async {
+    try {
+      while (mounted) {
+        final id = ++_refreshId;
+        final active = _activeRefresh ??= widget.controller.refresh();
+        await active;
+
+        if (id == _refreshId && identical(_activeRefresh, active)) {
+          break;
+        }
+      }
+    } finally {
+      _refreshRequested = false;
+      _refreshFuture = null;
+      _activeRefresh = null;
+    }
+  }
+
+  void _onRetry() {
+    _onReloadRequested();
+  }
+
+  void _onReloadRequested() {
+    if (!mounted) return;
+
+    final state = _refreshKey.currentState;
+
+    if (state == null) {
+      unawaited(widget.controller.refresh());
+      return;
+    }
+
+    // RefreshIndicator 在 refreshing / snap 时 show() 会静默忽略；
+    // 已有刷新时直接替换 controller 请求，由 _drainRefresh 等最新请求。
+    if (_refreshRequested) {
+      _refreshId++;
+      _activeRefresh = widget.controller.refresh();
+      return;
+    }
+
+    _refreshRequested = true;
+    state.show();
+  }
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    if (notification is ScrollEndNotification) {
+      _scheduleAutoLoadCheck();
+    }
+    return false;
+  }
+
+  void _scheduleAutoLoadCheck() {
+    if (_autoLoadCheckScheduled || !mounted) return;
+    _autoLoadCheckScheduled = true;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _autoLoadCheckScheduled = false;
+      if (!mounted || !_scrollController.hasClients) return;
+      _maybeAutoLoad(_scrollController.position.extentAfter);
+    });
+  }
+
+  void _maybeAutoLoad(double extentAfter) {
+    if (!mounted) return;
+
+    final threshold = widget.autoLoadThreshold;
+    if (threshold == null || extentAfter > threshold) return;
+
+    final snapshot = widget.controller.snapshot.value;
+    if (snapshot.isLoadingMore ||
+        !snapshot.hasMore ||
+        snapshot.loadMoreError != null ||
+        snapshot.state.isLoading ||
+        snapshot.state.isRefreshing ||
+        snapshot.state.isFailed ||
+        _autoLoadInFlight) {
+      return;
+    }
+
+    _autoLoadInFlight = true;
+    unawaited(
+      widget.controller.loadMore().whenComplete(() {
+        _autoLoadInFlight = false;
+        _scheduleAutoLoadCheck();
+      }),
+    );
+  }
+
+  Widget _footer(BuildContext context, WAsyncPagedSnapshot<T> snapshot) {
+    final builder = widget.footerBuilder;
+    if (builder != null) return builder(context, snapshot);
+
+    final strings = WAsyncTheme.maybeOf(context)?.strings ?? const WAsyncStrings();
+
+    switch (snapshot.footerStatus) {
+      case WAsyncPagedFooterStatus.loading:
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        );
+      case WAsyncPagedFooterStatus.failed:
+        return Center(
+          child: TextButton(
+            onPressed: widget.controller.loadMore,
+            child: Text(strings.retry),
+          ),
+        );
+      case WAsyncPagedFooterStatus.noMore:
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Center(child: Text('No more')),
+        );
+      case WAsyncPagedFooterStatus.hidden:
+      case WAsyncPagedFooterStatus.loadMore:
+        return const SizedBox.shrink();
+    }
   }
 
   @override
   void didUpdateWidget(covariant WAsyncPagedList<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.refreshController != widget.refreshController) {
-      if (_ownsRefreshController) _refreshController.dispose();
-      _attachRefreshController(widget.refreshController);
+    if (oldWidget.reloadRequests != widget.reloadRequests) {
+      _unbindReloadRequests();
+      _bindReloadRequests();
+    }
+    if (oldWidget.controller != widget.controller) {
+      _snapshot?.removeListener(_onSnapshotChanged);
+      _snapshot = widget.controller.snapshot;
+      _snapshot!.addListener(_onSnapshotChanged);
     }
   }
 
   @override
   void dispose() {
-    if (_ownsRefreshController) _refreshController.dispose();
+    _unbindReloadRequests();
+    _snapshot?.removeListener(_onSnapshotChanged);
+    _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _onRefresh() async {
-    final id = ++_refreshId;
-    await widget.controller.refresh();
-    if (!mounted || id != _refreshId) return;
-
-    if (widget.controller.state.value.isFailed) {
-      _refreshController.refreshFailed();
-    } else {
-      _refreshController.refreshCompleted();
-    }
-  }
-
-  Future<void> _onLoading() async {
-    await widget.controller.loadMore();
-    if (!mounted) return;
-
-    final snapshot = widget.controller.snapshot.value;
-    if (snapshot.loadMoreError != null) {
-      _refreshController.loadFailed();
-    } else if (!snapshot.hasMore) {
-      _refreshController.loadNoData();
-    } else {
-      _refreshController.loadComplete();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SmartRefresher(
-      controller: _refreshController,
-      enablePullUp: true,
+    _scheduleAutoLoadCheck();
+
+    final refreshStyle = widget.refreshIndicatorStyle;
+
+    return RefreshIndicator(
+      key: _refreshKey,
+      color: refreshStyle?.color,
+      backgroundColor: refreshStyle?.backgroundColor,
+      strokeWidth: refreshStyle?.strokeWidth ?? 2,
+      displacement: refreshStyle?.displacement ?? 40,
+      edgeOffset: refreshStyle?.edgeOffset ?? 0,
+      triggerMode: refreshStyle?.triggerMode ?? RefreshIndicatorTriggerMode.onEdge,
       onRefresh: _onRefresh,
-      onLoading: _onLoading,
-      header: widget.header,
-      footer: widget.footer,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          WAsyncStateSliver<List<T>>(
-            state: widget.controller.state,
-            onRetry: () => _refreshController.requestRefresh(),
-            emptyBuilder: widget.emptyBuilder,
-            readySliverBuilder: (context, items) => SliverList.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) => widget.itemBuilder(context, items[index]),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _onScrollNotification,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            WAsyncStateSliver<List<T>>(
+              state: widget.controller.state,
+              onRetry: _onRetry,
+              emptyBuilder: widget.emptyBuilder,
+              readySliverBuilder: (context, items) => SliverList.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) => widget.itemBuilder(context, items[index]),
+              ),
             ),
-          ),
-        ],
+            SliverToBoxAdapter(
+              child: ValueListenableBuilder<WAsyncPagedSnapshot<T>>(
+                valueListenable: widget.controller.snapshot,
+                builder: (context, snapshot, _) => _footer(context, snapshot),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

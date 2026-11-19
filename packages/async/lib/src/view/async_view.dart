@@ -26,7 +26,7 @@ import 'async_theme_views.dart';
 /// [onRetry] 为 null 时 [errorBuilder] / [errorBannerBuilder] 仍会收到 `null` 的
 /// retry，由 builder 决定是否渲染按钮；包内默认视图不带按钮。
 ///
-/// [readyBuilder] 返回内容本身；需要 `SmartRefresher` / `RefreshIndicator`
+/// [readyBuilder] 返回内容本身；需要 `RefreshIndicator` / 自定义刷新壳
 /// 时，把滚动组件放进 [readyBuilder] 内部，不要包在 [WAsyncView] 外面。
 ///
 /// ready / refreshing / failed + 旧数据共用同一层内容容器，
@@ -111,7 +111,7 @@ class WAsyncView<T> extends StatelessWidget {
   }
 
   /// ready / refreshing / failed+data 都使用同一层容器，
-  /// 避免 SmartRefresher 等 readyBuilder 子树在状态切换时被重新挂载。
+  /// 避免 readyBuilder 的滚动子树在状态切换时被重新挂载。
   ///
   /// 高度有界时用固定槽 Column（leading / content / trailing 索引固定），
   /// 错误条和刷新条占空间而不是盖住内容；高度无界时退回 Stack overlay。

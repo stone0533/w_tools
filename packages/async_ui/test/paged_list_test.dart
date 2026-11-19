@@ -1,37 +1,36 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 import 'package:w_tools_async_ui/w_tools_async_ui.dart';
 
-Widget _statusFooter(WAsyncPagedController<int> controller) {
-  return CustomFooter(
-    builder: (context, _) => ValueListenableBuilder<WAsyncPagedSnapshot<int>>(
-      valueListenable: controller.snapshot,
-      builder: (context, snapshot, _) => Text('footer ${snapshot.footerStatus.name}'),
-    ),
-  );
+WAsyncPagedController<int> _controller({
+  required Future<WAsyncPage<int>> Function(int page) load,
+}) {
+  return WAsyncPagedController<int>((page, _) => load(page));
+}
+
+Widget _app(Widget child) {
+  return MaterialApp(home: Scaffold(body: child));
 }
 
 void main() {
   testWidgets('WAsyncPagedList 渲染分页数据', (tester) async {
-    final controller = WAsyncPagedController<int>(
-      (page, _) async => WAsyncPage<int>(
+    final controller = _controller(
+      load: (page) async => WAsyncPage<int>(
         items: page == 1 ? const <int>[1, 2] : const <int>[],
-        hasMore: page == 1,
+        hasMore: false,
       ),
     );
     addTearDown(controller.dispose);
     await controller.refresh();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-          ),
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
         ),
       ),
     );
@@ -39,93 +38,58 @@ void main() {
 
     expect(find.text('item 1'), findsOneWidget);
     expect(find.text('item 2'), findsOneWidget);
+    expect(find.byType(RefreshIndicator), findsOneWidget);
   });
 
-  testWidgets('WAsyncPagedList 转发自定义 header / footer', (tester) async {
-    final controller = WAsyncPagedController<int>(
-      (page, _) async => const WAsyncPage<int>(items: <int>[1], hasMore: true),
+  testWidgets('WAsyncPagedList 支持 RefreshIndicator 样式', (tester) async {
+    final controller = _controller(
+      load: (page) async => const WAsyncPage<int>(items: <int>[1], hasMore: false),
     );
     addTearDown(controller.dispose);
-    await controller.refresh();
-
-    final header = CustomHeader(
-      builder: (context, _) => const Text('custom header'),
-    );
-    final footer = CustomFooter(
-      builder: (context, _) => const Text('custom footer'),
-    );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-            header: header,
-            footer: footer,
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle(
+            color: Color(0xFF00A86B),
+            backgroundColor: Colors.white,
+            strokeWidth: 3,
+            displacement: 24,
+            edgeOffset: 8,
+            triggerMode: RefreshIndicatorTriggerMode.anywhere,
           ),
         ),
       ),
     );
-    await tester.pumpAndSettle();
 
-    final refresher = tester.widget<SmartRefresher>(find.byType(SmartRefresher));
-    expect(refresher.header, same(header));
-    expect(refresher.footer, same(footer));
-  });
-
-  testWidgets('app footer 可以监听 snapshot 并处理 noMore / failed', (tester) async {
-    var pageTwoCalls = 0;
-    final controller = WAsyncPagedController<int>((page, _) async {
-      if (page == 1) return const WAsyncPage<int>(items: <int>[1], hasMore: true);
-      pageTwoCalls++;
-      if (pageTwoCalls == 1) throw StateError('load more failed');
-      return const WAsyncPage<int>(items: <int>[2], hasMore: false);
-    });
-    addTearDown(controller.dispose);
-    await controller.refresh();
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-            footer: _statusFooter(controller),
-          ),
-        ),
-      ),
+    final indicator = tester.widget<RefreshIndicator>(
+      find.byType(RefreshIndicator),
     );
-    await tester.pumpAndSettle();
-
-    expect(find.text('footer loadMore'), findsOneWidget);
-
-    await controller.loadMore();
-    await tester.pumpAndSettle();
-    expect(find.text('footer failed'), findsOneWidget);
-    expect(find.text('item 1'), findsOneWidget);
-
-    await controller.loadMore();
-    await tester.pumpAndSettle();
-    expect(find.text('item 2'), findsOneWidget);
-    expect(find.text('footer noMore'), findsOneWidget);
+    expect(indicator.color, const Color(0xFF00A86B));
+    expect(indicator.backgroundColor, Colors.white);
+    expect(indicator.strokeWidth, 3);
+    expect(indicator.displacement, 24);
+    expect(indicator.edgeOffset, 8);
+    expect(indicator.triggerMode, RefreshIndicatorTriggerMode.anywhere);
   });
 
   testWidgets('WAsyncPagedList 不自动 refresh', (tester) async {
     var calls = 0;
-    final controller = WAsyncPagedController<int>((page, _) async {
-      calls++;
-      return const WAsyncPage<int>(items: <int>[1], hasMore: false);
-    });
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+      },
+    );
     addTearDown(controller.dispose);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-          ),
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
         ),
       ),
     );
@@ -134,101 +98,356 @@ void main() {
     expect(calls, 0);
   });
 
-  testWidgets('refresh 失败显示错误，点击重试恢复', (tester) async {
+  testWidgets('WAsyncPagedList 下拉刷新', (tester) async {
     var calls = 0;
-    final controller = WAsyncPagedController<int>((page, _) async {
-      calls++;
-      if (calls == 1) throw StateError('refresh failed');
-      return const WAsyncPage<int>(items: <int>[1], hasMore: false);
-    });
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+      },
+    );
     addTearDown(controller.dispose);
     await controller.refresh();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-          ),
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Something went wrong'), findsOneWidget);
-    await tester.tap(find.text('Retry'));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 300));
     await tester.pumpAndSettle();
 
+    expect(calls, 2);
     expect(find.text('item 1'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList reloadRequests 触发刷新', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+      },
+    );
+    addTearDown(controller.dispose);
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          reloadRequests: reloadRequests,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    reloadRequests.value++;
+    await tester.pumpAndSettle();
+
+    expect(calls, 1);
+    expect(find.text('item 1'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList reloadRequests 连续完成后可再次刷新', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+      },
+    );
+    addTearDown(controller.dispose);
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          reloadRequests: reloadRequests,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    reloadRequests.value++;
+    await tester.pumpAndSettle();
+    expect(calls, 1);
+
+    reloadRequests.value++;
+    await tester.pumpAndSettle();
     expect(calls, 2);
   });
 
-  testWidgets('WAsyncPagedList 外部 refreshController 支持带动画刷新', (tester) async {
-    final completer = Completer<WAsyncPage<int>>();
-    final controller = WAsyncPagedController<int>(
-      (page, _) => completer.future,
-    );
-    addTearDown(controller.dispose);
-    final refreshController = RefreshController();
-    addTearDown(refreshController.dispose);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-            refreshController: refreshController,
-          ),
-        ),
-      ),
-    );
-
-    refreshController.requestRefresh();
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(refreshController.isRefresh, isTrue);
-
-    completer.complete(const WAsyncPage<int>(items: <int>[1], hasMore: false));
-    await tester.pumpAndSettle();
-    expect(refreshController.isRefresh, isFalse);
-    expect(find.text('item 1'), findsOneWidget);
-  });
-
-  testWidgets('WAsyncPagedList 错误态重试走外部 refreshController 的 header', (tester) async {
+  testWidgets('WAsyncPagedList 首屏不足一页时自动补加载', (tester) async {
     var calls = 0;
-    final retryCompleter = Completer<WAsyncPage<int>>();
-    final controller = WAsyncPagedController<int>((page, _) async {
-      calls++;
-      if (calls == 1) throw StateError('boom');
-      return retryCompleter.future;
-    });
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return WAsyncPage<int>(
+          items: page == 1 ? const <int>[1] : const <int>[2],
+          hasMore: page == 1,
+        );
+      },
+    );
     addTearDown(controller.dispose);
     await controller.refresh();
 
-    final refreshController = RefreshController();
-    addTearDown(refreshController.dispose);
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.text('item 2'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList 滚动到底自动加载', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return WAsyncPage<int>(
+          items: page == 1 ? List<int>.generate(20, (index) => index + 1) : const <int>[21],
+          hasMore: page == 1,
+        );
+      },
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-            refreshController: refreshController,
-          ),
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          autoLoadThreshold: 100,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1000));
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.text('item 21'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList 自动加载失败后不自动重试', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        if (page == 1) {
+          return WAsyncPage<int>(
+            items: List<int>.generate(20, (index) => index + 1),
+            hasMore: true,
+          );
+        }
+        throw StateError('load more failed');
+      },
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          autoLoadThreshold: 100,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1000));
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.text('Retry'), findsOneWidget);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+  });
+
+  testWidgets('WAsyncPagedList footer 失败可重试', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        if (page == 1) {
+          return WAsyncPage<int>(
+            items: List<int>.generate(20, (index) => index + 1),
+            hasMore: true,
+          );
+        }
+        if (calls == 2) throw StateError('load more failed');
+        return const WAsyncPage<int>(items: <int>[21], hasMore: false);
+      },
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          autoLoadThreshold: 100,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1000));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    expect(calls, 3);
+    expect(find.text('item 21'), findsOneWidget);
+    expect(find.text('No more'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList footerBuilder 自定义 footer', (tester) async {
+    final controller = _controller(
+      load: (page) async => const WAsyncPage<int>(items: <int>[1], hasMore: true),
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          autoLoadThreshold: null,
+          footerBuilder: (context, snapshot) => Text('footer ${snapshot.footerStatus.name}'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('footer loadMore'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList 错误态重试走 RefreshIndicator', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        if (calls == 1) throw StateError('boom');
+        return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+      },
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Retry'));
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(refreshController.isRefresh, isTrue);
-
-    retryCompleter.complete(const WAsyncPage<int>(items: <int>[1], hasMore: false));
     await tester.pumpAndSettle();
-    expect(refreshController.isRefresh, isFalse);
+
+    expect(calls, 2);
     expect(find.text('item 1'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList reloadRequests 并发刷新只保留最新结果', (tester) async {
+    final completers = <Completer<WAsyncPage<int>>>[];
+    final controller = _controller(
+      load: (page) {
+        final completer = Completer<WAsyncPage<int>>();
+        completers.add(completer);
+        return completer.future;
+      },
+    );
+    addTearDown(controller.dispose);
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          reloadRequests: reloadRequests,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    reloadRequests.value++;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(completers, hasLength(1));
+
+    reloadRequests.value++;
+    await tester.pump();
+    expect(completers, hasLength(2));
+
+    completers[0].complete(const WAsyncPage<int>(items: <int>[0], hasMore: false));
+    await tester.pump();
+    completers[1].complete(const WAsyncPage<int>(items: <int>[1], hasMore: false));
+    await tester.pumpAndSettle();
+
+    expect(find.text('item 1'), findsOneWidget);
+    expect(find.text('item 0'), findsNothing);
+  });
+
+  testWidgets('WAsyncPagedList reloadRequests dispose 后不再触发', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+      },
+    );
+    addTearDown(controller.dispose);
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          reloadRequests: reloadRequests,
+        ),
+      ),
+    );
+    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+
+    reloadRequests.value++;
+    await tester.pump();
+
+    expect(calls, 0);
+    expect(tester.takeException(), isNull);
   });
 }

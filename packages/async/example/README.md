@@ -104,6 +104,33 @@ final result = await WAsync.tryRun(
 
 ## 示例说明
 
+### 默认 hooks：WAsyncExecutor
+
+`WAsyncExecutor` 在 composition root 创建一次，携带默认 hooks：
+
+```dart
+final appAsync = WAsyncExecutor(
+  WAsyncHooks(
+    onStart: showLoading,
+    onFinally: hideLoading,
+  ),
+);
+```
+
+业务调用：
+
+```dart
+await appAsync.run(() => api.save());
+```
+
+单次覆盖：
+
+```dart
+await appAsync.run(task, hooks: WAsyncHooks.none);
+```
+
+没有全局 `defaultHooks`；默认值只属于这个 executor 实例。
+
 ### 四态视图
 
 ```dart

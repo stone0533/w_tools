@@ -2,7 +2,7 @@ import 'async_task.dart';
 
 /// 携带默认 [WAsyncHooks] 的执行器。
 ///
-/// 在 app composition root 创建一次并注入，替代全局 `WAsync.defaultHooks`：
+/// 在 app composition root 创建一次并注入：
 ///
 /// ```dart
 /// final appAsync = WAsyncExecutor(
@@ -21,7 +21,7 @@ import 'async_task.dart';
 class WAsyncExecutor {
   const WAsyncExecutor(this.hooks);
 
-  /// 默认 hooks；不会读取 `WAsync.defaultHooks`。
+  /// 默认 hooks；不会读取任何全局状态。
   final WAsyncHooks hooks;
 
   Future<T> run<T>(
