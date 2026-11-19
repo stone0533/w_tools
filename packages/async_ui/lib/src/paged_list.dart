@@ -216,9 +216,9 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
           ),
         );
       case WAsyncPagedFooterStatus.noMore:
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Center(child: Text(strings.noMore)),
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Center(child: Text('No more')),
         );
       case WAsyncPagedFooterStatus.hidden:
       case WAsyncPagedFooterStatus.loadMore:

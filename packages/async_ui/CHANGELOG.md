@@ -17,7 +17,7 @@
 - 内置 footer 展示 `WAsyncPagedSnapshot.footerStatus`，失败可点击重试。
 
 ### Changed
-- `w_tools_async` 最低版本抬到 `^8.0.0`。
+- `w_tools_async` 兼容范围 `>=7.4.0 <9.0.0`。
 - 上拉加载改为滚动阈值自动触发；不再有 pull-up footer 手势。
 - 程序化刷新与并发刷新统一走 `RefreshIndicator` 和 generation gate。
 

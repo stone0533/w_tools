@@ -18,7 +18,7 @@ dependencies:
   w_tools_async_ui: ^2.0.0
 ```
 
-要求 Flutter 3.38+、`w_tools_async ^8.0.0`。
+要求 Flutter 3.38+、`w_tools_async >=7.4.0 <9.0.0`。
 
 ## 单区块
 
@@ -107,7 +107,7 @@ Widget build(BuildContext context) {
 ```text
 loading  → 转圈
 failed   → “重试”按钮
-noMore   → “没有更多了”
+noMore   → “No more”
 hidden / loadMore → 不显示
 ```
 

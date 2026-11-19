@@ -1,7 +1,7 @@
 # w_tools_async_ui 2.0 迁移
 
 2.0 去掉 `pull_to_refresh` 依赖，`WAsyncPagedList` 改用 Flutter `RefreshIndicator`
-+ 滚动阈值自动加载；最低 `w_tools_async` 版本抬到 `^8.0.0`。
++ 滚动阈值自动加载；`w_tools_async` 兼容 `>=7.4.0 <9.0.0`。
 
 ## 移除的 API
 
