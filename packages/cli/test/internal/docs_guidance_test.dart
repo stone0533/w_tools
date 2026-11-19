@@ -57,12 +57,12 @@ void main() {
     expect(log.split('\n').first, '# Changelog');
   });
 
-  test('ASYNC-023：README 写明 settle 的失败与顺序语义', () {
+  test('ASYNC-023：README 写明 tryAll 的失败与顺序语义', () {
     final readme = File('../../packages/async/README.md').readAsStringSync();
 
     expect(readme, contains('结果顺序与输入一致'));
     expect(readme, contains('onError'));
-    expect(readme, contains('settle'));
+    expect(readme, contains('tryAll'));
   });
 
   test('ASYNC-024：WAsyncState.errorMessage 已移除并记录迁移', () {

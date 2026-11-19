@@ -1657,7 +1657,7 @@ const String agentsAsync = r'''
   `WAsyncStrings` 走 `WAsyncTheme`；结果分支 `WAsyncSuccess` / `WAsyncFailure` /
   `WAsyncCancelled`，取消异常 `WCancellationException`；纯执行原语用 `WAsync.tryRun` / `run`，
   默认 hooks 用 `WAsyncExecutor(WAsyncHooks(...))` 注入，没有全局 `defaultHooks`；
-  单次 `hooks` 覆盖；独立区块用 `WAsync.settle`；`WAsyncView.state` 是 `ValueListenable`
+  单次 `hooks` 覆盖；独立区块用 `WAsync.tryAll`；`WAsyncView.state` 是 `ValueListenable`
   不是 `Rx`，外层 `Obx` 要保留。
 ''';
 
@@ -1790,7 +1790,7 @@ const String agentsAsyncEn = r'''
   `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); `loadMore` failure
   writes `snapshot.loadMoreError`; no `hasLoadedMorePage`; don't use `data != null` for states; branch on `WAsyncSuccess` /
   `WAsyncFailure` / `WAsyncCancelled`; cancellation throws `WCancellationException`; execution uses `WAsync.tryRun` / `run`; default hooks via `WAsyncExecutor(WAsyncHooks(...))`;
-  no global defaultHooks; per-call hooks override; use `WAsync.settle`;
+  no global defaultHooks; per-call hooks override; use `WAsync.tryAll`;
   `WAsyncView.state` is `ValueListenable`, keep outer `Obx`.
 ''';
 

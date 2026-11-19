@@ -98,8 +98,8 @@ void main() {
     expect(banners, isA<WAsyncSuccess<List<String>>>());
   });
 
-  test('README settle 示例可编译并保留每个结果', () async {
-    final results = await WAsync.settle<Gift>([
+  test('README tryAll 示例可编译并保留每个结果', () async {
+    final results = await WAsync.tryAll<Gift>([
       () => api.gift('1'),
       () => api.gift('2'),
     ]);

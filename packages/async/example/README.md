@@ -7,7 +7,7 @@
 - Sliver：`WAsyncStateSliver`
 - 全局默认：`WAsyncTheme`（普通 + sliver 一套）
 - 执行编排：`WAsync` / `WCancelToken`
-- 执行入口：`tryRun` / `run` / `retry` / `timeout` / `settle`
+- 执行入口：`tryRun` / `run` / `retry` / `timeout` / `tryAll`
 - 真实场景：提交重试+取消、启动并行、限流上传、搜索竞态
 - 重试增强：`retryDelayBuilder` 退避、`onRetry` 观测
 
@@ -35,7 +35,7 @@ lib/
     async_view_page.dart    WAsyncController + WAsyncView
     paged_page.dart         WAsyncPagedController + snapshot footer
     sliver_page.dart        WAsyncStateSliver
-    execution_page.dart     WAsync / 重试 / 超时 / 取消 / settle
+    execution_page.dart     WAsync / 重试 / 超时 / 取消 / tryAll
     scenarios_page.dart     提交 / 启动 / 上传 / 搜索竞态
 test/
   example_smoke_test.dart
@@ -69,19 +69,19 @@ await WAsync.retry(
 ### App 启动
 
 ```dart
-final results = await WAsync.settle<String>([
+final results = await WAsync.tryAll<String>([
   () => loadConfig(),
   () => loadProfile(),
   () => loadNotifications(),
 ], onError: (error) => log(error));
 ```
 
-`settle` 保留每个结果；页面自己在调用点维护 loading 布尔。
+`tryAll` 保留每个结果；页面自己在调用点维护 loading 布尔。
 
 ### 上传文件
 
 ```dart
-final results = await WAsync.settle<String>(
+final results = await WAsync.tryAll<String>(
   files.map((file) => () => upload(file)),
   concurrency: 2,
   cancelToken: token,

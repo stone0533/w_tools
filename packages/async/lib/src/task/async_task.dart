@@ -31,7 +31,7 @@ class WAsyncHooks {
 /// 异步执行助手。
 ///
 /// 两套入口：
-/// - [tryRun] / [settle]：返回 [WAsyncResult]，不抛业务异常；
+/// - [tryRun] / [tryAll]：返回 [WAsyncResult]，不抛业务异常；
 /// - [run] / [retry] / [timeout]：失败抛异常，取消抛 [WCancellationException]。
 ///
 /// 并发需求直接用 `Future.wait` / `Future.any` / `package:async`；
@@ -241,7 +241,7 @@ class WAsync {
   /// [onStart] / [onFinally] 是 **batch-level**：整批只各调用一次；
   /// 空集合 / 进入时已取消的 token 不调用。
   /// 内部用私有 worker 池限流，默认最多 [concurrency] 个任务同时执行。
-  static Future<List<WAsyncResult<T>>> settle<T>(
+  static Future<List<WAsyncResult<T>>> tryAll<T>(
     Iterable<Future<T> Function()> tasks, {
     int concurrency = 4,
     WAsyncHooks? hooks,
@@ -293,6 +293,30 @@ class WAsync {
     } finally {
       _notifyFinally(finallyHandler);
     }
+  }
+
+  /// 旧名称；请改用 [tryAll]。
+  ///
+  /// remove-in: 9.0.0
+  @Deprecated('Use WAsync.tryAll')
+  static Future<List<WAsyncResult<T>>> settle<T>(
+    Iterable<Future<T> Function()> tasks, {
+    int concurrency = 4,
+    WAsyncHooks? hooks,
+    void Function()? onStart,
+    void Function(Object error)? onError,
+    void Function()? onFinally,
+    WCancelToken? cancelToken,
+  }) {
+    return tryAll<T>(
+      tasks,
+      hooks: hooks,
+      concurrency: concurrency,
+      onStart: onStart,
+      onError: onError,
+      onFinally: onFinally,
+      cancelToken: cancelToken,
+    );
   }
 
   static T _unwrap<T>(WAsyncResult<T> result) {

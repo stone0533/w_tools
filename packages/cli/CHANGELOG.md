@@ -1,3 +1,9 @@
+## 2.8.1
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^8.1.0`。
+- catalog / AGENTS 推荐 `WAsync.tryAll`；`WAsync.settle` 标记为 deprecated。
+
 ## 2.8.0
 
 ### Changed

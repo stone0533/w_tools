@@ -108,6 +108,30 @@ class WAsyncExecutor {
     );
   }
 
+  Future<List<WAsyncResult<T>>> tryAll<T>(
+    Iterable<Future<T> Function()> tasks, {
+    WAsyncHooks? hooks,
+    int concurrency = 4,
+    void Function()? onStart,
+    void Function(Object error)? onError,
+    void Function()? onFinally,
+    WCancelToken? cancelToken,
+  }) {
+    return WAsync.tryAll<T>(
+      tasks,
+      hooks: hooks ?? this.hooks,
+      concurrency: concurrency,
+      onStart: onStart,
+      onError: onError,
+      onFinally: onFinally,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// 旧名称；请改用 [tryAll]。
+  ///
+  /// remove-in: 9.0.0
+  @Deprecated('Use WAsyncExecutor.tryAll')
   Future<List<WAsyncResult<T>>> settle<T>(
     Iterable<Future<T> Function()> tasks, {
     WAsyncHooks? hooks,
@@ -117,9 +141,9 @@ class WAsyncExecutor {
     void Function()? onFinally,
     WCancelToken? cancelToken,
   }) {
-    return WAsync.settle<T>(
+    return tryAll<T>(
       tasks,
-      hooks: hooks ?? this.hooks,
+      hooks: hooks,
       concurrency: concurrency,
       onStart: onStart,
       onError: onError,
