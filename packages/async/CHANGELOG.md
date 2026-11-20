@@ -1,5 +1,12 @@
 # Changelog
 
+## 8.1.1
+
+### Fixed
+- `WAsyncController` / `WAsyncPagedController` 的 `initial` 统一走 empty / normalize 规则：
+  空列表进入 `empty`，列表变成不可变，`isEmpty` 对 initial 生效。
+- `WCancelToken.cancel` 重入时只通知一次 listener。
+
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
 ## 8.1.0

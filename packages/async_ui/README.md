@@ -206,6 +206,10 @@ RefreshIndicator(
 
 ## 边界
 
+- `WAsyncPagedList` 的 controller 生命周期内保持稳定；不支持运行中替换。
+- per-list loading / error / errorBanner 走 `WAsyncTheme`；需要完全定制时用
+  `WAsyncPagedSliver` + `WAsyncStateSliver`。
+- `refreshIndicatorStyle` 默认值与 Flutter 3.38+ 对齐；不做自定义刷新头。
 - 不自动 load / refresh；页面 controller 自己负责首屏请求。
 - 不持有 controller；`WAsyncPagedList` 不持有外部刷新控制器。
 - 不包含已删除的执行组合子（`parallel` / `pool` / `serial` / `first` / `map`）；这些已被

@@ -885,6 +885,9 @@ components:
       - '程序化刷新用 reloadRequests.value++；不需要外部刷新控制器'
       - 'loadMore 失败只更新 footer，不清空列表；不要额外 toast'
       - '不要维护 hasLoadedMorePage；footer 只读 snapshot.footerStatus'
+      - 'controller 生命周期内保持稳定；不要在运行中替换'
+      - 'loading / error / errorBanner 走 WAsyncTheme；per-list 定制用 WAsyncPagedSliver'
+      - 'refreshIndicatorStyle 默认值与 Flutter 3.38+ 对齐；不做自定义刷新头'
     related: ['WAsyncPagedController', 'WAsyncPagedSliver', 'WAsyncPagedFooterStatus']
     teach: true
 
@@ -937,6 +940,9 @@ components:
       - 'loader 统一接收 WCancelToken；不需要取消时写 (_) => ...'
       - 'list 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
       - 'replaceData 会取消在飞 load；需要服务端校准时再 load()'
+      - 'initial 也会走 empty / unmodifiable；不要依赖 initial: ready([]) 显示空数据'
+      - 'onError 不带 StackTrace；完整堆栈用 WAsyncFailure 或 loader 内记录'
+      - 'loader 只读取 token，不要自己 cancel'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
 
@@ -964,6 +970,10 @@ components:
       - 'initial: ready([]) / empty 视为没有更多'
       - '切换筛选直接再 refresh()：在飞请求会被取消，不要禁用筛选'
       - 'replaceData 会取消在飞 refresh/loadMore；hasMore 默认继承，空列表 hasMore=false'
+      - 'initialPage 是 1-based；0-based 后端在 loader 内减 1'
+      - '只支持 page 型分页；cursor 分页需自定义 adapter'
+      - 'initial 的列表会变成 empty / unmodifiable；不要依赖 ready([])'
+      - '空页 loadMore 后 footer 可能是 hidden 而不是 noMore，按 footerStatus 判断'
     related: ['WAsyncView', 'WAsyncController', 'WAsyncPagedSnapshot', 'WAsyncPagedFooterStatus']
     teach: true
   - name: '`WAsyncPagedSnapshot`'
@@ -1248,6 +1258,9 @@ components:
       WAsyncState.list(items); // null / 空列表 → empty
     pitfalls:
       - '不要手写 ValueNotifier<WAsyncState>'
+      - 'ready([]) 不等于 empty；集合空值用 empty / WAsyncState.list'
+      - 'isRefreshing 依赖 data != null；nullable T 的 previousData: null 不视为刷新'
+      - 'failed 只保存 error，不保存 StackTrace；堆栈走 WAsyncFailure / loader'
     related: ['WAsyncController']
     teach: true
   - name: '`WAsyncResult`'
@@ -1286,6 +1299,7 @@ components:
       - 'WAsyncHooks 只是回调值对象，不持有执行逻辑'
       - '默认 hooks 由 WAsyncExecutor 携带，没有全局默认 hooks'
       - 'WAsyncHooks.none 可关闭本次 hooks'
+      - '进入时已取消的 token 不触发 onStart / onError / onFinally'
     related: ['WAsyncExecutor', 'WAsync']
     teach: true
 
@@ -1310,6 +1324,7 @@ components:
       - '单次用 hooks 覆盖默认；WAsyncHooks.none 关闭本次'
       - '不要放进全局静态；按 app / 模块注入'
       - 'WAsyncController / WAsyncPagedController 不使用 executor'
+      - 'pre-cancelled token 不触发 hooks；onError 不带 StackTrace'
     related: ['WAsyncHooks', 'WAsync']
     teach: true
 
@@ -1364,6 +1379,8 @@ components:
       - 'tryAll 保留每个结果；失败任务逐个通知 onError；settle 已 deprecated，9.0 删除'
       - '取消需要 WCancelToken；取消不中止底层 Future；取消与失败同轮时非 Error 按取消处理'
       - 'retry 的 retryCount 是重试次数（总尝试 = retryCount + 1）；onRetry 自身异常被忽略'
+      - 'pre-cancelled token 不触发 hooks；retryIf / retryDelayBuilder 抛错按最终失败'
+      - 'timeout 只结束等待，不取消底层 Future；取消要传 cancelToken'
     related: ['WAsyncResult', 'WCancelToken']
     aliases: ['tryRun', 'run', 'retry', 'timeout', 'tryAll', 'settle']
     teach: true

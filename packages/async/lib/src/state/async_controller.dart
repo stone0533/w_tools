@@ -38,7 +38,35 @@ class WAsyncController<T> {
     WAsyncState<T>? initial,
   }) : _isEmpty = isEmpty,
        _normalize = normalize,
-       _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
+       _state = ValueNotifier(
+         _normalizeInitial(initial, isEmpty: isEmpty, normalize: normalize),
+       );
+
+  static WAsyncState<T> _normalizeInitial<T>(
+    WAsyncState<T>? initial, {
+    bool Function(T value)? isEmpty,
+    T Function(T value)? normalize,
+  }) {
+    if (initial == null) return WAsyncState<T>.loading();
+
+    final data = initial.data;
+    if (data == null) return initial;
+
+    final value = normalize?.call(data as T) ?? data as T;
+    if (initial.isReady && isEmpty?.call(value) == true) {
+      return WAsyncState<T>.empty();
+    }
+
+    return switch (initial.status) {
+      WAsyncStatus.loading => WAsyncState<T>.loading(previousData: value),
+      WAsyncStatus.ready => WAsyncState<T>.ready(value),
+      WAsyncStatus.failed => WAsyncState<T>.failed(
+        initial.error!,
+        previousData: value,
+      ),
+      WAsyncStatus.empty => initial,
+    };
+  }
 
   /// 列表场景：空列表自动归为 empty；`state.data` 为 unmodifiable。
   static WAsyncController<List<E>> list<E>(

@@ -55,6 +55,11 @@ WAsyncSection<List<Gift>>(
 
 ## 边界
 
+- `WAsyncPagedList` 的 controller 生命周期内保持稳定；不支持运行中替换。
+- 标准壳只覆盖 empty / footer；loading / error / errorBanner 走 `WAsyncTheme`，
+  需要 per-list 定制时用 `WAsyncPagedSliver` / `WAsyncStateSliver`。
+- `WAsyncRefreshIndicatorStyle` 默认值与 Flutter 3.38+ 对齐；不做自定义刷新头。
+
 - 不包含已删除的执行组合子（`parallel` / `pool` / `serial` / `first` / `map`）；
 - 不包含全局 loading / toast / 登录失效；
 - 不 import 任何项目设计系统；

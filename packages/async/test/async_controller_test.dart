@@ -25,6 +25,40 @@ void main() {
       expect(controller.state.value.data, 1);
     });
 
+    test('isEmpty 对 initial 生效', () {
+      final controller = WAsyncController<String>(
+        (_) async => 'new',
+        isEmpty: (value) => value.isEmpty,
+        initial: const WAsyncState.ready(''),
+      );
+      addTearDown(controller.dispose);
+
+      expect(controller.state.value.isEmpty, isTrue);
+    });
+
+    test('list initial 空列表进入 empty 且列表不可变', () {
+      final mutable = <int>[1];
+      final controller = WAsyncController.list<int>(
+        (_) async => <int>[],
+        initial: WAsyncState<List<int>>.ready(mutable),
+      );
+      addTearDown(controller.dispose);
+
+      expect(controller.state.value.isReady, isTrue);
+      expect(controller.state.value.data, [1]);
+      expect(
+        () => controller.state.value.data!.add(2),
+        throwsUnsupportedError,
+      );
+
+      final empty = WAsyncController.list<int>(
+        (_) async => <int>[],
+        initial: const WAsyncState<List<int>>.ready(<int>[]),
+      );
+      addTearDown(empty.dispose);
+      expect(empty.state.value.isEmpty, isTrue);
+    });
+
     test('list 空列表进入 empty', () async {
       final controller = WAsyncController.list<int>((_) async => <int>[]);
       addTearDown(controller.dispose);

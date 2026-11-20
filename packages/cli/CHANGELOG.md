@@ -1,3 +1,9 @@
+## 2.8.3
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^8.1.1`。
+- catalog / AGENTS 同步 async 边界说明。
+
 ## 2.8.2
 
 ### Changed

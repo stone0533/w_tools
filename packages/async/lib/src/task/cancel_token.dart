@@ -51,17 +51,21 @@ class WCancelToken {
   ///
   /// 重复调用只会更新 [cancelReason]，不再触发回调（监听已在首次取消时清空）。
   void cancel([Object? reason]) {
+    final wasCancelled = _isCancelled;
     _isCancelled = true;
     _cancelReason = reason;
-    // 遍历副本，允许回调内部增删监听
-    for (final callback in _listeners.toList()) {
+    if (wasCancelled) return;
+
+    // 先取走并清空，回调内部再次 cancel 时不会重复通知。
+    final listeners = _listeners.toList();
+    _listeners.clear();
+    for (final callback in listeners) {
       try {
         callback(reason);
       } catch (e) {
         // 回调异常不影响取消流程
       }
     }
-    _listeners.clear();
   }
 
   /// 若已取消则抛出 [WCancellationException]，否则不做任何事

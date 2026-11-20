@@ -447,9 +447,28 @@ void main() {
       );
       addTearDown(controller.dispose);
 
+      expect(controller.state.value.isEmpty, isTrue);
       expect(controller.snapshot.value.hasMore, isFalse);
       await controller.loadMore();
       expect(requested, isEmpty);
+    });
+
+    test('initial.ready 的列表会变成不可变', () {
+      final mutable = <int>[1];
+      final controller = _controller(
+        {
+          2: [2],
+        },
+        lastPage: 2,
+        initial: WAsyncState<List<int>>.ready(mutable),
+      );
+      addTearDown(controller.dispose);
+
+      expect(controller.state.value.data, [1]);
+      expect(
+        () => controller.state.value.data!.add(3),
+        throwsUnsupportedError,
+      );
     });
 
     test('initial.empty 时没有更多', () async {
