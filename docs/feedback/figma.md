@@ -2,22 +2,11 @@
 
 ## 待处理
 
-### [待处理] figma: frames --all 缺少收窄手段：真实设计文件输出 6744 行，其中 96% 不是画板
-
-- 包/版本：w_tools_figma 1.1.0（本地检出，待发布），以本地检出代码为准
-- 环境：Flutter 3.44.9 / Dart 3.12.2 / macOS 宿主；项目 ureward，缓存含整份文件 dump 与多页节点树
-- 命令 / 输入：`dart run w_tools_figma:figma frames --all`（目的是找画板 id）
-- 期望：`--all` 的帮助写的是「连嵌套 FRAME 一起列」，用于找画板。真实设计文件里嵌套 frame 成千上万，需要能把结果收窄到「画板级」（深度 / 尺寸 / 条数任一维度），否则这个开关没法用
-- 实际：本项目实测输出 6744 行；按宽度统计只有 327 行的宽度落在 350~400（画板宽度），其余 6416 行是内部布局 frame（例如 `Frame 15801`、`News Item Logo Container`、`News Item Title` 这类容器/元素）。`help frames` 只有 `--file` / `--json` / `--all` / `--name` / `--page` / `--verbose`，没有 `--depth`、`--min-width`、`--limit` 之类收窄手段
-- 影响：项目文档 `docs/agents/design-fidelity.md` 明确写「本项目的画板挂在 TABLE/RECTANGLE 容器下，默认 `frames` 会显示（没有 FRAME），直接加 `--all`」——按这个指引执行会得到 6744 行，agent 读这一段既超上下文也找不到目标画板。补充：实测现在默认 `frames` 已能列出 15 条画板（其中有 2 条是嵌套 id），文档那句「默认会（没有 FRAME）」也已过时；但即使更新文档，`--all` 缺少收窄手段仍是缺口
-- 建议：①增加 `--depth=<n>` 限制嵌套层级；②或增加 `--min-width=<px>` / 只列「页面宽度级」的画板；③或输出加一列 `depth` 并默认过滤到画板级，让 `--all` 真正可控；④至少在 README 与 `help frames` 里提示「真实设计文件 `--all` 可能有数千行，建议配合 `--name` / `--page`」
-- 复现数据：`dart run w_tools_figma:figma frames --all | wc -l` → `6744`；按宽度统计 `awk -F'×' '{if ($1+0>=350 && $1+0<=400) a++; else b++} END {print a, b}'` → `327 6416`；抽样名称包括 `01.1優惠券-已使用`（画板）与 `Frame 15801`、`News Item Logo Container`（布局容器）；`dart run w_tools_figma:figma frames` 默认输出为 15 行
-- 状态变更：2026-11-20 待处理
-
 ## 已闭环
 
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-20 | `frames --all` 缺少收窄手段，真实文件输出 6744 行 | ✅ 1.1.0（commit f042640d）：新增 `frames --depth` / `--limit`；`frames/1` 增加 `total` / `truncated` / `depth`；`--all` 可限深度或条数 |
 | 2026-11-20 | `fetch nodes --scale=2` 未被拒绝；节点不存在也写缓存并污染索引 | ✅ 1.0.0：显式 `--scale` 一律 exit 2；全 null 不写缓存、不标 corrupt；部分 null 警告并列出缺失 id |
 | 2026-11-20 | `spec --node-only` 不带 `--json` 时仍输出完整 markdown | ✅ 1.0.0：`--node-only` 必须配合 `--json`，否则 exit 2 |
 | 2026-11-20 | `cache clean` 当前项目无确认，与 `--all` 的 `--yes` 策略不对称 | ✅ 1.0.0：`cache clean` 无论是否 `--all` 都必须带 `--yes`；拒绝时打印当前项目文件数 / 体积 |
