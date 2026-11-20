@@ -1,5 +1,8 @@
 import 'token_collector.dart';
 
+/// 颜色语义映射的 key：去掉 `#`、转大写（CLI 解析 YAML 与渲染共用）。
+String colorKey(String value) => value.replaceAll('#', '').toUpperCase();
+
 /// 把统计结果渲染成 Markdown（与项目里的 `design-tokens.md` 结构对齐）。
 class TokenRenderer {
   const TokenRenderer();
@@ -29,7 +32,7 @@ class TokenRenderer {
     }
     for (final c in tokens.colorsSorted()) {
       if (colorNames.isNotEmpty) {
-        final name = colorNames[c.value.replaceAll('#', '').toUpperCase()] ?? '新增';
+        final name = colorNames[colorKey(c.value)] ?? '新增';
         buf.writeln('| `${c.value}` | $name | ${c.count} | ${c.samples.join(' / ')} |');
       } else {
         buf.writeln('| `${c.value}` | ${c.count} | ${c.samples.join(' / ')} |');

@@ -24,8 +24,7 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_spec_no_md_');
     home = Directory.systemTemp.createTempSync('figma_spec_no_md_home_');
-    CacheStore.homeOverride = home.path;
-    final cache = File('${CacheStore(root).dir.path}/nodes-K-1-2.json');
+    final cache = File('${CacheStore(root, home: home.path).dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -51,7 +50,6 @@ void main() {
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     // runSpec 会写全局 exitCode；不还原会让测试进程非 0 退出。
     exitCode = 0;
     if (root.existsSync()) root.deleteSync(recursive: true);
@@ -61,7 +59,12 @@ void main() {
   test('--json --node-only 不渲染 markdown', () async {
     final renderer = _RecordingRenderer();
 
-    await runSpec(['1:2', '--json', '--node-only', '--root=${root.path}'], renderer: renderer);
+    await runSpec([
+      '1:2',
+      '--json',
+      '--node-only',
+      '--root=${root.path}',
+    ], renderer: renderer, store: CacheStore(root, home: home.path));
 
     expect(exitCode, 0);
     expect(renderer.calls, 0, reason: 'node-only 时不该再渲染一遍 markdown');
@@ -70,7 +73,8 @@ void main() {
   test('--json 不带 node-only 仍渲染（正向对照）', () async {
     final renderer = _RecordingRenderer();
 
-    await runSpec(['1:2', '--json', '--root=${root.path}'], renderer: renderer);
+    await runSpec(['1:2', '--json', '--root=${root.path}'],
+        renderer: renderer, store: CacheStore(root, home: home.path));
 
     expect(exitCode, 0);
     expect(renderer.calls, 1);
@@ -79,7 +83,8 @@ void main() {
   test('文本模式仍渲染（输出就是 markdown）', () async {
     final renderer = _RecordingRenderer();
 
-    await runSpec(['1:2', '--root=${root.path}'], renderer: renderer);
+    await runSpec(['1:2', '--root=${root.path}'],
+        renderer: renderer, store: CacheStore(root, home: home.path));
 
     expect(exitCode, 0);
     expect(renderer.calls, 1);

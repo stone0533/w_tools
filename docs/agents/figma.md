@@ -54,19 +54,21 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 
 ```json
 {
-  "node": { "id": "...", "type": "FRAME", "children": [] },
-  "markdown": "..."
+  "schema": "w_tools_figma.specs/1",
+  "items": [
+    { "source": "...", "nodeId": "...", "node": { "id": "...", "type": "FRAME", "children": [] }, "markdown": "..." }
+  ]
 }
 ```
 
-- `node`：结构化数据，用来读层级 / 尺寸 / 颜色 / 文本 / 间距。
-- `markdown`：人读规格表，适合贴 PR。
+- `items[].node`：结构化数据，用来读层级 / 尺寸 / 颜色 / 文本 / 间距。
+- `items[].markdown`：人读规格表，适合贴 PR。
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
 - `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。
 - `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套；`cacheFile` 是该缓存文件的真实路径
   （缓存在 `~/.cache/w_tools/figma/<项目标识>/`，通常是绝对路径），可以直接传给 `--file=`。
-- 多画板 `spec a,b,c` 的 JSON schema 是 `w_tools_figma.specs/1`。
+- `spec --json` 固定返回 `w_tools_figma.specs/1`（单个节点也是 `items` 数组）。
 
 ## 映射到 Flutter
 
@@ -96,11 +98,13 @@ dart run w_tools_cli:w_tools explain <组件名>
 
 - **先读缓存**：`spec` / `tokens` 不联网；只有缓存缺失或明确要更新时才 `fetch`。
 - **不要默认 `--refresh`**：会消耗 Tier 1；它跳过缓存读取，成功后才覆盖。
-- **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。缓存命中时它仍会访问
+- **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。`fetch nodes` 缓存命中时它仍会访问
   `/meta`，输出会标 `checked /meta`。
-- **ids 顺序不影响缓存**：`fetch nodes/images` 会去重排序，不要为同一个集合换顺序重复 fetch。
-- **`fetch images` 只返回下载地址**；需要文件时用 `get <url> <outfile>`。
-- **`spec --json` 同时包含 `node` 和 `markdown`**；优先读 `node`。
+- **ids 顺序不影响缓存**：`fetch nodes` / `fetch images` 都会去重排序，不要为同一个集合换顺序重复请求。
+- **`fetch images` 不缓存**：直接输出 `id<TAB>url`（签名会过期），需要文件时用 `get <url> <outfile>`；
+  它不接受 `--depth` / `--refresh` / `--check-stale`。
+- **`spec --skip-name-prefix=<s>`** 可跳过 iOS 状态栏 mock 等节点；`spec --with-id` 给 markdown 加 nodeId 列；`spec --with-layout` 加 layoutMode / itemSpacing / padding；`tokens --json --skip-markdown` 可只取结构化数组。
+- **`spec --json` 的 `node` 在 `items[].node` 里**；优先读它，`markdown` 只给人看。
 - token 用 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。
 - JSON schema 在 `packages/figma/schema/`；schema 名称与 `--json` 输出的 `schema` 字段一致。
@@ -113,20 +117,19 @@ dart run w_tools_figma:figma tokens <nodeId> --json
 dart run w_tools_figma:figma url '<figma-url>' --json
 ```
 
-- `spec --json`：读 `node`（结构 / 尺寸 / 颜色 / 文字 / 间距）；`markdown` 只给人看。
+- `spec --json`：读 `items[].node`（结构 / 尺寸 / 颜色 / 文字 / 间距）；`markdown` 只给人看。
 - `tokens --json`：`colors` / `texts` / `radii` / `spacings` 是结构化 token（每项带 `count`，
-  颜色 / 文字还带 `samples`）；需要 token 时直接读数组，不要解析 `markdown`。
+  颜色 / 文字还带 `samples`）；加 `--skip-markdown` 可只取数组，不要解析 `markdown`。
 - `url --json` / `me --json` 都带 `schema`（`w_tools_figma.url/1` / `w_tools_figma.me/1`），按它分派；
   全部 schema 见 `packages/figma/schema/README.md`。
 
 ## 额度
 
 ```text
-fetch file / nodes / images   1 次 Tier 1
+fetch nodes / images           1 次 Tier 1
 diff                          1 次 Tier 1
 缓存命中                       0
 spec / tokens / url / usage    0
-budget                         0
 ```
 
 ## 示例
@@ -153,7 +156,6 @@ dart run w_tools_figma:figma help spec
 | 命令 | 作用 |
 | --- | --- |
 | `init` | token 模板 / 缓存 / 预算文件 |
-| `fetch file` | 拉文件结构，`--depth` |
 | `fetch nodes` | 拉节点树，批量 id 只算 1 次 |
 | `fetch images` | 拿图片下载地址 |
 | `frames` | 列出缓存里的 FRAME |
@@ -161,10 +163,9 @@ dart run w_tools_figma:figma help spec
 | `tokens` | 颜色 / 文字 / 圆角 / 间距 |
 | `get` | 下载图片 URL 到本地 |
 | `me` | 校验 token |
-| `usage` | 本月调用次数 |
-| `cache stats` / `cache clean` | 查看 / 清理缓存（`--all` 必须 `--yes`） |
+| `usage` | 本月调用次数；`--set=<n>` 设置预算 |
+| `cache stats` / `cache clean` | 查看 / 清理缓存（`clean` 必须 `--yes`；`stats --files` 看逐文件与 indexed，`clean --legacy` 只删旧 `file-*`，`clean --file=<path>` 只删点名文件） |
 | `diff` | 旧缓存 vs 线上节点 |
-| `budget` | 查看 / 设置月度预算 |
 | `url` | 链接 → fileKey / nodeId |
 | `help` | 命令帮助 |
 | `version` | 显示版本 |

@@ -46,13 +46,11 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_stale_');
     home = Directory.systemTemp.createTempSync('figma_stale_home_');
-    CacheStore.homeOverride = home.path;
-    store = CacheStore(root);
+    store = CacheStore(root, home: home.path);
     store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2'), payload);
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     root.deleteSync(recursive: true);
     home.deleteSync(recursive: true);
   });
@@ -99,7 +97,7 @@ void main() {
     expect(result.cachedVersion, 'v1');
     expect(result.latestVersion, 'v2');
     expect(result.tierCalls, 0, reason: '只提示，不自动重拉');
-    expect(store.usageCountThisMonth(now: DateTime.now()), 0);
+    expect(store.usageEntries().length, 0);
 
     // 再次检查仍应报 stale：缓存没有被 refresh，meta 不能被 latest 覆盖。
     final third = _RoutedClient(version: 'v2');

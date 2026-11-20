@@ -5,123 +5,149 @@ import 'package:args/args.dart';
 /// 项目根默认值：`--root` 未给时用当前目录。
 String defaultRoot() => Directory.current.path;
 
-/// 取 `--root=<dir>` / `--root <dir>`；给 `run.dart` 这类需要提前知道 root 的调用方用。
-///
-/// `parseOptions` 在扫描参数时会自己消费 `--root`，两边共用 [defaultRoot]。
-String rootOption(List<String> args) {
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg.startsWith('--root=')) return arg.substring('--root='.length);
-    if (arg == '--root' && i + 1 < args.length) return args[i + 1];
+/// 解析后的命令参数（每个命令只声明自己支持的选项）。
+class CommandArgs {
+  CommandArgs(this.results, this._defined);
+
+  final ArgResults results;
+  final Set<String> _defined;
+
+  List<String> get positional => results.rest;
+  bool wasProvided(String name) => results.wasParsed(name);
+  bool flag(String name) => _defined.contains(name) && (results[name] as bool? ?? false);
+  String? option(String name) => _defined.contains(name) ? results[name] as String? : null;
+
+  String get root => option('root') ?? defaultRoot();
+  bool get json => flag('json');
+  String? get file => option('file');
+  int get min => intOption('min') ?? 1;
+  String? get out => option('out');
+  int? get depth => intOption('depth');
+  int get scale => intOption('scale') ?? 2;
+  int? get nodeDepth => intOption('node-depth', positive: false);
+  bool get refresh => flag('refresh');
+  int? get budgetSet => intOption('set');
+  bool get checkStale => flag('check-stale');
+  bool get force => flag('force');
+  bool get ifStale => flag('if-stale');
+  bool get nodeOnly => flag('node-only');
+  String? get mapFile => option('map');
+  bool get skipMarkdown => flag('skip-markdown');
+  bool get withId => flag('with-id');
+  bool get withLayout => flag('with-layout');
+  String? get skipNamePrefix => option('skip-name-prefix');
+  bool get all => flag('all');
+  bool get yes => flag('yes');
+  bool get files => flag('files');
+  bool get legacy => flag('legacy');
+  String? get nameFilter => option('name');
+  String? get pageFilter => option('page');
+  bool get verbose => flag('verbose');
+
+  int? intOption(String name, {bool positive = true}) {
+    final raw = option(name);
+    if (raw == null) return null;
+    final value = int.tryParse(raw);
+    if (value == null || (positive ? value <= 0 : value < 0)) {
+      throw FormatException('--$name 需要${positive ? '正整数' : '非负整数'}：$raw');
+    }
+    return value;
   }
-  return defaultRoot();
 }
 
-class CliOptions {
-  CliOptions({
-    required this.positional,
-    required this.json,
-    required this.root,
-    required this.file,
-    required this.min,
-    required this.out,
-    required this.depth,
-    required this.scale,
-    required this.nodeDepth,
-    required this.refresh,
-    required this.log,
-    required this.budgetSet,
-    required this.checkStale,
-    required this.force,
-    required this.ifStale,
-    required this.ignoreBudget,
-    required this.nodeOnly,
-    required this.mapFile,
-    required this.all,
-    required this.yes,
-    required this.nameFilter,
-    required this.pageFilter,
-    required this.verbose,
-    required this.seen,
-    required this.seenText,
-  });
-
-  final List<String> positional;
-  final bool json;
-  final String root;
-  final String? file;
-  final int min;
-  final String? out;
-
-  /// `--depth`：不传时 `fetch file` 用 3，`fetch nodes` 不带 depth（保持旧行为）。
-  final int? depth;
-  final int scale;
-  final int? nodeDepth;
-  final bool refresh;
-  final bool log;
-  final int? budgetSet;
-  final bool checkStale;
-  final bool force;
-  final bool ifStale;
-
-  /// `--ignore-budget`：本月额度已尽时仍然请求。
-  final bool ignoreBudget;
-  final bool nodeOnly;
-  final String? mapFile;
-  final bool all;
-
-  /// `--yes`：确认破坏性操作（如 cache clean --all）。
-  final bool yes;
-  final String? nameFilter;
-  final String? pageFilter;
-  final bool verbose;
-
-  /// 出现过的选项（规范名，供 `rejectUnsupported` 的 allow-list 用）。
-  final Set<String> seen;
-
-  /// 规范名 → 命令行上的写法（用于把不支持的选项原样报回去）。
-  final Map<String, String> seenText;
+/// 每个命令只声明自己认识的选项；不再维护全局选项全集 + allow-list。
+ArgParser parserFor(String command) {
+  final parser = ArgParser();
+  switch (command) {
+    case 'init':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addFlag('force', negatable: false, help: '只重建模板 token');
+    case 'frames':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('file', valueHelp: 'path', help: '直接解析指定 nodes 缓存')
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addFlag('all', negatable: false, help: '包含嵌套画板')
+        ..addOption('name', help: '按画板名过滤（子串）')
+        ..addOption('page', help: '按页面名过滤（子串）')
+        ..addFlag('verbose', negatable: false, help: '显示 cacheFile');
+    case 'fetch':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addOption('depth', valueHelp: 'n', help: 'nodes 的深度（不传则不限制）')
+        ..addOption('scale', valueHelp: 'n', help: 'images 的倍率（默认 2）')
+        ..addFlag('refresh', negatable: false, help: '绕过缓存重新请求（仅 nodes）')
+        ..addFlag('check-stale', negatable: false, help: '用 /meta 检查缓存版本（仅 nodes）');
+    case 'usage':
+      parser
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addOption('set', valueHelp: 'n', help: '设置月度预算');
+    case 'cache':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addFlag('all', negatable: false, help: '清理所有项目缓存')
+        ..addFlag('yes', abbr: 'y', negatable: false, help: '确认破坏性操作')
+        ..addFlag('files', negatable: false, help: 'stats 列出每个缓存文件')
+        ..addFlag('legacy', negatable: false, help: 'clean 只删旧 file-* 缓存')
+        ..addOption('file', valueHelp: 'path', help: 'clean 只删指定缓存文件');
+    case 'diff':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addFlag('if-stale', negatable: false, help: '版本没变就跳过请求');
+    case 'get':
+      break;
+    case 'me':
+      parser.addFlag('json', negatable: false, help: '输出 JSON');
+    case 'url':
+      parser.addFlag('json', negatable: false, help: '输出 JSON');
+    case 'spec':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('file', valueHelp: 'path', help: '指定缓存节点树 JSON')
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addFlag('node-only', negatable: false, help: '只输出 node，不带 markdown')
+        ..addOption('node-depth', valueHelp: 'n', help: '限制 node 子节点深度（0 = 不带 children）')
+        ..addOption('skip-name-prefix', valueHelp: 's', help: '跳过名称以该前缀开头的节点（逗号分隔）')
+        ..addFlag('with-id', negatable: false, help: 'markdown 表格加 nodeId 列')
+        ..addFlag('with-layout', negatable: false, help: 'markdown 表格加布局列');
+    case 'tokens':
+      parser
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('file', valueHelp: 'path', help: '指定缓存节点树 JSON')
+        ..addFlag('json', negatable: false, help: '输出 JSON')
+        ..addOption('min', valueHelp: 'n', help: '只列出出现次数 >= n 的项')
+        ..addOption('out', valueHelp: 'path', help: '写入文件（默认 stdout）')
+        ..addOption('map', valueHelp: 'path', help: '颜色语义映射 YAML')
+        ..addFlag('skip-markdown', negatable: false, help: '只输出结构化数组');
+    default:
+      throw FormatException('未知命令：$command');
+  }
+  return parser;
 }
 
-/// 取值型选项：缺值时也要报中文，别让 ArgParser 抛英文。
-const Set<String> _valueOptions = <String>{
-  '--root',
-  '--file',
-  '--min',
-  '--out',
-  '--depth',
-  '--scale',
-  '--node-depth',
-  '--set',
-  '--name',
-  '--page',
-  '--map',
-};
+CommandArgs parseCommand(List<String> args, String command) {
+  final parser = parserFor(command);
+  _rejectUnknownFlags(args, parser);
+  _rejectMissingValues(args, parser);
 
-ArgParser _buildParser() {
-  return ArgParser()
-    ..addFlag('json', negatable: false)
-    ..addOption('root')
-    ..addOption('file')
-    ..addOption('min')
-    ..addOption('out')
-    ..addOption('depth')
-    ..addOption('scale')
-    ..addOption('node-depth')
-    ..addFlag('refresh', negatable: false)
-    ..addFlag('no-log', negatable: false)
-    ..addFlag('force', negatable: false)
-    ..addOption('set')
-    ..addFlag('check-stale', negatable: false)
-    ..addFlag('if-stale', negatable: false)
-    ..addFlag('ignore-budget', negatable: false)
-    ..addFlag('node-only', negatable: false)
-    ..addFlag('all', negatable: false)
-    ..addFlag('yes', abbr: 'y', negatable: false)
-    ..addOption('name')
-    ..addOption('page')
-    ..addFlag('verbose', negatable: false)
-    ..addOption('map');
+  final ArgResults results;
+  try {
+    results = parser.parse(args);
+  } on ArgParserException catch (e) {
+    throw FormatException('参数解析失败：${e.message}');
+  }
+  return CommandArgs(results, parser.options.keys.toSet());
+}
+
+/// 位置参数超出上限就报错：多写的参数以前会被静默忽略（`spec 1:2 9:9` 只处理第一个）。
+void rejectExtra(CommandArgs args, int max) {
+  if (args.positional.length <= max) return;
+  final extra = args.positional.sublist(max);
+  throw FormatException('多余的参数：${extra.join(' ')}');
 }
 
 /// 未知选项保留中文报错（ArgParser 自己的消息是英文）。
@@ -144,96 +170,13 @@ void _rejectUnknownFlags(List<String> args, ArgParser parser) {
 }
 
 /// 取值型选项写到末尾但没给值：`--depth`。
-void _rejectMissingValues(List<String> args) {
+void _rejectMissingValues(List<String> args, ArgParser parser) {
   for (var i = 0; i < args.length; i++) {
-    if (_valueOptions.contains(args[i]) && i + 1 >= args.length) {
-      throw FormatException('${args[i]} 需要一个值');
+    final arg = args[i];
+    if (!arg.startsWith('--') || arg.contains('=')) continue;
+    final option = parser.options[arg.substring(2)];
+    if (option != null && !option.isFlag && i + 1 >= args.length) {
+      throw FormatException('$arg 需要一个值');
     }
   }
-}
-
-CliOptions parseOptions(List<String> args) {
-  final parser = _buildParser();
-  _rejectUnknownFlags(args, parser);
-  _rejectMissingValues(args);
-
-  final ArgResults results;
-  try {
-    results = parser.parse(args);
-  } on ArgParserException catch (e) {
-    throw FormatException('参数解析失败：${e.message}');
-  }
-
-  int? intOf(String name, String flag, {required bool positive}) {
-    final raw = results[name] as String?;
-    if (raw == null) return null;
-    return positive ? _positiveInt(flag, raw) : _nonNegativeInt(flag, raw);
-  }
-
-  final seen = <String>{};
-  final seenText = <String, String>{};
-  for (final name in parser.options.keys) {
-    if (!results.wasParsed(name)) continue;
-    seen.add(name);
-    seenText.putIfAbsent(name, () => '--$name');
-  }
-
-  return CliOptions(
-    positional: results.rest,
-    json: results['json'] as bool,
-    root: (results['root'] as String?) ?? defaultRoot(),
-    file: results['file'] as String?,
-    min: intOf('min', '--min', positive: true) ?? 1,
-    out: results['out'] as String?,
-    depth: intOf('depth', '--depth', positive: true),
-    scale: intOf('scale', '--scale', positive: true) ?? 2,
-    nodeDepth: intOf('node-depth', '--node-depth', positive: false),
-    refresh: results['refresh'] as bool,
-    log: !(results['no-log'] as bool),
-    budgetSet: intOf('set', '--set', positive: true),
-    checkStale: results['check-stale'] as bool,
-    force: results['force'] as bool,
-    ifStale: results['if-stale'] as bool,
-    ignoreBudget: results['ignore-budget'] as bool,
-    nodeOnly: results['node-only'] as bool,
-    mapFile: results['map'] as String?,
-    all: results['all'] as bool,
-    yes: results['yes'] as bool,
-    nameFilter: results['name'] as String?,
-    pageFilter: results['page'] as String?,
-    verbose: results['verbose'] as bool,
-    seen: seen,
-    seenText: seenText,
-  );
-}
-
-/// 拒绝当前命令不支持的显式选项，避免 --min 被 spec 静默忽略。
-void rejectUnsupported(CliOptions options, Set<String> allowed) {
-  final bad = options.seen.difference(allowed);
-  if (bad.isEmpty) return;
-  final names = bad.map((e) => options.seenText[e] ?? '--$e').toList()..sort();
-  throw FormatException('不支持的选项：${names.join(', ')}');
-}
-
-/// 位置参数超出上限就报错：多写的参数以前会被静默忽略（`spec 1:2 9:9` 只处理第一个）。
-void rejectExtraPositional(CliOptions options, int max) {
-  if (options.positional.length <= max) return;
-  final extra = options.positional.sublist(max);
-  throw FormatException('多余的参数：${extra.join(' ')}');
-}
-
-int _positiveInt(String option, String raw) {
-  final value = int.tryParse(raw);
-  if (value == null || value <= 0) {
-    throw FormatException('$option 需要正整数：$raw');
-  }
-  return value;
-}
-
-int _nonNegativeInt(String option, String raw) {
-  final value = int.tryParse(raw);
-  if (value == null || value < 0) {
-    throw FormatException('$option 需要非负整数：$raw');
-  }
-  return value;
 }

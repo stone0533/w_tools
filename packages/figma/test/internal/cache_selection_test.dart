@@ -38,8 +38,7 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_cache_select_');
     home = Directory.systemTemp.createTempSync('figma_cache_select_home_');
-    CacheStore.homeOverride = home.path;
-    final dir = CacheStore(root).dir..createSync(recursive: true);
+    final dir = CacheStore(root, home: home.path).dir..createSync(recursive: true);
     full = File('${dir.path}/nodes-K-1-2.json')
       ..writeAsStringSync(jsonEncode(_cache(withChildren: true)));
     depth = File('${dir.path}/nodes-K-1-2-d2.json')
@@ -50,13 +49,12 @@ void main() {
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     if (root.existsSync()) root.deleteSync(recursive: true);
     if (home.existsSync()) home.deleteSync(recursive: true);
   });
 
   test('同 id 命中完整缓存与 --depth 缓存时优先完整缓存', () {
-    final sources = resolveNodeCaches(CacheStore(root), <String>['1:2']);
+    final sources = resolveNodeCaches(CacheStore(root, home: home.path), <String>['1:2']);
 
     expect(sources['1:2']!.path, full.path);
   });
@@ -64,9 +62,16 @@ void main() {
   test('只有 --depth 缓存时仍可用，并能被识别为裁剪源', () {
     full.deleteSync();
 
-    final sources = resolveNodeCaches(CacheStore(root), <String>['1:2']);
+    final sources = resolveNodeCaches(CacheStore(root, home: home.path), <String>['1:2']);
 
     expect(sources['1:2']!.path, depth.path);
     expect(depthLimitedCachePaths(sources.values.map((f) => f.path)), <String>[depth.path]);
+  });
+
+  test('spec / tokens 读缓存不写 _nodes-index.json', () {
+    final store = CacheStore(root, home: home.path);
+    resolveNodeCaches(store, <String>['1:2']);
+
+    expect(File('${store.dir.path}/_nodes-index.json').existsSync(), isFalse);
   });
 }

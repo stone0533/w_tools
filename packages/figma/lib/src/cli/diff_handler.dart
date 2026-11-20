@@ -5,6 +5,7 @@ import '../cache/cache_store.dart';
 import '../cache/nodes_index.dart';
 import '../client/figma_client.dart';
 import '../commands/diff_command.dart';
+import '../commands/file_meta.dart';
 import 'args.dart';
 import 'token_source.dart';
 import 'cli_io.dart';
@@ -42,7 +43,6 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
   required String nodeId,
   bool ifStale = false,
   bool log = true,
-  bool ignoreBudget = false,
 }) async {
   // 基线按缓存索引找（fetch 可能写成 -d<depth> 或批量 ids 的文件名），不要写死键。
   final baseline = findNodesCache(store, nodeId);
@@ -50,8 +50,11 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
   final notes = diffBaselineNotes(baseline: baseline, targetPath: target.path);
 
   String? latest;
+  String? lastTouchedAt;
   if (ifStale) {
-    latest = await latestFileVersion(client, fileKey);
+    final fileMeta = await readFileMeta(client, fileKey);
+    latest = fileMeta?.version;
+    lastTouchedAt = fileMeta?.lastTouchedAt;
     final meta = store.read(store.metaFile(fileKey));
     if (staleVersionUnchanged(baseline: baseline, meta: meta, latest: latest)) {
       return (result: null, notes: const <String>[], latestVersion: latest);
@@ -62,7 +65,6 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
     store: store,
     client: client,
     log: log,
-    ignoreBudget: ignoreBudget,
   ).run(
     fileKey: fileKey,
     nodeId: nodeId,
@@ -71,6 +73,7 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
   if (latest != null) {
     store.write(store.metaFile(fileKey), <String, dynamic>{
       'version': latest,
+      if (lastTouchedAt != null) 'lastTouchedAt': lastTouchedAt,
       'checkedAt': DateTime.now().toIso8601String(),
     });
   }
@@ -80,11 +83,11 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
 Future<void> runDiff(
   List<String> args, {
   FigmaClient Function(CacheStore store)? clientFactory,
+  CacheStore? store,
 }) async {
-  final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'json', 'if-stale', 'no-log', 'ignore-budget'});
+  final options = parseCommand(args, 'diff');
 
-  rejectExtraPositional(options, 2);
+  rejectExtra(options, 2);
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('diff 用法：diff <fileKey> <nodeId>（消耗 1 次 Tier 1）');
@@ -93,17 +96,15 @@ Future<void> runDiff(
   }
   final fileKey = positional[0];
   final nodeId = positional[1];
-  final store = CacheStore(Directory(options.root));
-  final client = clientFactory?.call(store) ?? HttpFigmaClient(token: readToken(store));
+  final cacheStore = store ?? CacheStore(Directory(options.root));
+  final client = clientFactory?.call(cacheStore) ?? HttpFigmaClient(token: readToken(cacheStore));
   try {
     final outcome = await executeDiff(
-      store: store,
+      store: cacheStore,
       client: client,
       fileKey: fileKey,
       nodeId: nodeId,
       ifStale: options.ifStale,
-      log: options.log,
-      ignoreBudget: options.ignoreBudget,
     );
     final result = outcome.result;
     if (result == null) {
@@ -164,11 +165,5 @@ Future<void> runDiff(
 
 /// 线上文件版本（Tier 3 的 `/meta`，不占 20 次/月）。
 Future<String?> latestFileVersion(FigmaClient client, String fileKey) async {
-  final meta = await client.getJson(
-    Uri.parse('https://api.figma.com/v1/files/$fileKey/meta'),
-  );
-  final file = meta['file'];
-  if (file is! Map) return null;
-  final version = '${file['version'] ?? ''}';
-  return version.isEmpty ? null : version;
+  return (await readFileMeta(client, fileKey))?.version;
 }

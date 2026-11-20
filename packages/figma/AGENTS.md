@@ -44,7 +44,7 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 
 ## 写页面时
 
-- `spec --json` 的 `node` 用于读结构、尺寸、颜色、文字、间距；`markdown` 只用于人读。
+- `spec --json` 的 `items[].node` 用于读结构、尺寸、颜色、文字、间距；`markdown` 只用于人读。
 - `tokens --json` 的 `colors` / `texts` / `radii` / `spacings` 是结构化 token（每项带 `count`，
   颜色 / 文字还带 `samples`）；要 token 就读数组，不要解析 `markdown`。
 - `url --json` / `me --json` 也带 `schema`（`w_tools_figma.url/1` / `w_tools_figma.me/1`），
@@ -67,6 +67,7 @@ dart run w_tools_cli:w_tools explain <组件名>
   - 表单用 `WForm` + `WFormTextField` 等直接字段
   - 间距用原生 `SizedBox` / `Padding`（`WSizeBox` / `WPadding` 5.0 已删除），适配值用 `WScreen.w/h`
 - `tokens` 只给设计 token，不会自动生成页面代码；组件映射必须结合项目 toolkit。
+- `spec --skip-name-prefix=<s>` 跳过状态栏 mock；`spec --with-id` 给 markdown 加 nodeId 列，`spec --with-layout` 加布局列；`tokens --json --skip-markdown` 只取结构化数组。
 
 ## 常用命令
 
@@ -80,12 +81,13 @@ dart run w_tools_figma:figma spec 1862:9222,1862:9226 --json
 dart run w_tools_figma:figma spec 1862:9222 --json --node-only
 ```
 
-多节点 JSON schema 是 `w_tools_figma.specs/1`；`frames` 默认只列顶层画板。
+`spec --json` 固定返回 `w_tools_figma.specs/1`（`items` 数组）；`frames` 默认只列顶层画板。
 
 ## 规则
 
 - 先读缓存，`spec` / `tokens` 不联网。
 - 不要默认 `--refresh`；会消耗 Tier 1。
-- `--check-stale` 只提示，不重拉；需要更新时再 `--refresh`。
-- token 走 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`（旧 `.figma-token` 首次运行会自动迁移）；不要提交、不要打印。
+- `fetch nodes --check-stale` 只提示，不重拉；需要更新时再 `--refresh`。
+- `fetch images` 不缓存，直接输出 `id<TAB>url`（签名会过期）。
+- token 走 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`；不要提交、不要打印。
 - 实现后跑 `dart run w_tools_cli:w_tools doctor` 和项目测试。

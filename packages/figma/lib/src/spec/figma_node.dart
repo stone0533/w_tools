@@ -117,7 +117,7 @@ String figmaTextSpec(Map node) {
       final ch = i < chars.length ? chars[i] : '';
       runs.add("[$i]='$ch' ${style['fontWeight'] ?? ''} $runColor");
     }
-    if (runs.isNotEmpty) parts.add('runs: ${runs.take(8).join(' ')}');
+    if (runs.isNotEmpty) parts.add('runs: ${runs.join(' ')}');
   }
   return parts.where((p) => p.isNotEmpty).join(' | ');
 }

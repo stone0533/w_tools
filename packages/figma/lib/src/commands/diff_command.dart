@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import '../cache/budget_guard.dart';
 import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../diff/spec_diff.dart';
 import '../spec/cache_document.dart';
 import '../spec/figma_node.dart';
+import 'fetch_command.dart';
 
 /// `diff` 的结果。
 class DiffResult {
@@ -32,15 +32,11 @@ class DiffCommand {
     required this.store,
     required this.client,
     this.log = true,
-    this.ignoreBudget = false,
   });
 
   final CacheStore store;
   final FigmaClient client;
   final bool log;
-
-  /// 为 true 时即使本月额度已尽也继续（`--ignore-budget`）。
-  final bool ignoreBudget;
 
   /// [oldFile] 是旧缓存文件；没有旧缓存时直接拉新（相当于 fetch）。
   ///
@@ -63,8 +59,12 @@ class DiffCommand {
       previous = backup;
     }
 
-    final fetched = await _fetchFresh(fileKey: fileKey, nodeId: nodeId, target: target);
-    final fetchedDocument = readDocument(fetched, nodeId);
+    final fetched = await FetchCommand(store: store, client: client, log: log).nodes(
+      fileKey: fileKey,
+      ids: <String>[nodeId],
+      refresh: true,
+    );
+    final fetchedDocument = readDocument(fetched.file, nodeId);
     final after = fetchedDocument == null ? null : findFigmaNode(fetchedDocument, nodeId);
     if (after == null) {
       throw StateError('最新数据里找不到节点 $nodeId');
@@ -100,21 +100,5 @@ class DiffCommand {
 
   void _cleanupBackup(File backup) {
     if (backup.existsSync()) backup.deleteSync();
-  }
-
-  Future<File> _fetchFresh({
-    required String fileKey,
-    required String nodeId,
-    required File target,
-  }) async {
-    BudgetGuard(store).ensureAllowed(ignoreBudget: ignoreBudget);
-    final json = await client.getJson(
-      Uri.parse('https://api.figma.com/v1/files/$fileKey/nodes?ids=$nodeId'),
-    );
-    store.write(target, json);
-    if (log) {
-      store.logUsage(kind: 'nodes', cacheFile: target.uri.pathSegments.last);
-    }
-    return target;
   }
 }

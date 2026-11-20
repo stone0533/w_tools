@@ -14,5 +14,7 @@ void main() {
     expect('${result.stdout}', contains('# Demo Page'));
     expect('${result.stdout}', contains('## 颜色'));
     expect('${result.stdout}', contains('Primary Button'));
+    expect('${result.stdout}', contains('"schema":"w_tools_figma.specs/1"'));
+    expect('${result.stdout}', contains('"items"'));
   });
 }

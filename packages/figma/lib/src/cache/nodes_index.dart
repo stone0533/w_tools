@@ -176,15 +176,18 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
   }
 }
 
-/// 只用 `_nodes-index.json` 产出 `frames` 的行，不读缓存文件内容。
-List<Map<String, Object?>> framesFromIndex(
+/// 从索引产出 `frames` 的行；索引缺失 / 过期时重建并写回（只有 frames 维护索引）。
+({List<Map<String, Object?>> rows, List<File> corrupt}) framesFromIndex(
   CacheStore store, {
   required bool all,
   required Directory root,
 }) {
   final files = _nodesCacheFiles(store);
-  if (files.isEmpty) return const <Map<String, Object?>>[];
+  if (files.isEmpty) {
+    return (rows: const <Map<String, Object?>>[], corrupt: const <File>[]);
+  }
   final index = _loadIndex(store, files);
+  if (index.changed) _writeIndex(store, index.entries);
   final out = <String, Map<String, Object?>>{};
   for (final file in _sortCacheFiles(files)) {
     final entry = index.entries[file.path];
@@ -196,10 +199,13 @@ List<Map<String, Object?>> framesFromIndex(
       _mergeFrameRow(out, id, <String, Object?>{...row, 'cacheFile': cacheFile});
     }
   }
-  return <Map<String, Object?>>[
-    for (final row in out.values)
-      if (all || row['nested'] != true) row,
-  ];
+  return (
+    rows: <Map<String, Object?>>[
+      for (final row in out.values)
+        if (all || row['nested'] != true) row,
+    ],
+    corrupt: index.corruptFiles,
+  );
 }
 
 /// 缓存文件相对 `--root` 的路径；不在 root 下时原样返回（缓存默认在 `~/.cache`）。
@@ -229,14 +235,15 @@ class _IndexEntry {
 }
 
 /// `_nodes-index.json` 的格式版本；不匹配就整份丢弃重建（不做兼容迁移）。
-const int _indexVersion = 3;
+const int _indexVersion = 5;
 
-/// 一次索引读取的结果：条目 + 解析失败的缓存文件。
+/// 一次索引读取的结果：条目 + 解析失败的缓存文件 + 是否需要写回。
 class _NodesIndex {
-  _NodesIndex(this.entries, this.corruptFiles);
+  _NodesIndex(this.entries, this.corruptFiles, this.changed);
 
   final Map<String, _IndexEntry> entries;
   final List<File> corruptFiles;
+  final bool changed;
 }
 
 _NodesIndex _loadIndex(CacheStore store, List<File> files) {
@@ -298,26 +305,29 @@ _NodesIndex _loadIndex(CacheStore store, List<File> files) {
     if (corrupt) corruptFiles.add(file);
     changed = true;
   }
-  if (changed || !indexFile.existsSync()) {
-    try {
-      indexFile.writeAsStringSync(jsonEncode({
-        'version': _indexVersion,
-        'files': {
-          for (final entry in entries.entries)
-            entry.key: {
-              'mtime': entry.value.mtime,
-              'size': entry.value.size,
-              'ids': entry.value.ids.toList(),
-              'frames': entry.value.frames,
-              'corrupt': entry.value.corrupt,
-            },
-        },
-      }));
-    } on FileSystemException {
-      // 只读缓存目录下仍允许 spec / tokens 工作。
-    }
+  return _NodesIndex(entries, corruptFiles, changed || !indexFile.existsSync());
+}
+
+/// 只有会更新索引的命令（frames）才写盘；spec / tokens 只读。
+void _writeIndex(CacheStore store, Map<String, _IndexEntry> entries) {
+  final indexFile = File('${store.dir.path}/_nodes-index.json');
+  try {
+    indexFile.writeAsStringSync(jsonEncode({
+      'version': _indexVersion,
+      'files': {
+        for (final entry in entries.entries)
+          entry.key: {
+            'mtime': entry.value.mtime,
+            'size': entry.value.size,
+            'ids': entry.value.ids.toList(),
+            'frames': entry.value.frames,
+            'corrupt': entry.value.corrupt,
+          },
+      },
+    }));
+  } on FileSystemException {
+    // 只读缓存目录下仍允许 frames 工作。
   }
-  return _NodesIndex(entries, corruptFiles);
 }
 
 /// "找不到节点"的统一文案；有解析失败的缓存时要点名，别让人先去怀疑 nodeId。
@@ -334,13 +344,6 @@ String missingNodesMessage(List<String> missing, {List<File> corruptFiles = cons
   buffer.write('；另有 ${corruptFiles.length} 个缓存文件解析失败（$paths）');
   buffer.write('——跑 `figma cache clean` 或重新 fetch 后再试');
   return buffer.toString();
-}
-
-/// 索引里记录的、解析失败的缓存文件（给"跳过但要说一声"的调用方用）。
-List<File> corruptCacheFiles(CacheStore store) {
-  final files = _nodesCacheFiles(store);
-  if (files.isEmpty) return const <File>[];
-  return _loadIndex(store, files).corruptFiles;
 }
 
 dynamic _tryReadJson(File file) {

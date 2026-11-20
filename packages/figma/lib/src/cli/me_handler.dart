@@ -9,14 +9,13 @@ import 'cli_io.dart';
 
 /// 校验 token，打印当前 Figma 用户。
 Future<void> runMe(List<String> args) async {
-  final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'json'});
+  final options = parseCommand(args, 'me');
 
-  rejectExtraPositional(options, 0);
+  rejectExtra(options, 0);
   final store = CacheStore(Directory(options.root));
   final client = HttpFigmaClient(token: readToken(store));
   try {
-    final payload = await client.getJson(Uri.parse('https://api.figma.com/v1/me'));
+    final payload = await client.me();
     if (options.json) {
       // 保留 /v1/me 的原始字段，只加一个契约标记（消费方按 schema 分派）。
       printLine(jsonEncode({'schema': 'w_tools_figma.me/1', ...payload}));

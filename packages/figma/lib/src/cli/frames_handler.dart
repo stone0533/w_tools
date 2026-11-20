@@ -3,28 +3,26 @@ import 'dart:io';
 
 import '../cache/cache_store.dart';
 import '../cache/nodes_index.dart';
-import '../commands/frames_command.dart';
+import '../spec/cache_document.dart';
 import 'args.dart';
 import 'cli_io.dart';
 
 /// 列出缓存中的 FRAME，默认只列顶层画板。
 ///
-/// 不给 `--file` 时只读 `_nodes-index.json` 里的 FRAME 摘要，不再重新解析缓存文件。
+/// 不给 `--file` 时用 `_nodes-index.json` 的 FRAME 摘要；坏文件跳过并提示。
 Future<void> runFrames(List<String> args) async {
-  final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'file', 'json', 'all', 'name', 'page', 'verbose'});
-  rejectExtraPositional(options, 0);
+  final options = parseCommand(args, 'frames');
+  rejectExtra(options, 0);
 
   final root = Directory(options.root);
   final store = CacheStore(root);
-  final command = FramesCommand(store);
 
   var rows = const <Map<String, Object?>>[];
   if (options.file != null) {
-    // 显式给文件时不走索引：直接解析这一份，方便对着任意 nodes 缓存排错。
+    // 显式给文件时直接解析这一份，方便对着任意 nodes 缓存排错。
     final file = File(options.file!);
     try {
-      rows = command.fromFile(file, root: root, all: options.all);
+      rows = framesFromFile(file, root: root, all: options.all);
     } on FormatException catch (e) {
       stderr.writeln('跳过损坏缓存 ${file.path}: ${e.message}');
       rows = const <Map<String, Object?>>[];
@@ -36,15 +34,15 @@ Future<void> runFrames(List<String> args) async {
     if (nodesCacheFiles(store).isEmpty) {
       throw StateError('缓存里没有 nodes-*.json，先跑 fetch nodes');
     }
-    rows = command.fromIndex(root: root, all: options.all);
-    final corrupt = corruptCacheFiles(store);
-    if (corrupt.isNotEmpty) {
-      final paths = corrupt.map((file) => file.path).join(', ');
-      stderr.writeln('# 跳过 ${corrupt.length} 个解析失败的缓存：$paths');
+    final outcome = framesFromIndex(store, root: root, all: options.all);
+    rows = outcome.rows;
+    if (outcome.corrupt.isNotEmpty) {
+      final paths = outcome.corrupt.map((file) => file.path).join(', ');
+      stderr.writeln('# 跳过 ${outcome.corrupt.length} 个解析失败的缓存：$paths');
     }
   }
 
-  final list = command.filter(
+  final list = filterFrames(
     rows,
     nameFilter: options.nameFilter,
     pageFilter: options.pageFilter,
@@ -87,3 +85,41 @@ Future<void> runFrames(List<String> args) async {
 }
 
 int _max(int a, int b) => a > b ? a : b;
+
+/// 直接解析一个缓存文件；文件损坏时抛 [StateError] / [FormatException]。
+List<Map<String, Object?>> framesFromFile(
+  File file, {
+  required Directory root,
+  required bool all,
+}) {
+  final frames = <String, Map<String, Object?>>{};
+  for (final document in readDocuments(file).values) {
+    collectFrames(
+      document,
+      all: all,
+      cacheFile: relativeToRoot(root, file),
+      out: frames,
+    );
+  }
+  return frames.values.toList();
+}
+
+/// 名称 / 页面过滤（大小写不敏感的子串）+ 按 name、id 排序。
+List<Map<String, Object?>> filterFrames(
+  List<Map<String, Object?>> rows, {
+  String? nameFilter,
+  String? pageFilter,
+}) {
+  final name = nameFilter?.toLowerCase();
+  final page = pageFilter?.toLowerCase();
+  return rows.where((row) {
+    final rowName = '${row['name']}'.toLowerCase();
+    final rowPage = '${row['page']}'.toLowerCase();
+    return (name == null || rowName.contains(name)) && (page == null || rowPage.contains(page));
+  }).toList()
+    ..sort((a, b) {
+      final byName = '${a['name']}'.compareTo('${b['name']}');
+      // 同名画板按 id 排，脚本拿到的顺序才稳定。
+      return byName != 0 ? byName : '${a['id']}'.compareTo('${b['id']}');
+    });
+}

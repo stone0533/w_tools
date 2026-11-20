@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:w_tools_figma/src/cache/cache_store.dart';
-import 'package:w_tools_figma/src/cli/budget_handler.dart';
+import 'package:w_tools_figma/src/cli/usage_handler.dart';
 
 void main() {
   late Directory root;
@@ -11,14 +11,12 @@ void main() {
   late CacheStore store;
 
   setUp(() {
-    root = Directory.systemTemp.createTempSync('figma_budget_set_');
-    home = Directory.systemTemp.createTempSync('figma_budget_set_home_');
-    CacheStore.homeOverride = home.path;
-    store = CacheStore(root);
+    root = Directory.systemTemp.createTempSync('figma_usage_set_');
+    home = Directory.systemTemp.createTempSync('figma_usage_set_home_');
+    store = CacheStore(root, home: home.path);
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     exitCode = 0;
     if (root.existsSync()) root.deleteSync(recursive: true);
     if (home.existsSync()) home.deleteSync(recursive: true);
@@ -27,11 +25,11 @@ void main() {
   Map<String, dynamic> readBudget() =>
       jsonDecode(store.budgetFile.readAsStringSync()) as Map<String, dynamic>;
 
-  test('budget --set 只改 limit，保住存量字段', () {
+  test('usage --set 只改 limit，保住存量字段', () {
     store.dir.createSync(recursive: true);
     store.budgetFile.writeAsStringSync(jsonEncode({'month': '2026-11', 'limit': 20, 'used': 3}));
 
-    runBudget(['--set=5', '--root=${root.path}']);
+    runUsage(['--set=5'], store: store);
 
     final payload = readBudget();
     expect(payload['limit'], 5);
@@ -40,7 +38,7 @@ void main() {
   });
 
   test('预算文件不存在时写 {"limit"}，不抛错', () {
-    runBudget(['--set=7', '--root=${root.path}']);
+    runUsage(['--set=7'], store: store);
 
     expect(readBudget(), {'limit': 7});
     expect(exitCode, 0);
@@ -50,7 +48,7 @@ void main() {
     store.dir.createSync(recursive: true);
     store.budgetFile.writeAsStringSync('{bad');
 
-    runBudget(['--set=9', '--root=${root.path}']);
+    runUsage(['--set=9'], store: store);
 
     expect(readBudget(), {'limit': 9});
     expect(exitCode, 0);

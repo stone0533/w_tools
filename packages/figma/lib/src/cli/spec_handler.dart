@@ -3,7 +3,8 @@ import 'dart:io';
 
 import '../cache/cache_store.dart';
 import '../cache/nodes_index.dart';
-import '../commands/spec_command.dart';
+import '../spec/cache_document.dart';
+import '../spec/figma_node.dart';
 import '../spec/spec_renderer.dart';
 import 'args.dart';
 import 'cli_io.dart';
@@ -11,10 +12,14 @@ import 'cli_io.dart';
 Future<void> runSpec(
   List<String> args, {
   FigmaSpecRenderer renderer = const FigmaSpecRenderer(),
+  CacheStore? store,
 }) async {
-  final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'file', 'json', 'node-only', 'node-depth'});
-  rejectExtraPositional(options, 1);
+  final options = parseCommand(args, 'spec');
+  rejectExtra(options, 1);
+
+  if (options.nodeOnly && !options.json) {
+    throw const FormatException('--node-only 只与 --json 一起使用');
+  }
 
   final rawIds = options.positional.isEmpty ? null : options.positional.first;
   if (rawIds == null) {
@@ -31,11 +36,25 @@ Future<void> runSpec(
 
   // `--node-only` 只影响 `--json`：文本模式的输出本身就是 markdown，必须照常渲染。
   final includeMarkdown = !options.json || !options.nodeOnly;
-  final result = SpecCommand(CacheStore(Directory(options.root)), renderer: renderer).run(
+  final prefixes = (options.skipNamePrefix ?? '')
+      .split(',')
+      .map((prefix) => prefix.trim())
+      .where((prefix) => prefix.isNotEmpty)
+      .toList();
+  final effectiveRenderer = prefixes.isEmpty && !options.withId && !options.withLayout
+      ? renderer
+      : FigmaSpecRenderer(
+          skipNamePrefixes: prefixes.isEmpty ? renderer.skipNamePrefixes : prefixes,
+          showNodeId: options.withId,
+          showLayout: options.withLayout,
+        );
+  final result = buildSpecReport(
+    store ?? CacheStore(Directory(options.root)),
     nodeIds: nodeIds,
     file: options.file,
     nodeDepth: options.nodeDepth,
     includeMarkdown: includeMarkdown,
+    renderer: effectiveRenderer,
   );
 
   final depthLimited = depthLimitedCachePaths(result.entries.map((entry) => entry.source));
@@ -56,17 +75,10 @@ Future<void> runSpec(
           'node': entry.node,
         },
     ];
-    if (items.length == 1) {
-      printLine(jsonEncode(<String, Object?>{
-        'schema': 'w_tools_figma.spec/1',
-        ...items.single,
-      }));
-    } else {
-      printLine(jsonEncode(<String, Object?>{
-        'schema': 'w_tools_figma.specs/1',
-        'items': items,
-      }));
-    }
+    printLine(jsonEncode(<String, Object?>{
+      'schema': 'w_tools_figma.specs/1',
+      'items': items,
+    }));
     return;
   }
 
@@ -76,4 +88,71 @@ Future<void> runSpec(
     if (i > 0) printLine('');
     printOut(result.markdowns[i]);
   }
+}
+
+typedef SpecEntryData = ({
+  String source,
+  String nodeId,
+  Map<String, dynamic> node,
+  String? markdown,
+});
+
+typedef SpecReport = ({List<SpecEntryData> entries, List<String> markdowns});
+
+/// `spec` 的纯逻辑：定位缓存 → 取节点 → 按需裁剪 / 渲染。
+SpecReport buildSpecReport(
+  CacheStore store, {
+  required List<String> nodeIds,
+  String? file,
+  int? nodeDepth,
+  bool includeMarkdown = true,
+  FigmaSpecRenderer renderer = const FigmaSpecRenderer(),
+}) {
+  final sources = resolveNodeCaches(store, nodeIds, explicitFile: file);
+  final documents = <File, Map<String, Map<String, dynamic>>>{};
+  final entries = <SpecEntryData>[];
+  final markdowns = <String>[];
+  final missing = <String>[];
+
+  for (final nodeId in nodeIds) {
+    final source = sources[nodeId]!;
+    final docs = documents.putIfAbsent(source, () => readDocuments(source));
+    final document =
+        docs[nodeId] ?? docs.values.where((d) => findFigmaNode(d, nodeId) != null).firstOrNull;
+    if (document == null) {
+      missing.add(nodeId);
+      continue;
+    }
+    final rawNode = findFigmaNode(document, nodeId)!;
+    final node = nodeDepth == null ? rawNode : trimNode(rawNode, nodeDepth);
+    final markdown = includeMarkdown ? renderer.renderMarkdownFromRoot(document, nodeId) : null;
+    if (markdown != null) markdowns.add(markdown);
+    entries.add((
+      source: source.path,
+      nodeId: nodeId,
+      node: Map<String, dynamic>.from(node),
+      markdown: markdown,
+    ));
+  }
+  if (missing.isNotEmpty) {
+    throw StateError(missingNodesMessage(missing));
+  }
+  return (entries: entries, markdowns: markdowns);
+}
+
+/// 限制 JSON 里的原始节点深度；0 表示只保留当前节点，不带 children。
+Map<String, dynamic> trimNode(Map node, int depth) {
+  final copy = Map<String, dynamic>.from(node);
+  if (depth <= 0) {
+    copy.remove('children');
+    return copy;
+  }
+  final children = node['children'];
+  if (children is List) {
+    copy['children'] = <Object?>[
+      for (final child in children)
+        if (child is Map) trimNode(child, depth - 1) else child,
+    ];
+  }
+  return copy;
 }

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/stone0533/w_tools/main/packages/figma/schema/images.v1.json",
+  "title": "w_tools_figma.images/1",
+  "type": "object",
+  "required": [
+    "schema",
+    "fileKey",
+    "tierCalls",
+    "urls"
+  ],
+  "properties": {
+    "schema": {
+      "const": "w_tools_figma.images/1"
+    },
+    "fileKey": {
+      "type": "string"
+    },
+    "tierCalls": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "urls": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    }
+  },
+  "additionalProperties": true
+}
