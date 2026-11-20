@@ -1,168 +1,44 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// 本月的调用记录。
-class UsageEntry {
-  UsageEntry({required this.at, required this.kind, required this.cacheFile});
+import 'cache_paths.dart';
+import 'usage_log.dart';
 
-  final String at;
-  final String kind;
-  final String cacheFile;
-}
+export 'usage_log.dart' show UsageEntry;
 
 /// 缓存、令牌与用量记录的读写。
 ///
 /// 路径分三类（都不在项目仓库里）：
-/// - 缓存：`~/.cache/w_tools/figma/<项目标识>/`（原 `<project>/.figma-cache/`）
-/// - 令牌：`~/.config/w_tools/figma-token`（原 `<project>/.figma-token`）
+/// - 缓存：`~/.cache/w_tools/figma/<项目标识>/`
+/// - 令牌：`~/.config/w_tools/figma-token`
 /// - 额度：`~/.cache/w_tools/figma/_usage.log` / `_budget.json`（按账号，跨项目共用）
 ///
-/// 旧路径由 [migrateLegacy] 一次性搬走。
+/// 路径解析在 [CachePaths]，用量 / 预算在 [UsageLog]；这里只保留文件读写门面。
 class CacheStore {
   CacheStore(
     this.root, {
     String? home,
     bool? windows,
     Map<String, String>? environment,
-  })  : _home = home ?? defaultHome(),
-        _windows = windows ?? Platform.isWindows,
-        _env = environment ?? Platform.environment;
+  }) : _paths = CachePaths(
+          root,
+          home: home ?? CachePaths.defaultHome(),
+          windows: windows,
+          environment: environment,
+        );
 
   final Directory root;
-  final String _home;
-  final bool _windows;
-  final Map<String, String> _env;
+  final CachePaths _paths;
+  late final UsageLog _usage = UsageLog(_paths);
 
-  /// 测试用：把 `~` 指到临时目录，避免读真实 `~/.cache/w_tools`。
-  static String? homeOverride;
+  static String defaultHome() => CachePaths.defaultHome();
 
-  static String defaultHome() {
-    if (homeOverride != null) return homeOverride!;
-    final env = Platform.environment;
-    return env['HOME'] ?? env['USERPROFILE'] ?? Directory.systemTemp.path;
-  }
-
-  /// 项目在缓存里的稳定标识：`<目录名>-<hash8>`（FNV-1a，跨进程稳定）。
-  String get projectId {
-    final path = root.absolute.path;
-    var hash = 0x811c9dc5;
-    for (final unit in path.codeUnits) {
-      hash ^= unit;
-      hash = (hash * 0x01000193) & 0xffffffff;
-    }
-    final name = path.split(Platform.pathSeparator).where((e) => e.isNotEmpty).lastOrNull;
-    return '${name ?? 'project'}-${hash.toRadixString(16).padLeft(8, '0')}';
-  }
-
-  /// 账号级缓存根（用量 / 预算也在这里）。
-  ///
-  /// Windows 用 `%LOCALAPPDATA%\w_tools\figma`，其它平台 `~/.cache/w_tools/figma`。
-  Directory get cacheRoot {
-    if (_windows) {
-      final local = _env['LOCALAPPDATA'];
-      if (local != null && local.isNotEmpty) {
-        return Directory('$local\\w_tools\\figma');
-      }
-    }
-    return Directory('$_home/.cache/w_tools/figma');
-  }
-
-  /// 项目缓存目录。
-  Directory get dir => Directory('${cacheRoot.path}/$projectId');
-
-  /// 令牌文件：Windows 用 `%APPDATA%\w_tools\figma-token`，其它平台 `~/.config/w_tools/`。
-  File get tokenFile {
-    if (_windows) {
-      final appData = _env['APPDATA'];
-      if (appData != null && appData.isNotEmpty) {
-        return File('$appData\\w_tools\\figma-token');
-      }
-    }
-    return File('$_home/.config/w_tools/figma-token');
-  }
-
-  File get usageFile => File('${cacheRoot.path}/_usage.log');
-  File get budgetFile => File('${cacheRoot.path}/_budget.json');
-
-  /// 旧路径（只用于迁移）。
-  Directory get legacyDir => Directory('${root.path}/.figma-cache');
-  File get legacyTokenFile => File('${root.path}/.figma-token');
-
-  /// 把旧路径搬到新位置；返回人读的迁移说明（空列表 = 无需迁移）。
-  ///
-  /// - 缓存文件 → 项目缓存目录（同名已存在则跳过）
-  /// - `_usage.log` → **并入账号级**（否则额度历史会丢）
-  /// - `_budget.json` → 账号级缺失时复制
-  /// - token → 用户配置目录；新位置是模板而旧位置是真 token 时**覆盖**
-  List<String> migrateLegacy() {
-    final notes = <String>[];
-    if (legacyDir.existsSync()) {
-      dir.createSync(recursive: true);
-      cacheRoot.createSync(recursive: true);
-      var moved = 0;
-      var mergedUsage = 0;
-      for (final entity in legacyDir.listSync()) {
-        if (entity is! File) continue;
-        final name = entity.uri.pathSegments.last;
-        if (name == '_usage.log') {
-          final lines = entity.readAsLinesSync().where((l) => l.trim().isNotEmpty).toList();
-          if (lines.isNotEmpty) {
-            final existing = usageFile.existsSync() ? usageFile.readAsStringSync() : '';
-            final buffer = StringBuffer(existing);
-            if (existing.isNotEmpty && !existing.endsWith('\n')) buffer.writeln();
-            buffer.writeln(lines.join('\n'));
-            usageFile.writeAsStringSync(buffer.toString());
-            mergedUsage = lines.length;
-          }
-          continue; // 不搬进项目目录
-        }
-        if (name == '_budget.json') {
-          if (!budgetFile.existsSync()) {
-            budgetFile.writeAsStringSync(entity.readAsStringSync());
-          }
-          continue;
-        }
-        final target = File('${dir.path}/$name');
-        if (target.existsSync()) continue;
-        entity.renameSync(target.path);
-        moved++;
-      }
-      legacyDir.deleteSync(recursive: true);
-      if (moved > 0) notes.add('已把 $moved 个缓存文件迁到 ${dir.path}');
-      if (mergedUsage > 0) notes.add('已把 $mergedUsage 条用量记录并入 ${usageFile.path}');
-    }
-
-    if (legacyTokenFile.existsSync()) {
-      final legacyContent = legacyTokenFile.readAsStringSync();
-      final legacyIsReal = legacyContent.contains('figd_') && !legacyContent.contains('REPLACE_ME');
-      final newExists = tokenFile.existsSync();
-      final newIsTemplate = newExists && tokenFile.readAsStringSync().contains('REPLACE_ME');
-      if (!newExists || (newIsTemplate && legacyIsReal)) {
-        tokenFile.parent.createSync(recursive: true);
-        tokenFile.writeAsStringSync(legacyContent);
-        _restrict(tokenFile);
-        legacyTokenFile.deleteSync();
-        notes.add('已把 .figma-token 迁到 ${tokenFile.path}');
-      } else if (!legacyIsReal) {
-        legacyTokenFile.deleteSync();
-        notes.add('已删除项目里的模板 .figma-token（真实令牌在 ${tokenFile.path}）');
-      } else {
-        notes.add(
-          '项目里的 .figma-token 保留未动（新位置已有令牌：${tokenFile.path}），确认后可手工删除',
-        );
-      }
-    }
-    return notes;
-  }
-
-  static void _restrict(File file) {
-    if (Platform.isWindows) return;
-    try {
-      Process.runSync('chmod', ['600', file.path]);
-    } on ProcessException {
-      // 权限收紧失败不影响功能
-    }
-  }
+  String get projectId => _paths.projectId;
+  Directory get cacheRoot => _paths.cacheRoot;
+  Directory get dir => _paths.dir;
+  File get tokenFile => _paths.tokenFile;
+  File get usageFile => _paths.usageFile;
+  File get budgetFile => _paths.budgetFile;
 
   /// 缓存文件名：`<kind>-<fileKey>-<idslug>[-s<scale>].json`。
   File cacheFile({
@@ -171,18 +47,11 @@ class CacheStore {
     String? ids,
     int? scale,
     int? depth,
-  }) {
-    final slug = ids == null ? '' : '-${ids.replaceAll(RegExp(r'[:,.]'), '-')}';
-    final suffix = depth != null
-        ? '-d$depth'
-        : scale == null
-            ? ''
-            : '-s$scale';
-    return File('${dir.path}/$kind-$fileKey$slug$suffix.json');
-  }
+  }) =>
+      _paths.cacheFile(kind: kind, fileKey: fileKey, ids: ids, scale: scale, depth: depth);
 
   /// 记录文件版本的小文件（Tier 3 的 `file/meta` 结果）。
-  File metaFile(String fileKey) => File('${dir.path}/_meta-$fileKey.json');
+  File metaFile(String fileKey) => _paths.metaFile(fileKey);
 
   /// 读缓存；不存在返回 null。
   Map<String, dynamic>? read(File file) {
@@ -213,36 +82,11 @@ class CacheStore {
 
   /// 追加一条用量记录（只在真的打了接口时调用）。
   void logUsage({required String kind, required String cacheFile, DateTime? now}) {
-    dir.createSync(recursive: true);
-    final ts = (now ?? DateTime.now()).toIso8601String();
-    usageFile.writeAsStringSync('$ts\t$kind\t$cacheFile\n', mode: FileMode.append);
+    _usage.logUsage(kind: kind, cacheFile: cacheFile, now: now);
   }
 
-  /// 本月调用次数（按时间前缀匹配 `yyyy-MM`）。
-  int usageCountThisMonth({DateTime? now}) {
-    final month = _monthKey(now ?? DateTime.now());
-    return usageEntries().where((e) => e.at.startsWith(month)).length;
-  }
-
-  List<UsageEntry> usageEntries() {
-    if (!usageFile.existsSync()) return const [];
-    return usageFile.readAsLinesSync().where((l) => l.trim().isNotEmpty).map((line) {
-      final parts = line.split('\t');
-      return UsageEntry(
-        at: parts.isNotEmpty ? parts[0] : '',
-        kind: parts.length > 1 ? parts[1] : '',
-        cacheFile: parts.length > 2 ? parts[2] : '',
-      );
-    }).toList();
-  }
+  List<UsageEntry> usageEntries() => _usage.entries();
 
   /// 预算配置（`{"limit": 20}`），未配置时默认 20。
-  int budgetLimit() {
-    final json = read(budgetFile);
-    final limit = json?['limit'];
-    return limit is int && limit > 0 ? limit : 20;
-  }
-
-  String _monthKey(DateTime now) =>
-      '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+  int budgetLimit() => _usage.budgetLimit();
 }

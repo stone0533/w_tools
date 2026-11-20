@@ -21,15 +21,19 @@ Map<String, Map<String, dynamic>> readDocuments(File file) {
     throw StateError('${file.path} 不是 nodes 缓存（缺少 nodes 字段）');
   }
   final documents = <String, Map<String, dynamic>>{};
+  var sawNodeObject = false;
   for (final entry in nodes.entries) {
     final value = entry.value;
     if (value is! Map) continue;
+    sawNodeObject = true;
     final document = value['document'];
     if (document is Map) {
       documents['${entry.key}'] = document.cast<String, dynamic>();
     }
   }
   if (documents.isEmpty) {
+    // 全 null（节点不存在）是合法的空缓存，不是“解析失败”。
+    if (!sawNodeObject) return const <String, Map<String, dynamic>>{};
     throw StateError('${file.path} 缺少 document');
   }
   return documents;

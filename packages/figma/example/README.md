@@ -24,13 +24,13 @@ example/fixtures/nodes-demo.json
 ```text
 frames              FRAME 列表
 spec 1:2            Markdown 规格表
-spec 1:2 --json     node + markdown
+spec 1:2 --json     items[].node + markdown（specs/1）
 tokens 1:2          颜色 / 文字 / 圆角 / 间距
 ```
 
 ## AI 使用顺序
 
-1. `spec --json` 读 `node` 的结构和尺寸
+1. `spec --json` 读 `items[].node` 的结构和尺寸
 2. `tokens` 读颜色、字号、间距
 3. 用 `w_tools_cli:list` / `explain` 查项目组件
 4. 按 `docs/agents/ui.md` 映射到 `WText` / `WImage` / `WButton` / `AppScaffold`

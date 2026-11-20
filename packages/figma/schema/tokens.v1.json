@@ -5,17 +5,12 @@
   "type": "object",
   "required": [
     "schema",
-    "source",
     "nodeIds",
-    "counts",
-    "markdown"
+    "counts"
   ],
   "properties": {
     "schema": {
       "const": "w_tools_figma.tokens/1"
-    },
-    "source": {
-      "type": "string"
     },
     "nodeIds": {
       "type": "array",
@@ -55,6 +50,9 @@
         "properties": {
           "value": {
             "type": "string"
+          },
+          "name": {
+            "type": ["string", "null"]
           },
           "count": {
             "type": "integer",

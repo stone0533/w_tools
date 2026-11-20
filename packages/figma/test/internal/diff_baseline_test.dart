@@ -53,13 +53,11 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_diff_');
     home = Directory.systemTemp.createTempSync('figma_diff_home_');
-    CacheStore.homeOverride = home.path;
-    store = CacheStore(root);
+    store = CacheStore(root, home: home.path);
     store.dir.createSync(recursive: true);
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     // runDiff 会写全局 exitCode；不还原会让整个测试进程非 0 退出。
     exitCode = 0;
     if (root.existsSync()) root.deleteSync(recursive: true);
@@ -201,6 +199,7 @@ void main() {
       await runDiff(
         ['K', '1:2', '--root=${root.path}', '--if-stale', '--json'],
         clientFactory: (_) => client,
+        store: store,
       );
 
       expect(exitCode, 0);
@@ -214,6 +213,7 @@ void main() {
       await runDiff(
         ['K', '1:2', '--root=${root.path}', '--json'],
         clientFactory: (_) => client,
+        store: store,
       );
 
       expect(exitCode, 0);

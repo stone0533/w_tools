@@ -10,7 +10,22 @@
     "files": { "type": "integer", "minimum": 0 },
     "bytes": { "type": "integer", "minimum": 0 },
     "megabytes": { "type": "number", "minimum": 0 },
-    "removedDirs": { "type": "integer", "minimum": 0 }
+    "removedDirs": { "type": "integer", "minimum": 0 },
+    "removedFiles": { "type": "integer", "minimum": 0 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "bytes", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "kind": { "enum": ["legacy", "nodes", "index", "other"] },
+          "indexed": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    }
   },
   "additionalProperties": true
 }

@@ -24,10 +24,10 @@ CLI 用户直接用 `dart run w_tools_figma:figma`；库用户只依赖 `lib/w_t
 | --- | --- |
 | `FigmaClient` / `HttpFigmaClient` | REST 客户端；`HttpFigmaClient(token: ...)` 走 `X-Figma-Token` |
 | `CacheStore` / `UsageEntry` | 缓存、用量、预算文件读写 |
-| `FetchCommand` / `FetchResult` | `file` / `nodes` / `images` 取数 |
-| `InitCommand` / `UrlCommand` / `UsageCommand` / `DiffCommand` | 对应 CLI 命令 |
+| `FetchCommand` / `FetchResult` | `nodes` / `imageUrls` 取数 |
+| `DiffCommand` / `DiffResult` | `diff` 命令 |
 | `FigmaSpecRenderer` / `TokenCollector` / `TokenRenderer` | 规格与 token 渲染 |
-| `SpecDiff` / `FigmaUrlTarget` / `findFigmaNode` / `pyFixed` | diff / URL / 节点工具 |
+| `SpecDiff` / `findFigmaNode` / `pyFixed` | diff / 节点工具 |
 
 ## AI / agent 使用
 
@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.13.3
+  w_tools_figma: ^1.0.0
 ```
 
 开发版使用 path 依赖：
@@ -101,12 +101,6 @@ dart run w_tools_figma:figma init
 ~/.cache/w_tools/figma/_usage.log          # 本月调用次数（按账号，跨项目共用）
 ~/.cache/w_tools/figma/_budget.json        # 额度上限
 ```
-
-老项目的 `<项目>/.figma-cache/`、`<项目>/.figma-token` 会在下次运行时**自动迁移**
-到上述位置（迁移后旧文件删除）。
-
-迁移每个项目只做一次（标记 `<项目缓存目录>/_migrated-v1`）。把老项目整目录拷进一个**已经迁移过**
-的项目不会重跑；确实要重迁时删掉该标记即可。
 
 token 从 Figma：
 
@@ -151,6 +145,8 @@ dart run w_tools_figma:figma spec 1862:9222
 dart run w_tools_figma:figma spec 1862:9222 --json
 dart run w_tools_figma:figma spec 1862:9222,1862:9226
 dart run w_tools_figma:figma spec 1862:9222 --json --node-depth=2
+dart run w_tools_figma:figma spec 1862:9222 --with-id
+dart run w_tools_figma:figma spec 1862:9222 --with-layout
 
 dart run w_tools_figma:figma tokens 1862:9222,1862:9226 --out=docs/design-tokens.md
 dart run w_tools_figma:figma tokens 1862:9222 --min=3
@@ -180,31 +176,34 @@ cd packages/figma
 
 | 命令 | 作用 | 额度 |
 | --- | --- | --- |
-| `init` | token 模板 / 缓存目录 / 预算文件（老项目迁移时补 `.gitignore`） | 0 |
+| `init` | token 模板 / 缓存目录 / 预算文件 | 0 |
 | `frames` | 列出缓存里的 FRAME，找 nodeId | 0 |
-| `fetch file` | 拉文件结构，`--depth` | 1 次 Tier 1 |
 | `fetch nodes` | 拉节点树，批量 ids 只算 1 次；`--depth=<n>` 限制层数（默认不限） | 1 次 Tier 1 |
-| `fetch images` | 拿图片下载地址，不下载文件 | 1 次 Tier 1 |
+| `fetch images` | 拿图片下载地址（不缓存，直接输出 `id<TAB>url`；签名会过期） | 1 次 Tier 1 |
 | `get` | 下载图片 URL 到本地文件 | 0 |
 | `me` | 校验 token | 0 |
 | `spec` | 节点 → Markdown / JSON | 0（读缓存） |
 | `tokens` | 颜色 / 文字 / 圆角 / 间距汇总 | 0（读缓存） |
 | `url` | Figma 链接 → fileKey + nodeId | 0 |
 | `diff` | 对比旧缓存与最新节点；`--if-stale` 可 0 次 | 1 次 Tier 1；`--if-stale` 未变 0 |
-| `usage` | 本月调用次数 / 最近记录 | 0 |
-| `budget` | 查看 / 设置月度预算 | 0 |
-| `cache` | 查看 / 清理本机缓存；`clean --all` 必须 `--yes` | 0 |
+| `usage` | 本月调用次数 / 最近记录；`--set=<n>` 设置月度预算 | 0 |
+| `cache` | 查看 / 清理本机缓存；`clean` 必须 `--yes` | 0 |
 | `help` | 显示命令帮助 | 0 |
 | `version` | 显示版本 | 0 |
 
-`fetch` / `diff` 在额度用尽时默认拒绝（退出码 3），加 `--ignore-budget` 继续。
+`fetch` / `diff` 不再做本地额度拦截；额度由 Figma 服务端限制，遇到 429 返回退出码 3。
 
 参数边界：
 
-- `tokens --out=<path>` 与 `--json` 互斥；`--map=<yaml>` 用于语义名映射；
-- `spec --node-only` 只返回结构化 `node`（不生成 markdown）；`--node-depth=<n>` 只限制 `node` 的子节点深度；
-- `cache clean --all` 必须同时给 `--yes`；`--all` 清所有项目缓存，但不会动账号级 `_usage.log` / `_budget.json`；
+- `tokens --out=<path>` 与 `--json` 互斥；`--map=<yaml>` 用于语义名映射，`--json` 的 `colors[].name` 也会带上映射；
+- `spec --node-only` 只与 `--json` 一起使用；只返回结构化 `node`（不生成 markdown）；`--node-depth=<n>` 只限制 `node` 的子节点深度；
+- `spec --skip-name-prefix=<s>` 跳过名称以该前缀开头的节点（逗号分隔）；`--with-id` 让 markdown 表格加 nodeId 列，`--with-layout` 让 markdown 表格加布局列（layoutMode / itemSpacing / padding），默认都不加；
+- `tokens --skip-markdown` 只与 `--json` 一起用，不渲染 markdown；
+- `cache clean` 必须给 `--yes`（无论是否 `--all`）；`--all` 清所有项目缓存，但不会动账号级 `_usage.log` / `_budget.json`；
+- `cache stats --files` 列出每个文件并按 `legacy`（旧 `file-*`）/ `nodes` / `index` 分类，`indexed` 表示 `_nodes-index.json` 是否引用该文件；`cache clean --legacy --yes` 只删旧 `file-*`，`cache clean --file=<path> --yes` 只删点名文件；`nodes-<key>-0-1.json` 是有效的整页缓存，不是自动可回收的 orphan；
 - `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；
+- `fetch images` 不缓存：每次调用都重新请求，直接输出 `id<TAB>url`；`--depth` / `--refresh` / `--check-stale` 不适用；
+- `fetch nodes` 不接受 `--scale`；
 - `diff --if-stale` 先比版本：没变直接退出（0 次 Tier 1），变了才拉。
 
 完整帮助：
@@ -227,17 +226,19 @@ dart run w_tools_figma:figma fetch --help
 `fetch nodes` / `fetch images` 的 ids 会去重并按字符串排序，因此
 `2:3,1:2` 与 `1:2,2:3` 命中同一份缓存，不会因顺序多打一次 Tier 1。
 
-`--check-stale` 即使用缓存也需要 token，因为会访问 `/meta`。
-第一次 `--check-stale` 只建立版本基线；之后线上版本变化才会报 stale。
+`fetch images` **不写缓存**：Figma 返回的是会过期的签名 URL，缓存下来只会拿到失效链接；
+每次调用都直接输出 `id<TAB>url`（`--json` 用 `w_tools_figma.images/1`）。
 
-旧版本 `file-<key>-s<depth>.json` 缓存不会再命中，升级后可清理一次缓存目录。
+`fetch nodes --check-stale` 即使用缓存也需要 token，因为会访问 `/meta`。
+第一次 `--check-stale` 只建立版本基线；之后线上版本变化才会报 stale。
+`--refresh` / `--check-stale` 只适用于 `fetch nodes`；`fetch images` 会直接拒绝。
+
+旧版本按 `file-<key>-s<depth>.json` 存过的文件缓存不会再被读取，升级后可清理一次缓存目录。
 
 缓存目录（`~/.cache/w_tools/figma/<项目标识>/`）：
 
 ```text
-file-<key>-d<depth>.json
 nodes-<key>-<ids>.json
-images-<key>-<ids>-s<scale>.json
 _meta-<key>.json
 ```
 
@@ -245,14 +246,14 @@ _meta-<key>.json
 
 ```text
 _usage.log      # TSV：时间 \t 类型 \t 缓存文件名
-_budget.json    # {"limit": 20}（代码只读 limit；budget --set 会保留其它字段）
+_budget.json    # {"limit": 20}（代码只读 limit；usage --set 会保留其它字段）
 ```
 
-> `cache stats` 的文件数 / 字节数包含 `_nodes-index.json`（节点与 FRAME 的索引）和
-> `_migrated-v1`（迁移标记）；两者都可以删（索引会重建），`cache clean` 会一并清掉。
+> `cache stats` 的文件数 / 字节数包含 `_nodes-index.json`（node id + FRAME 摘要索引）；
+> 它可以删（会重建），`cache clean` 会一并清掉；`cache clean --legacy` 只删旧 `file-*`，不碰 `nodes-*`。
 
-预算规则：本月已用超过 `limit` 的 80% 时打警告；达到上限后 `fetch` / `diff` 默认拒绝（退出码 3），
-`--ignore-budget` 放行；缓存命中与 `spec` / `tokens`（纯本地）不触发检查。
+预算规则：`_budget.json` 的 `limit` 只用于 `usage` 的提示（已用超过 80% 时打警告），
+不再拦截请求；真正的额度限制由 Figma 服务端返回 429（退出码 3）。
 遇到 429 只按 `Retry-After` 提示，不自动重试（View 座位重试会继续烧额度）。
 
 ## 典型工作流
@@ -274,9 +275,13 @@ dart run w_tools_figma:figma diff <fileKey> 1862:9222
 
 # 额度
 dart run w_tools_figma:figma usage
-dart run w_tools_figma:figma budget --set=15
+dart run w_tools_figma:figma usage --set=15
 dart run w_tools_figma:figma cache stats            # 缓存位置 / 文件数 / 大小
-dart run w_tools_figma:figma cache clean --all --yes  # 清理所有项目缓存（保留用量；--all 必须 --yes）
+dart run w_tools_figma:figma cache stats --files    # 逐文件明细（legacy / nodes / index）
+dart run w_tools_figma:figma cache clean --yes        # 清理当前项目缓存（保留用量）
+dart run w_tools_figma:figma cache clean --legacy --yes  # 只清旧 file-* 缓存
+dart run w_tools_figma:figma cache clean --file=nodes-...json --yes  # 只删点名缓存
+dart run w_tools_figma:figma cache clean --all --yes  # 清理所有项目缓存（保留用量）
 
 # 图片地址下载 / token 校验
 dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
@@ -288,12 +293,13 @@ dart run w_tools_figma:figma me
 `--json` 输出带 `schema` 字段（`w_tools_figma.<命令>/1`）；文件清单、字段与"什么时候 bump"的策略见
 [`schema/README.md`](schema/README.md)。`tokens --json` 同时给结构化数组
 （`colors` / `texts` / `radii` / `spacings`）与 `markdown`，脚本不用解析人读文本。
-`source` 是第一个命中的缓存文件（兼容字段）；多缓存汇总时看 `sources`。
+`tokens --json --skip-markdown` 可以只取结构化数组；多缓存汇总时看 `sources`。
+`fetch --json` 的 `missingNodeIds` 会列出 Figma 返回 null 的节点 id。
 
-`spec --json` 同时返回原始节点和 Markdown：
+`spec --json` 固定返回 `items`（单个节点也是数组）：
 
 ```json
-{"schema":"w_tools_figma.spec/1","source":"...","nodeId":"...","markdown":"...","node":{...}}
+{"schema":"w_tools_figma.specs/1","items":[{"source":"...","nodeId":"...","markdown":"...","node":{...}}]}
 ```
 
 `node` 是原始 Figma 节点，适合结构化解析；`markdown` 适合贴 PR / AI 阅读。
@@ -312,9 +318,9 @@ dart run w_tools_figma:figma me
 ## 限制
 
 ```text
-fetch images 只保存下载地址，不下载图片
+fetch images 直接输出下载地址，不缓存（签名 URL 会过期）
 tokens 只统计 SOLID 颜色
-spec --json 的 node 可用 --node-depth 控制深度；markdown 仍完整
+spec --json 固定为 specs/1（items）；node 可用 --node-depth 控制深度；markdown 仍完整
 diff 只对比指定节点，不对比整个文件
 usage 不含座位类型
 ```

@@ -41,6 +41,15 @@ void main() {
       'cachedVersion': null,
       'latestVersion': null,
     },
+    'images.v1.json': {
+      'schema': 'w_tools_figma.images/1',
+      'fileKey': 'K',
+      'tierCalls': 1,
+      'urls': {
+        '1:2': 'https://cdn.example/1.png',
+        '2:3': null,
+      },
+    },
     'specs.v1.json': {
       'schema': 'w_tools_figma.specs/1',
       'items': [
@@ -51,16 +60,8 @@ void main() {
         },
       ],
     },
-    'spec.v1.json': {
-      'schema': 'w_tools_figma.spec/1',
-      'source': 'nodes-K-1-2.json',
-      'nodeId': '1:2',
-      'markdown': '# demo  (1:2)\n',
-      'node': {'id': '1:2', 'name': 'demo', 'type': 'FRAME'},
-    },
     'tokens.v1.json': {
       'schema': 'w_tools_figma.tokens/1',
-      'source': 'nodes-K-1-2.json',
       'sources': ['nodes-K-1-2.json'],
       'nodeIds': ['1:2'],
       'counts': {'colors': 1, 'texts': 2, 'radii': 0, 'spacings': 3},
@@ -130,12 +131,6 @@ void main() {
       'recent': [
         {'at': '2026-11-02T00:00:00.000', 'kind': 'nodes', 'cache': 'nodes-K-1-2.json'},
       ],
-    },
-    'budget.v1.json': {
-      'schema': 'w_tools_figma.budget/1',
-      'limit': 20,
-      'used': 1,
-      'remaining': 19,
     },
   };
 

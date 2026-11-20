@@ -479,7 +479,6 @@ void main() {
     test('figma 模板只做路由，命令清单以包 README 为唯一来源', () {
       const commands = <String>[
         'init',
-        'fetch file',
         'fetch nodes',
         'fetch images',
         'frames',
@@ -489,7 +488,6 @@ void main() {
         'cache stats',
         'cache clean',
         'diff',
-        'budget',
         'get',
         'me',
         'url',

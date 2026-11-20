@@ -1,12 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../cache/budget_guard.dart';
-import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
-import 'args.dart';
 import 'cache_handler.dart';
-import 'budget_handler.dart';
 import 'cli_io.dart';
 import 'diff_handler.dart';
 import 'fetch_handler.dart';
@@ -15,7 +11,6 @@ import 'get_handler.dart';
 import 'help.dart';
 import 'init_handler.dart';
 import 'me_handler.dart';
-import 'migration.dart';
 import 'spec_handler.dart';
 import 'tokens_handler.dart';
 import 'url_handler.dart';
@@ -52,18 +47,6 @@ Future<void> runFigmaCli(List<String> args) async {
   final command = args.first;
   final rest = args.sublist(1);
 
-  // 老项目的 .figma-cache / .figma-token 一次性搬到用户缓存/配置目录。
-  // 迁移失败不应该挡住命令本身。
-  try {
-    final root = rootOption(rest);
-    final notes = ensureLegacyMigrated(CacheStore(Directory(root)));
-    for (final note in notes) {
-      stderr.writeln(note);
-    }
-  } on FileSystemException catch (e) {
-    stderr.writeln('迁移旧缓存失败（忽略）：${e.message}');
-  }
-
   try {
     switch (command) {
       case 'init':
@@ -78,8 +61,6 @@ Future<void> runFigmaCli(List<String> args) async {
         runCache(rest);
       case 'diff':
         await runDiff(rest);
-      case 'budget':
-        runBudget(rest);
       case 'get':
         await runGet(rest);
       case 'me':
@@ -97,9 +78,6 @@ Future<void> runFigmaCli(List<String> args) async {
         printOut(usageText);
         exitCode = 2;
     }
-  } on BudgetExceededException catch (e) {
-    stderr.writeln(e.reason);
-    exitCode = 3;
   } on FigmaTokenException catch (e) {
     stderr.writeln(e.message);
     exitCode = 4;

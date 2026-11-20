@@ -2,6 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:w_tools_figma/src/cli/fetch_handler.dart';
+import 'package:w_tools_figma/src/cli/init_handler.dart';
+import 'package:w_tools_figma/src/cli/url_handler.dart';
+import 'package:w_tools_figma/src/cli/usage_handler.dart';
+import 'package:w_tools_figma/src/spec/cache_document.dart';
 import 'package:w_tools_figma/w_tools_figma.dart';
 
 /// 用 fake client 测 fetch / init / usage / url：不联网、不消耗额度。
@@ -49,12 +54,10 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_test_');
     home = Directory.systemTemp.createTempSync('figma_home_');
-    CacheStore.homeOverride = home.path;
-    store = CacheStore(root);
+    store = CacheStore(root, home: home.path);
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     root.deleteSync(recursive: true);
     home.deleteSync(recursive: true);
   });
@@ -68,13 +71,73 @@ void main() {
       expect(first.fromCache, isFalse);
       expect(first.tierCalls, 1);
       expect(first.file.existsSync(), isTrue);
-      expect(store.usageCountThisMonth(now: DateTime.now()), 1);
+      expect(store.usageEntries().length, 1);
 
       final second = await command.nodes(fileKey: 'K', ids: ['1:2']);
       expect(second.fromCache, isTrue);
       expect(second.tierCalls, 0);
       expect(client.calls.length, 1, reason: '缓存命中不应再打接口');
-      expect(store.usageCountThisMonth(now: DateTime.now()), 1, reason: '缓存命中不写日志');
+      expect(store.usageEntries().length, 1, reason: '缓存命中不写日志');
+    });
+
+    test('nodes 全 null 不写缓存，仍记一次用量', () async {
+      final command = FetchCommand(
+        store: store,
+        client: FakeClient({
+          'nodes': {'1:2': null},
+        }),
+      );
+
+      await expectLater(
+        command.nodes(fileKey: 'K', ids: ['1:2']),
+        throwsStateError,
+      );
+      expect(
+        store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2').existsSync(),
+        isFalse,
+      );
+      expect(store.usageEntries().single.cacheFile, '-');
+    });
+
+    test('fetchJson 暴露 missingNodeIds', () {
+      final result = FetchResult(
+        file: File('${store.dir.path}/missing.json'),
+        json: const <String, dynamic>{},
+        fromCache: false,
+        tierCalls: 1,
+        missingNodeIds: const <String>['2:3'],
+      );
+
+      expect(fetchJson(result)['missingNodeIds'], const <String>['2:3']);
+    });
+
+    test('nodes 部分 null 只缓存有效节点并报告缺失', () async {
+      final command = FetchCommand(
+        store: store,
+        client: FakeClient({
+          'nodes': {
+            '1:2': {
+              'document': {'id': '1:2', 'type': 'FRAME', 'name': 'demo'},
+            },
+            '2:3': null,
+          },
+        }),
+      );
+
+      final result = await command.nodes(fileKey: 'K', ids: ['1:2', '2:3']);
+
+      expect(result.missingNodeIds, <String>['2:3']);
+      final saved = jsonDecode(result.file.readAsStringSync()) as Map;
+      expect((saved['nodes'] as Map).keys, <String>['1:2']);
+    });
+
+    test('全 null 的 nodes 缓存读成空，不当损坏', () {
+      final file = File('${store.dir.path}/nodes-null.json');
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync('{"nodes":{"1:2":null}}');
+
+      expect(readDocuments(file), isEmpty);
+      expect(readDocument(file, '1:2'), isNull);
     });
 
     test('nodes --depth 会带上 depth 且缓存文件名区分深度', () async {
@@ -109,20 +172,32 @@ void main() {
       expect(client.calls.length, 1, reason: '顺序/重复不应产生第二次请求');
     });
 
-    test('images ids 去重排序，缓存 key 与请求顺序无关', () async {
-      final client = FakeClient(payload);
+    test('images 不缓存：去重排序请求，直接返回 URL', () async {
+      final client = FakeClient({
+        'images': {
+          '1:2': 'https://cdn.example/1.png',
+          '2:3': null,
+        },
+      });
       final command = FetchCommand(store: store, client: client);
 
-      final first = await command.images(
+      final first = await command.imageUrls(
         fileKey: 'K',
         ids: ['2:3', '1:2', '1:2'],
       );
       expect(client.calls.single.queryParameters['ids'], '1:2,2:3');
+      expect(first['1:2'], 'https://cdn.example/1.png');
+      expect(first['2:3'], isNull);
+      expect(store.usageEntries().length, 1);
+      expect(store.usageEntries().single.cacheFile, 'imageUrls:K');
+      expect(
+        store.cacheFile(kind: 'images', fileKey: 'K', ids: '1:2,2:3', scale: 2).existsSync(),
+        isFalse,
+        reason: '图片地址不缓存',
+      );
 
-      final second = await command.images(fileKey: 'K', ids: ['1:2', '2:3']);
-      expect(second.fromCache, isTrue);
-      expect(second.file.path, first.file.path);
-      expect(client.calls.length, 1);
+      await command.imageUrls(fileKey: 'K', ids: ['1:2', '2:3']);
+      expect(client.calls.length, 2, reason: '没有缓存，每次都要请求');
     });
 
     test('--refresh 请求失败时保留旧缓存', () async {
@@ -149,7 +224,7 @@ void main() {
       final refreshed = await command.nodes(fileKey: 'K', ids: ['1:2'], refresh: true);
       expect(refreshed.fromCache, isFalse);
       expect(client.calls.length, 2);
-      expect(store.usageCountThisMonth(now: DateTime.now()), 2);
+      expect(store.usageEntries().length, 2);
     });
 
     test('额度错误：抛 429、不写日志、不留残缺缓存', () async {
@@ -164,7 +239,7 @@ void main() {
         throwsA(isA<FigmaHttpException>().having((e) => e.isRateLimited, 'isRateLimited', isTrue)),
       );
       // 失败不写日志、不留残缺缓存
-      expect(store.usageCountThisMonth(now: DateTime.now()), 0);
+      expect(store.usageEntries().length, 0);
       expect(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2').existsSync(), isFalse);
     });
   });
@@ -177,24 +252,14 @@ void main() {
   });
 
   group('init', () {
-    test('创建 token 模板、建缓存目录（幂等）；新项目不动 .gitignore', () {
-      final first = InitCommand(store).run();
+    test('创建 token 模板、建缓存目录（幂等）', () {
+      final first = initProject(store);
       expect(first.tokenCreated, isTrue);
-      // 新路径都在仓库外，不需要往 .gitignore 里加东西
-      expect(first.gitignoreAdded, isEmpty);
       expect(store.tokenFile.existsSync(), isTrue);
       expect(store.budgetFile.existsSync(), isTrue);
 
-      final second = InitCommand(store).run();
+      final second = initProject(store);
       expect(second.tokenCreated, isFalse);
-      expect(second.gitignoreAdded, isEmpty);
-    });
-
-    test('老项目还留着 .figma-cache/.figma-token 时补 .gitignore（防误提交）', () {
-      store.legacyDir.createSync(recursive: true);
-      store.legacyTokenFile.writeAsStringSync('figd_x');
-      final result = InitCommand(store).run();
-      expect(result.gitignoreAdded, containsAll(['.figma-token', '.figma-cache/']));
     });
   });
 
@@ -202,7 +267,7 @@ void main() {
     test('统计本月次数与预算', () {
       store.logUsage(kind: 'nodes', cacheFile: 'a.json');
       store.logUsage(kind: 'images', cacheFile: 'b.json');
-      final summary = UsageCommand(store).run();
+      final summary = usageSummary(store);
       expect(summary.used, 2);
       expect(summary.limit, 20);
       expect(summary.remaining, 18);
@@ -216,7 +281,7 @@ void main() {
       store.logUsage(kind: 'nodes', cacheFile: 'a.json');
       store.logUsage(kind: 'nodes', cacheFile: 'b.json');
       store.logUsage(kind: 'nodes', cacheFile: 'c.json');
-      final summary = UsageCommand(store).run();
+      final summary = usageSummary(store);
       expect(summary.limit, 3);
       expect(summary.isNearLimit, isTrue);
     });
@@ -224,19 +289,20 @@ void main() {
 
   group('url', () {
     test('解析 design / file 链接与裸 nodeId', () {
-      const command = UrlCommand();
-      final design = command.run(
+      final design = parseFigmaUrl(
         'https://www.figma.com/design/UpyszH8lFtWYwrIXm1XAWw/app?node-id=1862-9222',
       );
       expect(design.fileKey, 'UpyszH8lFtWYwrIXm1XAWw');
       expect(design.nodeId, '1862:9222');
 
-      final file = command.run('https://www.figma.com/file/ABC/demo?node-id=1-2');
+      final file = parseFigmaUrl('https://www.figma.com/file/ABC/demo?node-id=1-2');
       expect(file.fileKey, 'ABC');
       expect(file.nodeId, '1:2');
 
-      expect(command.run('1862:9222').nodeId, '1862:9222');
-      expect(() => command.run('not a url'), throwsFormatException);
+      expect(() => parseFigmaUrl('1862:9222'), throwsFormatException);
+      expect(() => parseFigmaUrl('https://example.com/a:b'), throwsFormatException);
+      expect(() => parseFigmaUrl('C:/tmp/x'), throwsFormatException);
+      expect(() => parseFigmaUrl('not a url'), throwsFormatException);
     });
   });
 }

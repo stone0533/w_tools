@@ -1,3 +1,88 @@
+## 1.0.0
+
+### Added
+- `tokens --json --map` 的 `colors[]` 增加 `name`（未命中映射时为 `null`）。
+- `cache stats --files`：逐文件列出大小、`legacy` / `nodes` / `index` 分类和 `indexed` 状态。
+- `cache clean --legacy`：只删旧 `file-*` 缓存，保留有效的 `nodes-*`。
+- `cache clean --file=<path>`：只删显式点名的缓存文件（修复 Windows 路径判断）。
+- `spec --with-id`：markdown 规格表增加 nodeId 列（默认不加，保持表格宽度）。
+- `spec --with-layout`：markdown 规格表增加布局列（layoutMode / itemSpacing / padding / 轴对齐），并在画板摘要后显示根节点布局。
+- `diff` 的 `layout` 比较加入 `layoutMode` / 主轴、交叉轴对齐。
+- `FetchResult.missingNodeIds`：`fetch nodes` 部分节点返回 null 时列出缺失 id；`fetch/1` JSON 也输出该数组。
+- `FetchCommand.imageUrls`：直接返回 `nodeId → 签名 URL`，不写缓存。
+- `TokensCommand.run` 增加可选 `includeMarkdown`；CLI 增加 `--skip-markdown`（tokens）与
+  `--skip-name-prefix`（spec）。
+
+### Breaking
+- `fetch nodes` 显式传入 `--scale`（包括 `--scale=2`）一律 exit 2；之前只拒绝非默认值。
+- `fetch nodes` 全部节点返回 null 时 exit 1 且不写缓存；部分 null 会过滤后写入并报告缺失。
+- `spec --node-only` 必须配合 `--json`，否则 exit 2；文本模式不再静默忽略该开关。
+- `cache clean` 无论是否 `--all` 都必须带 `--yes`；`--yes` 不再要求同时给 `--all`。
+- `spec --json` 固定返回 `w_tools_figma.specs/1`（`items` 数组）；删除
+  `w_tools_figma.spec/1` 与 `schema/spec.v1.json`。
+- `tokens --json` 删除 `source`（只保留 `sources`）；`markdown` 变可选（`--skip-markdown`），
+  `TokensReport.markdown` 改为 `String?`（`TokensReport.new` 同步）。
+- `FigmaSpecRenderer.new` 的 `skipNamePrefixes` 默认值由内置 iOS 名单改为空；
+  需要跳过时用 `--skip-name-prefix`。
+- `me` / `usage` 不再接受 `--root`（这两个命令不用项目缓存）。
+- 参数解析改为每命令独立 parser：不支持的选项现在报“未知选项：--x”
+  （以前是“不支持的选项：--x”），退出码仍是 2。
+- 删除 `CacheStore.homeOverride` 静态测试钩子：测试改用 `CacheStore(root, home: ...)` 构造注入；
+  `runSpec` / `runUsage` / `runDiff` 接受可选 `store`。
+- `diff` 的 `position` 改为相对父节点坐标；`fills` / `strokes` / `effects` 的 `before` / `after`
+  改为结构 key（区分图片 / 渐变的具体内容），不再只是 `IMG` / `GRAD`。
+- 删除 `InitCommand` / `InitResult` / `UrlCommand` / `FigmaUrlTarget` / `UsageCommand` / `UsageResult`：
+  这些薄包装已并入 `init` / `url` / `usage` CLI handler。
+- 删除 `FetchCommand.file` / `FetchCommand.images`：`fetch file` 子命令与图片缓存已移除；
+  节点树用 `FetchCommand.nodes` / `fetch nodes`，图片地址用 `FetchCommand.imageUrls`。
+- 删除 `FetchCommand.ignoreBudget` / `DiffCommand.ignoreBudget` 字段与 `FetchCommand.new` /
+  `DiffCommand.new` 的对应参数：本地额度护栏整块删除，额度由 Figma 服务端限制。
+- 删除本地额度护栏：不再在额度用尽时 exit 3；`--ignore-budget` 命令选项删除。
+  收到 Figma 429 仍返回退出码 3。
+- 删除 `CacheStore.migrateLegacy` / `CacheStore.legacyDir` / `CacheStore.legacyTokenFile`：
+  CLI 不再自动迁移旧路径，1.0.0 把库级迁移也删掉。
+- 删除 `CacheStore.usageCountThisMonth`：用 `CacheStore.usageEntries()` 自行统计。
+- 删除 `InitResult.gitignoreAdded`（`InitResult.new` 同步变化）：`init` 不再改 `.gitignore`。
+- `fetch images` 不再缓存：直接输出 `id<TAB>url`；`--json` 改为 `w_tools_figma.images/1`
+  （`fileKey` / `tierCalls` / `urls`，不再有 `cacheFile` / `fromCache`）。
+- `fetch images` 不接受 `--depth` / `--refresh` / `--check-stale`；`fetch nodes` 不接受 `--scale`
+  （以前会被静默忽略）。
+- 移除 `fetch file` 子命令：它写出的 `file-*.json` 没有任何命令会读
+  （`spec --file=<file 缓存>` 也会报“不是 nodes 缓存”）。需要节点树时用 `fetch nodes`。
+- `url` 只接受 Figma 链接：不再把 `1862:9222` 之类的裸 nodeId 或任意含 `:` 的字符串
+  （如 `https://example.com/a:b`、`C:/tmp/x`）当 nodeId。
+- `url` / `get` 不再接受 `--root`（0.13.1 已标 `remove-in: 0.14.0`）：这两个命令本来就不用它，
+  现在会按“不支持的选项”返回退出码 2。
+- 移除 `budget` 命令：改用 `usage --set=<n>`；`--json` 仍是 `w_tools_figma.usage/1`，
+  `w_tools_figma.budget/1` schema 删除。
+- CLI 不再自动迁移旧 `.figma-cache` / `.figma-token`（0.8.0 的一次性迁移结束）。
+- `init` 不再改 `.gitignore`。
+
+### Changed
+- `CacheStore` 的路径 / 用量拆成内部 `CachePaths` / `UsageLog`（公开 API 不变）。
+- `DiffCommand` 复用 `FetchCommand` 的取数 / 缓存 / 日志，不再单独实现 `_fetchFresh`。
+- `help` 的命令签名 / 选项由 `parserFor` 生成，不再在 `usageText` / `commandUsage` 手写两份。
+- 删除 `docs_contract_test` / `docs_drift_test` 的 README 字面量断言（事实由 `scripts/check_docs.sh` 覆盖）。
+- 颜色语义映射的 key 归一化收敛到 `colorKey`。
+- stdout / stderr 的 broken pipe 改为 `stdout.done` / `stderr.done` 兜底。
+- `CacheStore.homeOverride` 删除；`runSpec` / `runUsage` / `runDiff` 支持传入 `store`。
+- `init` / `url` / `usage` 命令逻辑并入 CLI handler；`spec` / `tokens` / `frames` / `cache`
+  也去掉 command 包装，纯逻辑直接在 handler 里。
+- 参数层改为 `parserFor(command)` + `CommandArgs`，删除 24 字段 `CliOptions` 与全局 parser。
+- 参数校验收进 `parseCommand`，删除内部 `rejectUnsupported` / `seen` / `seenText`。
+- `frames` 使用 `_nodes-index.json` 的 FRAME 摘要（version 5，旧索引自动重建）；
+  `spec` / `tokens` 只读索引，不再写盘。
+- `usage` 支持 `--set=<n>` 设置月度预算（只改 `limit`，保留其它字段）。
+- `fetch --check-stale` / `diff --if-stale` 共用同一份 `/meta` 读取；meta 文件统一写
+  `version` / `lastTouchedAt` / `checkedAt`。
+- spec 规格表不再静默截断名称 / 文本 / 富文本 runs。
+- `tokens --json` 的 `markdown` 只在需要时输出；`--skip-markdown` 可只取结构化数组。
+- `_budget.json` 的 `limit` 只用于 `usage` 的提示（超 80% 打警告），不再拦截请求；
+  真正的额度限制由 Figma 服务端 429 决定。
+- `init --force` 不再覆盖真实 token：已存在非模板 token 时返回退出码 1 并保留原文件；
+  `--force` 只重建模板。
+- `init` 不再往 `_budget.json` 写从不读取的 `month` 字段。
+
 ## 0.13.3
 
 ### Fixed

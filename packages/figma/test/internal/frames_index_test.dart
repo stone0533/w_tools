@@ -4,8 +4,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:w_tools_figma/src/cache/cache_store.dart';
 
-/// `frames` 走 `_nodes-index.json` 与直接 `--file` 解析必须给出相同结果，
-/// 并且第二次调用不能再读缓存文件内容。
+/// `frames` 扫描缓存与直接 `--file` 解析必须给出相同结果。
 void main() {
   late Directory root;
   late Directory home;
@@ -16,8 +15,7 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_frames_');
     home = Directory.systemTemp.createTempSync('figma_frames_home_');
-    CacheStore.homeOverride = home.path;
-    cacheDir = CacheStore(root).dir;
+    cacheDir = CacheStore(root, home: home.path).dir;
     cacheDir.createSync(recursive: true);
 
     demoFile = File('${cacheDir.path}/nodes-demo.json')
@@ -61,7 +59,6 @@ void main() {
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     if (root.existsSync()) root.deleteSync(recursive: true);
     if (home.existsSync()) home.deleteSync(recursive: true);
   });
@@ -171,32 +168,31 @@ void main() {
     );
   });
 
-  test('第二次 frames 不再读缓存文件内容', () async {
-    // 先钉成整秒，避免不同文件系统的 mtime 精度让"索引不重建"变得不可复现。
-    nestedFile.setLastModifiedSync(DateTime.utc(2026, 1, 1));
+  test('第二次 frames 走索引，不再解析缓存内容', () async {
+    final pinned = DateTime.utc(2026, 1, 1);
+    nestedFile.setLastModifiedSync(pinned);
     final first = await run(<String>['frames', '--json', '--all']);
     expect(first.exitCode, 0, reason: '${first.stderr}');
 
     final indexFile = File('${cacheDir.path}/_nodes-index.json');
-    expect(indexFile.existsSync(), isTrue, reason: '第一次调用应该建索引');
-    expect((jsonDecode(indexFile.readAsStringSync()) as Map)['version'], 3);
+    expect(indexFile.existsSync(), isTrue, reason: 'frames 应该写索引');
+    final index = jsonDecode(indexFile.readAsStringSync()) as Map;
+    expect(index['version'], 5);
+    expect(
+      (index['files'] as Map).values.any((entry) => (entry as Map)['frames'] is List),
+      isTrue,
+    );
 
-    // 等长的非法 JSON + 还原 mtime：size/mtime 都没变，索引不会重建。
-    // mtime 固定在整秒：Linux 上 setLastModifiedSync 会丢毫秒，跨平台只能比整秒。
-    final pinned = DateTime.utc(2026, 1, 1);
-    final stat = nestedFile.statSync();
-    final size = stat.size;
+    final size = nestedFile.statSync().size;
     nestedFile.writeAsStringSync(List<String>.filled(size, ' ').join());
     nestedFile.setLastModifiedSync(pinned);
-    expect(nestedFile.statSync().size, size);
-    expect(nestedFile.statSync().modified.millisecondsSinceEpoch, pinned.millisecondsSinceEpoch);
 
     final second = await run(<String>['frames', '--json', '--all']);
     expect(second.exitCode, 0, reason: '${second.stderr}');
     expect(
-      framesOf('${second.stdout}').map((r) => r['id']),
+      framesOf('${second.stdout}').map((row) => row['id']),
       containsAll(<String>['1:10', '1:11', '1:12']),
-      reason: 'frames 若退回直接解析，会跳过这份"损坏"缓存并丢掉这些行',
+      reason: '索引命中时不应重新解析已被替换的缓存内容',
     );
   });
 }

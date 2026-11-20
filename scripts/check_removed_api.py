@@ -19,6 +19,17 @@ root = pathlib.Path(__file__).resolve().parent.parent
 names = [
     # figma 0.13.0：弃用别名 / 转发方法 / 同义 flag。
     r'\bUsageSummary\b', r'FigmaSpecRenderer\.renderMarkdown', r'no-markdown',
+    # figma 0.14.0：删除 --no-log。
+    r'--no-log',
+    # figma 1.0.0：删除弃用 API / 本地额度护栏。
+    r'FetchCommand\.(?:file|images|ignoreBudget)\b',
+    r'DiffCommand\.ignoreBudget\b',
+    r'CacheStore\.(?:migrateLegacy|legacyDir|legacyTokenFile|usageCountThisMonth)\b',
+    r'CacheStore\.homeOverride\b',
+    r'InitResult\.gitignoreAdded\b',
+    r'\bInitCommand\b', r'\bInitResult\b', r'\bUrlCommand\b', r'\bFigmaUrlTarget\b',
+    r'\bUsageCommand\b', r'\bUsageResult\b',
+    r'--ignore-budget',
     r'WRowButtons', r'WRowButtonsController', r'WRow\b', r'WSizeBox', r'WPadding', r'WColumn',
     r'WImageCachePolicy', r'WImageConfig', r'WImageLoadConfig', r'WImageDefaults\b', r'WMapConfig',
     r'WImageDefaultsScope', r'WImageEmptyError',

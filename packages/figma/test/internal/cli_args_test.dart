@@ -4,90 +4,51 @@ import 'package:test/test.dart';
 import 'package:w_tools_figma/src/cli/args.dart';
 
 void main() {
-  test('rootOption：显式 --root 优先，缺省用当前目录', () {
-    expect(rootOption(<String>['spec', '1:2', '--root=/tmp/x']), '/tmp/x');
-    expect(rootOption(const <String>[]), Directory.current.path);
-    expect(parseOptions(<String>['--root=/tmp/y']).root, '/tmp/y');
-    expect(parseOptions(const <String>[]).root, Directory.current.path);
+  test('--root 默认当前目录，显式值优先', () {
+    expect(parseCommand(const <String>[], 'spec').root, Directory.current.path);
+    expect(parseCommand(<String>['--root=/tmp/y'], 'spec').root, '/tmp/y');
+    expect(parseCommand(<String>['--root', '/tmp/x'], 'spec').root, '/tmp/x');
   });
 
-  test('默认值 + 全量 flag 组合（解析器对拍）', () {
-    final defaults = parseOptions(const <String>[]);
-    expect(defaults.json, isFalse);
-    expect(defaults.root, Directory.current.path);
-    expect(defaults.file, isNull);
-    expect(defaults.min, 1);
-    expect(defaults.out, isNull);
-    expect(defaults.depth, isNull);
-    expect(defaults.scale, 2);
-    expect(defaults.nodeDepth, isNull);
-    expect(defaults.refresh, isFalse);
-    expect(defaults.log, isTrue);
-    expect(defaults.budgetSet, isNull);
-    expect(defaults.checkStale, isFalse);
-    expect(defaults.force, isFalse);
-    expect(defaults.ifStale, isFalse);
-    expect(defaults.ignoreBudget, isFalse);
-    expect(defaults.nodeOnly, isFalse);
-    expect(defaults.mapFile, isNull);
-    expect(defaults.all, isFalse);
-    expect(defaults.yes, isFalse);
-    expect(defaults.nameFilter, isNull);
-    expect(defaults.pageFilter, isNull);
-    expect(defaults.verbose, isFalse);
-    expect(defaults.seen, isEmpty);
-
-    final all = parseOptions(const <String>[
-      '--json',
-      '--root=/r',
-      '--file=f',
-      '--min=2',
-      '--out=o',
-      '--depth=2',
-      '--scale=3',
-      '--node-depth=0',
-      '--refresh',
-      '--no-log',
-      '--force',
-      '--set=5',
-      '--check-stale',
-      '--if-stale',
-      '--ignore-budget',
-      '--node-only',
-      '--all',
-      '-y',
-      '--name=n',
-      '--page=p',
-      '--verbose',
-      '--map=m',
-    ]);
-    expect(all.json, isTrue);
-    expect(all.root, '/r');
-    expect(all.file, 'f');
-    expect(all.min, 2);
-    expect(all.out, 'o');
-    expect(all.depth, 2);
-    expect(all.scale, 3);
-    expect(all.nodeDepth, 0);
-    expect(all.refresh, isTrue);
-    expect(all.log, isFalse);
-    expect(all.force, isTrue);
-    expect(all.budgetSet, 5);
-    expect(all.checkStale, isTrue);
-    expect(all.ifStale, isTrue);
-    expect(all.ignoreBudget, isTrue);
-    expect(all.nodeOnly, isTrue);
-    expect(all.all, isTrue);
-    expect(all.yes, isTrue);
-    expect(all.nameFilter, 'n');
-    expect(all.pageFilter, 'p');
-    expect(all.verbose, isTrue);
-    expect(all.mapFile, 'm');
+  test('每个命令只接受自己的选项', () {
+    expect(parseCommand(<String>['--json'], 'spec').json, isTrue);
+    expect(parseCommand(<String>['--depth=2'], 'fetch').depth, 2);
+    expect(parseCommand(<String>['--depth', '2'], 'fetch').depth, 2);
+    expect(parseCommand(<String>['--min=3'], 'tokens').min, 3);
+    expect(parseCommand(<String>['--set=5'], 'usage').budgetSet, 5);
+    expect(parseCommand(<String>['--all', '-y'], 'cache').all, isTrue);
+    expect(parseCommand(<String>['--all', '-y'], 'cache').yes, isTrue);
+    expect(parseCommand(<String>['--files'], 'cache').files, isTrue);
+    expect(parseCommand(<String>['--legacy'], 'cache').legacy, isTrue);
+    expect(parseCommand(<String>['--file=nodes.json'], 'cache').file, 'nodes.json');
+    expect(parseCommand(<String>['--skip-markdown'], 'tokens').skipMarkdown, isTrue);
+    expect(parseCommand(<String>['--skip-name-prefix=A,B'], 'spec').skipNamePrefix, 'A,B');
+    expect(parseCommand(<String>['--node-depth=0'], 'spec').nodeDepth, 0);
+    expect(parseCommand(<String>['--force'], 'init').force, isTrue);
+    expect(parseCommand(<String>['--if-stale'], 'diff').ifStale, isTrue);
+    expect(parseCommand(<String>['--scale=3'], 'fetch').scale, 3);
+    expect(parseCommand(<String>['--with-id'], 'spec').withId, isTrue);
+    expect(parseCommand(<String>['--with-layout'], 'spec').withLayout, isTrue);
   });
 
-  test('布尔 flag 不接受 =值（与旧解析器一致）', () {
+  test('跨命令选项按未知选项拒绝', () {
     expect(
-      () => parseOptions(const <String>['--json=true']),
+      () => parseCommand(<String>['--min=3'], 'spec'),
+      throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('未知选项：--min'))),
+    );
+    expect(
+      () => parseCommand(<String>['--root=/x'], 'url'),
+      throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('未知选项：--root'))),
+    );
+    expect(
+      () => parseCommand(<String>['--json'], 'get'),
+      throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('未知选项：--json'))),
+    );
+  });
+
+  test('布尔 flag 不接受 =值', () {
+    expect(
+      () => parseCommand(<String>['--json=true'], 'spec'),
       throwsA(
           isA<FormatException>().having((e) => e.message, 'message', contains('未知选项：--json=true'))),
     );
@@ -95,34 +56,55 @@ void main() {
 
   test('未知选项保留中文报错', () {
     expect(
-      () => parseOptions(const <String>['--wat']),
+      () => parseCommand(<String>['--wat'], 'spec'),
       throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('未知选项'))),
     );
   });
 
-  test('取值选项支持 `--x v` 空格形态', () {
-    expect(parseOptions(<String>['--depth', '3']).depth, 3);
-    expect(parseOptions(<String>['--root', '/tmp/x']).root, '/tmp/x');
-    expect(parseOptions(<String>['--node-depth', '0']).nodeDepth, 0);
-    expect(parseOptions(<String>['--set', '20']).budgetSet, 20);
-    expect(() => parseOptions(<String>['--depth']), throwsFormatException);
-    expect(() => parseOptions(<String>['--name']), throwsFormatException);
+  test('取值选项支持 `--x v` 空格形态，缺值报中文', () {
+    expect(parseCommand(<String>['--root', '/tmp/x'], 'spec').root, '/tmp/x');
+    expect(parseCommand(<String>['--node-depth', '0'], 'spec').nodeDepth, 0);
+    expect(parseCommand(<String>['--set', '20'], 'usage').budgetSet, 20);
+    expect(() => parseCommand(<String>['--depth'], 'fetch'), throwsFormatException);
+    expect(() => parseCommand(<String>['--name'], 'frames'), throwsFormatException);
   });
 
   test('--no-markdown 在 0.13.0 已删除', () {
     expect(
-      () => parseOptions(<String>['--no-markdown']),
+      () => parseCommand(<String>['--no-markdown'], 'spec'),
       throwsA(isA<FormatException>()
           .having((e) => e.message, 'message', contains('未知选项：--no-markdown'))),
     );
   });
 
-  test('别名 -y 被拒时也照原样显示', () {
-    final options = parseOptions(<String>['-y']);
-
+  test('--no-log 在 0.14.0 已删除', () {
     expect(
-      () => rejectUnsupported(options, <String>{'json'}),
+      () => parseCommand(<String>['--no-log'], 'fetch'),
+      throwsA(
+          isA<FormatException>().having((e) => e.message, 'message', contains('未知选项：--no-log'))),
+    );
+  });
+
+  test('--ignore-budget 在 1.0.0 已删除', () {
+    expect(
+      () => parseCommand(<String>['--ignore-budget'], 'fetch'),
+      throwsA(isA<FormatException>()
+          .having((e) => e.message, 'message', contains('未知选项：--ignore-budget'))),
+    );
+  });
+
+  test('别名 -y 只在 cache 里有效', () {
+    expect(parseCommand(<String>['-y'], 'cache').yes, isTrue);
+    expect(
+      () => parseCommand(<String>['-y'], 'spec'),
       throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('-y'))),
     );
+  });
+
+  test('位置参数上限', () {
+    final args = parseCommand(<String>['a', 'b'], 'url');
+    expect(args.positional, <String>['a', 'b']);
+    expect(() => rejectExtra(args, 1), throwsFormatException);
+    expect(() => rejectExtra(args, 2), returnsNormally);
   });
 }

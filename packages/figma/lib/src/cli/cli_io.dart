@@ -1,7 +1,18 @@
 import 'dart:io';
 
+bool _pipeGuardInstalled = false;
+
+/// stdout / stderr 的 EPIPE 是异步错误，`try/catch` 拦不住；挂一次 `done` 兜底。
+void _installPipeGuard() {
+  if (_pipeGuardInstalled) return;
+  _pipeGuardInstalled = true;
+  stdout.done.catchError((Object _) {});
+  stderr.done.catchError((Object _) {});
+}
+
 /// 写 stdout；管道被 `head` 关闭时静默退出（避免 Broken pipe 崩溃）。
 void printOut(String text) {
+  _installPipeGuard();
   try {
     stdout.write(text);
   } on FileSystemException {
@@ -10,6 +21,7 @@ void printOut(String text) {
 }
 
 void printLine(String text) {
+  _installPipeGuard();
   try {
     stdout.writeln(text);
   } on FileSystemException {
@@ -19,6 +31,7 @@ void printLine(String text) {
 
 /// 写 stderr 的说明行；不进入 `--json` 的 stdout 契约。
 void printNote(String text) {
+  _installPipeGuard();
   try {
     stderr.writeln(text);
   } on FileSystemException {

@@ -42,6 +42,62 @@ void main() {
     expect(figma.pyFixed(-0.25, 1), '-0.2');
   });
 
+  test('--with-layout 时表格带布局字段，默认不带', () {
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'L',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'layoutMode': 'HORIZONTAL',
+      'itemSpacing': 4,
+      'paddingLeft': 12,
+      'paddingRight': 12,
+      'paddingTop': 6,
+      'paddingBottom': 6,
+      'children': [
+        {
+          'id': '1:3',
+          'type': 'FRAME',
+          'name': 'Column',
+          'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+          'layoutMode': 'VERTICAL',
+          'itemSpacing': 8,
+          'paddingLeft': 16,
+          'paddingRight': 16,
+          'paddingTop': 10,
+          'paddingBottom': 10,
+          'primaryAxisAlignItems': 'MIN',
+          'counterAxisAlignItems': 'CENTER',
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer(showLayout: true).renderMarkdownFromRoot(root, '1:2');
+
+    expect(md, contains('| 布局 |'));
+    expect(
+      md,
+      contains('根布局：layoutMode=HORIZONTAL itemSpacing=4 padding=12,12,6,6'),
+    );
+    expect(
+      md,
+      contains('layoutMode=VERTICAL itemSpacing=8 padding=16,16,10,10 align=MIN/CENTER'),
+    );
+    expect(
+      const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2'),
+      isNot(contains('| 布局 |')),
+    );
+  });
+
+  test('--with-id 时表格带子节点 id，默认不带', () {
+    final root = _documentOf(fixture);
+    final withId =
+        const figma.FigmaSpecRenderer(showNodeId: true).renderMarkdownFromRoot(root, nodeId);
+
+    expect(withId, contains('| id | x,y |'));
+    expect(withId, matches(RegExp(r'\n\| \d+:\d+ \|')));
+    expect(markdown, isNot(contains('| id | x,y |')));
+  });
+
   test('描边虚线 / 文字样式 / 隐藏层等关键属性都被渲染', () {
     final md = markdown!;
     expect(md, contains('# Frame 15720  (1915:58517)'));

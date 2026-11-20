@@ -36,6 +36,34 @@ abstract class FigmaClient {
   void close() {}
 }
 
+/// 端点级便捷方法；fake 只实现 [FigmaClient.getJson] 即可。
+extension FigmaClientRequests on FigmaClient {
+  /// 拉节点树；[ids] 是已排序 / 去重的逗号分隔 id。
+  Future<Map<String, dynamic>> fileNodes(String fileKey, String ids, {int? depth}) {
+    return getJson(Uri.parse(
+      'https://api.figma.com/v1/files/$fileKey/nodes?ids=$ids'
+      '${depth == null ? '' : '&depth=$depth'}',
+    ));
+  }
+
+  /// 拉图片下载地址（签名 URL 会过期）。
+  Future<Map<String, dynamic>> fileImages(String fileKey, String ids, {int scale = 2}) {
+    return getJson(Uri.parse(
+      'https://api.figma.com/v1/images/$fileKey?ids=$ids&format=png&scale=$scale',
+    ));
+  }
+
+  /// 拉文件版本元信息（Tier 3）。
+  Future<Map<String, dynamic>> fileMeta(String fileKey) {
+    return getJson(Uri.parse('https://api.figma.com/v1/files/$fileKey/meta'));
+  }
+
+  /// 校验 token 并返回当前用户。
+  Future<Map<String, dynamic>> me() {
+    return getJson(Uri.parse('https://api.figma.com/v1/me'));
+  }
+}
+
 /// 真实实现：只发 GET，令牌走 `X-Figma-Token` 头（`figd_` 令牌用 Bearer 会 401）。
 class HttpFigmaClient implements FigmaClient {
   HttpFigmaClient({required this.token, this.timeout = const Duration(seconds: 60)});

@@ -85,12 +85,10 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_diff_');
     home = Directory.systemTemp.createTempSync('figma_diff_home_');
-    CacheStore.homeOverride = home.path;
-    store = CacheStore(root);
+    store = CacheStore(root, home: home.path);
   });
 
   tearDown(() {
-    CacheStore.homeOverride = null;
     root.deleteSync(recursive: true);
     home.deleteSync(recursive: true);
   });
@@ -148,6 +146,95 @@ void main() {
     final afterDoc = ((after['nodes'] as Map)['1:2'] as Map)['document'] as Map;
     final fields = const SpecDiff().changes(beforeDoc, afterDoc).map((c) => c.field).toSet();
     expect(fields, containsAll(<String>['position', 'layout', 'radius']));
+  });
+
+  test('layoutMode / 主轴对齐变化也报 layout', () {
+    final before = _tree(label: 'Hi', size: 16);
+    final after = jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
+    final beforeDoc = ((before['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final afterDoc = ((after['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final beforeChild = (beforeDoc['children'] as List).first as Map;
+    final afterChild = (afterDoc['children'] as List).first as Map;
+    beforeChild['layoutMode'] = 'HORIZONTAL';
+    beforeChild['primaryAxisAlignItems'] = 'MIN';
+    afterChild['layoutMode'] = 'VERTICAL';
+    afterChild['primaryAxisAlignItems'] = 'CENTER';
+
+    final change =
+        const SpecDiff().changes(beforeDoc, afterDoc).firstWhere((c) => c.field == 'layout');
+
+    expect(change.before, contains('layoutMode=HORIZONTAL'));
+    expect(change.after, contains('layoutMode=VERTICAL'));
+    expect(change.after, contains('primary=CENTER'));
+  });
+
+  test('渐变 / 图片的具体内容参与 diff，不只看 GRAD/IMG', () {
+    Map<String, dynamic> node(List<Map<String, Object?>> fills) => {
+          'id': '1:2',
+          'type': 'RECTANGLE',
+          'name': 'Bg',
+          'fills': fills,
+        };
+    const differ = SpecDiff();
+
+    final gradientA = node([
+      {
+        'type': 'GRADIENT_LINEAR',
+        'gradientStops': [
+          {
+            'position': 0,
+            'color': {'r': 1, 'g': 0, 'b': 0},
+          },
+          {
+            'position': 1,
+            'color': {'r': 0, 'g': 0, 'b': 1},
+          },
+        ],
+      },
+    ]);
+    final gradientB = jsonDecode(jsonEncode(gradientA)) as Map<String, dynamic>;
+    ((((gradientB['fills'] as List).first as Map)['gradientStops'] as List).first as Map)['color'] =
+        {'r': 0, 'g': 1, 'b': 0};
+    expect(differ.changes(gradientA, gradientB).any((c) => c.field == 'fills'), isTrue);
+
+    final imageA = node([
+      {'type': 'IMAGE', 'imageRef': 'a'},
+    ]);
+    final imageB = node([
+      {'type': 'IMAGE', 'imageRef': 'b'},
+    ]);
+    expect(differ.changes(imageA, imageB).any((c) => c.field == 'fills'), isTrue);
+
+    final rotated = jsonDecode(jsonEncode(gradientA)) as Map<String, dynamic>;
+    (((rotated['fills'] as List).first as Map)['gradientHandlePositions'] = [
+      {'x': 1, 'y': 0},
+      {'x': 0, 'y': 1},
+    ]);
+    expect(
+      differ.changes(gradientA, rotated).any((c) => c.field == 'fills'),
+      isTrue,
+      reason: '同 stops、不同渐变方向也要报 fills',
+    );
+  });
+
+  test('整页平移只报父节点位置，不刷子节点', () {
+    final before = _tree(label: 'Hi', size: 16);
+    final after = jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
+    final beforeDoc = ((before['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final afterDoc = ((after['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+
+    (afterDoc['absoluteBoundingBox'] as Map)['x'] = 100;
+    (afterDoc['absoluteBoundingBox'] as Map)['y'] = 100;
+    final child = (afterDoc['children'] as List).first as Map;
+    (child['absoluteBoundingBox'] as Map)['x'] = 100;
+    (child['absoluteBoundingBox'] as Map)['y'] = 100;
+
+    final positionChanges = const SpecDiff()
+        .changes(beforeDoc, afterDoc)
+        .where((change) => change.field == 'position')
+        .map((change) => change.nodeId)
+        .toList();
+    expect(positionChanges, <String>['1:2'], reason: '子节点相对父节点没动');
   });
 
   test('新增节点报为 +', () async {

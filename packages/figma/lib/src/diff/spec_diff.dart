@@ -73,7 +73,13 @@ class SpecDiff {
     }
   }
 
-  void _compare(Map before, Map after, List<SpecChange> out) {
+  void _compare(
+    Map before,
+    Map after,
+    List<SpecChange> out, {
+    Map? beforeParent,
+    Map? afterParent,
+  }) {
     final id = '${after['id'] ?? before['id'] ?? ''}';
     final name = '${after['name'] ?? before['name'] ?? ''}';
 
@@ -94,13 +100,13 @@ class SpecDiff {
     }
 
     add('size', _size(before), _size(after));
-    add('position', _position(before), _position(after));
+    add('position', _position(before, beforeParent), _position(after, afterParent));
     add('layout', _layout(before), _layout(after));
     add('visible', '${before['visible'] ?? true}', '${after['visible'] ?? true}');
     add('opacity', '${before['opacity'] ?? 1}', '${after['opacity'] ?? 1}');
-    add('fills', figmaFills(before), figmaFills(after));
-    add('strokes', figmaStrokes(before), figmaStrokes(after));
-    add('effects', figmaEffects(before), figmaEffects(after));
+    add('fills', _paintKey(before['fills']), _paintKey(after['fills']));
+    add('strokes', _strokeKey(before), _strokeKey(after));
+    add('effects', _effectKey(before['effects']), _effectKey(after['effects']));
     add('radius', _radius(before), _radius(after));
     add('name', '${before['name'] ?? ''}', '${after['name'] ?? ''}');
     if ('${after['type']}' == 'TEXT' || '${before['type']}' == 'TEXT') {
@@ -108,13 +114,72 @@ class SpecDiff {
       add('text', figmaTextSpec(before), figmaTextSpec(after));
     }
 
-    // 子节点按 id 配对后递归；顺序变化不计为改动
+    // 子节点按 id 配对后递归；顺序变化不计为改动。
+    // 位置用相对父节点的坐标，整页平移不会刷出全量子节点改动。
     final beforeChildren = _childrenById(before);
     final afterChildren = _childrenById(after);
     for (final entry in afterChildren.entries) {
       final old = beforeChildren[entry.key];
-      if (old != null) _compare(old, entry.value, out);
+      if (old != null) {
+        _compare(
+          old,
+          entry.value,
+          out,
+          beforeParent: before,
+          afterParent: after,
+        );
+      }
     }
+  }
+
+  /// 填充的稳定结构 key：区分图片 / 渐变的具体内容，而不是只看 `IMG` / `GRAD`。
+  String _paintKey(Object? paints) {
+    if (paints is! List) return '';
+    final parts = <String>[];
+    for (final paint in paints) {
+      if (paint is! Map || paint['visible'] == false) continue;
+      final type = '${paint['type'] ?? ''}';
+      if (type.startsWith('IMAGE')) {
+        parts.add('$type:${paint['imageRef'] ?? paint['imageHash'] ?? ''}');
+      } else if (type.startsWith('GRADIENT')) {
+        parts.add('$type:${_gradientStops(paint['gradientStops'])}:'
+            '${_gradientHandles(paint['gradientHandlePositions'])}:${paint['gradientTransform'] ?? ''}');
+      } else {
+        parts.add('$type:${figmaHex(paint['color'])}');
+      }
+    }
+    return parts.join(';');
+  }
+
+  String _gradientHandles(Object? handles) {
+    if (handles is! List) return '';
+    return handles.map((point) => point is Map ? '${point['x']},${point['y']}' : '').join(';');
+  }
+
+  String _gradientStops(Object? stops) {
+    if (stops is! List) return '';
+    return stops.map((stop) {
+      if (stop is! Map) return '';
+      return '${stop['position']}:${figmaHex(stop['color'])}';
+    }).join(',');
+  }
+
+  String _strokeKey(Map node) {
+    // 颜色 / 虚线 / 单边宽度都在描述里；图片 / 渐变描边由结构 key 区分。
+    return '${_paintKey(node['strokes'])}|${figmaStrokes(node)}';
+  }
+
+  String _effectKey(Object? effects) {
+    if (effects is! List) return '';
+    final parts = <String>[];
+    for (final effect in effects) {
+      if (effect is! Map || effect['visible'] == false) continue;
+      parts.add(
+        '${effect['type']}:${effect['radius']}:${effect['spread']}:'
+        '${figmaHex(effect['color'])}:${effect['offset']}',
+      );
+    }
+    return parts.join(';');
   }
 
   Map<String, Map> _childrenById(Map node) {
@@ -139,11 +204,14 @@ class SpecDiff {
     return '${r ?? ''}|${radii is List ? radii.join(',') : ''}';
   }
 
-  String _position(Map node) {
+  String _position(Map node, Map? parent) {
     final bb = node['absoluteBoundingBox'];
     if (bb is! Map) return '';
-    final x = (bb['x'] as num?)?.toDouble() ?? 0;
-    final y = (bb['y'] as num?)?.toDouble() ?? 0;
+    final parentBox = parent?['absoluteBoundingBox'];
+    final originX = parentBox is Map ? (parentBox['x'] as num?)?.toDouble() ?? 0 : 0;
+    final originY = parentBox is Map ? (parentBox['y'] as num?)?.toDouble() ?? 0 : 0;
+    final x = ((bb['x'] as num?)?.toDouble() ?? 0) - originX;
+    final y = ((bb['y'] as num?)?.toDouble() ?? 0) - originY;
     return '${x.toStringAsFixed(1)},${y.toStringAsFixed(1)}';
   }
 
@@ -153,8 +221,9 @@ class SpecDiff {
     final right = node['paddingRight'];
     final top = node['paddingTop'];
     final bottom = node['paddingBottom'];
-    return 'itemSpacing=$spacing '
-        'padding=$left,$right,$top,$bottom';
+    return 'layoutMode=${node['layoutMode']} itemSpacing=$spacing '
+        'padding=$left,$right,$top,$bottom '
+        'primary=${node['primaryAxisAlignItems']} counter=${node['counterAxisAlignItems']}';
   }
 
   String _text(Object? v) {

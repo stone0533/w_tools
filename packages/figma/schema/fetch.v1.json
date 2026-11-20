@@ -37,6 +37,12 @@
         "string",
         "null"
       ]
+    },
+    "missingNodeIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "additionalProperties": true

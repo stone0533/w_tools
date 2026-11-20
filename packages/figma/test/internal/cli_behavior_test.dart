@@ -15,7 +15,6 @@ void main() {
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_cli_');
     home = Directory.systemTemp.createTempSync('figma_cli_home_');
-    CacheStore.homeOverride = home.path;
     store = CacheStore(root, home: home.path);
   });
 
@@ -23,11 +22,16 @@ void main() {
     if (root.existsSync()) root.deleteSync(recursive: true);
   });
 
-  Future<ProcessResult> run(List<String> args) {
+  Future<ProcessResult> run(List<String> args, {bool withRoot = true}) {
     // 子进程也要隔离 HOME，否则会读到真实的 ~/.cache/w_tools 与 token
     return Process.run(
       Platform.resolvedExecutable,
-      <String>['run', 'bin/figma.dart', ...args, '--root=${root.path}'],
+      <String>[
+        'run',
+        'bin/figma.dart',
+        ...args,
+        if (withRoot) '--root=${root.path}',
+      ],
       workingDirectory: Directory.current.path,
       environment: <String, String>{
         ...Platform.environment,
@@ -55,11 +59,16 @@ void main() {
     expect(unknown.exitCode, 2);
   });
 
-  test('顶层 --help 列出 --ignore-budget 与 version', () async {
+  test('顶层 --help 列出 version', () async {
     final result = await run(<String>['--help']);
     expect(result.exitCode, 0);
-    expect('${result.stdout}', contains('--ignore-budget'));
     expect('${result.stdout}', contains('version'));
+  });
+
+  test('--ignore-budget 在 1.0.0 已删除', () async {
+    final result = await run(<String>['fetch', 'nodes', 'K', '1:2', '--ignore-budget']);
+    expect(result.exitCode, 2, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('未知选项：--ignore-budget'));
   });
 
   test('version 输出版本号', () async {
@@ -68,10 +77,24 @@ void main() {
     expect('${result.stdout}', contains('w_tools_figma $figmaVersion'));
   });
 
-  test('不支持的选项返回 exit 2', () async {
+  test('未知选项返回 exit 2', () async {
     final result = await run(<String>['spec', '1:2', '--min=3']);
     expect(result.exitCode, 2);
-    expect('${result.stderr}', contains('不支持的选项'));
+    expect('${result.stderr}', contains('未知选项：--min'));
+  });
+
+  test('fetch images 不缓存，拒绝 --refresh / --check-stale / --depth', () async {
+    for (final flag in <String>['--refresh', '--check-stale', '--depth=2']) {
+      final result = await run(<String>['fetch', 'images', 'K', '1:2', flag]);
+      expect(result.exitCode, 2, reason: '$flag: ${result.stderr}');
+      expect('${result.stderr}', contains('images 不支持'));
+    }
+
+    for (final scale in <String>['2', '3']) {
+      final nodes = await run(<String>['fetch', 'nodes', 'K', '1:2', '--scale=$scale']);
+      expect(nodes.exitCode, 2, reason: '$scale: ${nodes.stderr}');
+      expect('${nodes.stderr}', contains('nodes 不支持 --scale'));
+    }
   });
 
   test('get 下载图片 URL 到本地文件', () async {
@@ -89,13 +112,13 @@ void main() {
       'get',
       'http://${server.address.address}:${server.port}/image',
       out.path,
-    ]);
+    ], withRoot: false);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     expect(out.readAsBytesSync(), <int>[1, 2, 3, 4]);
   });
 
   test('me 缺少 token 返回 exit 4', () async {
-    final result = await run(<String>['me']);
+    final result = await run(<String>['me'], withRoot: false);
     expect(result.exitCode, 4, reason: '${result.stderr}');
   });
 
@@ -104,7 +127,7 @@ void main() {
       'url',
       'https://www.figma.com/design/ABC/app?node-id=1-2',
       '--json',
-    ]);
+    ], withRoot: false);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
     expect(payload['schema'], 'w_tools_figma.url/1');
@@ -139,7 +162,75 @@ void main() {
     final result = await run(<String>['spec', '1:2', '--json', '--node-depth=0']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
-    expect((payload['node'] as Map).containsKey('children'), isFalse);
+    final items = (payload['items'] as List).cast<Map<String, dynamic>>();
+    expect((items.single['node'] as Map).containsKey('children'), isFalse);
+  });
+
+  test('spec --with-layout 在 markdown 表格加布局列', () async {
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Layout',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+            'children': [
+              {
+                'id': '1:3',
+                'type': 'FRAME',
+                'name': 'Column',
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+                'layoutMode': 'VERTICAL',
+                'itemSpacing': 8,
+                'paddingLeft': 16,
+                'paddingRight': 16,
+                'paddingTop': 10,
+                'paddingBottom': 10,
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['spec', '1:2', '--with-layout']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('| 布局 |'));
+    expect('${result.stdout}', contains('layoutMode=VERTICAL'));
+  });
+
+  test('spec --with-id 在 markdown 表格加子节点 id', () async {
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'WithId',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': [
+              {
+                'id': '1:3',
+                'type': 'TEXT',
+                'name': 'Child',
+                'characters': 'Hi',
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['spec', '1:2', '--with-id']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('| id | x,y |'));
+    expect('${result.stdout}', contains('| 1:3 |'));
   });
 
   test('spec --json --node-only 不返回 markdown', () async {
@@ -161,8 +252,15 @@ void main() {
     final result = await run(<String>['spec', '1:2', '--json', '--node-only']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
-    expect(payload.containsKey('node'), isTrue);
-    expect(payload.containsKey('markdown'), isFalse);
+    final items = (payload['items'] as List).cast<Map<String, dynamic>>();
+    expect(items.single.containsKey('node'), isTrue);
+    expect(items.single.containsKey('markdown'), isFalse);
+  });
+
+  test('spec --node-only 需要 --json', () async {
+    final result = await run(<String>['spec', '1:2', '--node-only']);
+    expect(result.exitCode, 2, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('--node-only 只与 --json 一起使用'));
   });
 
   test('spec a,b --json 返回 specs/1，默认顶层 frames', () async {
@@ -306,7 +404,8 @@ void main() {
     final result = await run(<String>['spec', '1:2', '--json']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
-    expect(payload['nodeId'], '1:2');
+    final items = (payload['items'] as List).cast<Map<String, dynamic>>();
+    expect(items.single['nodeId'], '1:2');
   });
 
   test('frames 列出缓存里的 FRAME', () async {
@@ -401,9 +500,11 @@ void main() {
     final result = await run(<String>['spec', '1:2', '--file=${cache.path}', '--json']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
-    expect(payload['schema'], 'w_tools_figma.spec/1');
-    expect((payload['node'] as Map)['id'], '1:2');
-    expect('${payload['markdown']}', contains('# Structured'));
+    expect(payload['schema'], 'w_tools_figma.specs/1');
+    final items = (payload['items'] as List).cast<Map<String, dynamic>>();
+    expect(items, hasLength(1));
+    expect((items.single['node'] as Map)['id'], '1:2');
+    expect('${items.single['markdown']}', contains('# Structured'));
   });
 
   test('缓存命中但 --check-stale 仍需 token', () async {
@@ -439,11 +540,16 @@ void main() {
     expect('${result.stderr}', contains('figd_'));
   });
 
-  test('cache stats 拒绝 --all；cache clean --yes 需要 --all', () async {
+  test('cache stats 拒绝 --all；cache clean 需要 --yes', () async {
     final stats = await run(<String>['cache', 'stats', '--all']);
     expect(stats.exitCode, 2);
-    final clean = await run(<String>['cache', 'clean', '--yes']);
-    expect(clean.exitCode, 2);
+
+    final refused = await run(<String>['cache', 'clean']);
+    expect(refused.exitCode, 2, reason: '${refused.stderr}');
+    expect('${refused.stderr}', contains('--yes'));
+
+    final ok = await run(<String>['cache', 'clean', '--yes']);
+    expect(ok.exitCode, 0, reason: '${ok.stderr}');
   });
 
   test('cache clean --all 需要 --yes 确认', () async {
@@ -487,8 +593,12 @@ void main() {
     final result = await run(<String>['tokens', '1:2', '--min=abc']);
     expect(result.exitCode, 2, reason: '${result.stderr}');
 
-    final unknown = await run(<String>['budget', '--wat']);
+    final unknown = await run(<String>['usage', '--wat'], withRoot: false);
     expect(unknown.exitCode, 2, reason: '${unknown.stderr}');
+
+    final skip = await run(<String>['tokens', '1:2', '--skip-markdown']);
+    expect(skip.exitCode, 2, reason: '${skip.stderr}');
+    expect('${skip.stderr}', contains('只与 --json 一起使用'));
   });
 
   test('tokens --json 带结构化数组，不再只有 counts + markdown', () async {
@@ -560,6 +670,33 @@ void main() {
 
     expect(payload['radii'], isA<List<dynamic>>());
     expect(payload['spacings'], isA<List<dynamic>>());
+
+    final map = File('${root.path}/tokens.yaml')
+      ..writeAsStringSync('colors:\n  "#FF0000": brandRed\n');
+    final mapped = await run(<String>[
+      'tokens',
+      '1:2',
+      '--json',
+      '--skip-markdown',
+      '--map=${map.path}',
+    ]);
+    expect(mapped.exitCode, 0, reason: '${mapped.stderr}');
+    final mappedPayload = jsonDecode('${mapped.stdout}') as Map<String, dynamic>;
+    final mappedColors = (mappedPayload['colors'] as List).cast<Map<String, dynamic>>();
+    expect(
+      mappedColors.firstWhere((color) => color['value'] == '#FF0000')['name'],
+      'brandRed',
+    );
+    expect(
+      mappedColors.firstWhere((color) => color['value'] == '#333333')['name'],
+      isNull,
+    );
+
+    final lean = await run(<String>['tokens', '1:2', '--json', '--skip-markdown']);
+    expect(lean.exitCode, 0, reason: '${lean.stderr}');
+    final leanPayload = jsonDecode('${lean.stdout}') as Map<String, dynamic>;
+    expect(leanPayload.containsKey('markdown'), isFalse);
+    expect(leanPayload['colors'], isA<List<dynamic>>());
   });
 
   test('损坏缓存按"解析失败"报告，不再只说找不到节点', () async {
@@ -674,43 +811,20 @@ void main() {
     expect('${frames.stdout}', contains('1:2'));
   });
 
-  test('url / get 用 --root 时提示已弃用，但行为不变', () async {
-    final url = await run(<String>['url', '1862:9222', '--root=${root.path}']);
-    expect(url.exitCode, 0, reason: '${url.stderr}');
-    expect('${url.stderr}', contains('--root 对 url 没有作用'));
+  test('url / get 不再接受 --root（0.14.0 已移除）', () async {
+    final url = await run(<String>['url', 'https://www.figma.com/design/ABC/app']);
+    expect(url.exitCode, 2, reason: '${url.stderr}');
+    expect('${url.stderr}', contains('未知选项：--root'));
 
-    // 不带 --root 时不能提示（run() 会给每条命令追加 --root，这里单独起进程）。
-    final urlNoRoot = await Process.run(
-      Platform.resolvedExecutable,
-      <String>['run', 'bin/figma.dart', 'url', '1862:9222'],
-      workingDirectory: Directory.current.path,
-      environment: <String, String>{
-        ...Platform.environment,
-        'HOME': home.path,
-        'USERPROFILE': home.path,
-        'FIGMA_TOKEN': '',
-      },
+    final get = await run(<String>['get', 'https://example.com/a.png', '${root.path}/x.png']);
+    expect(get.exitCode, 2, reason: '${get.stderr}');
+    expect('${get.stderr}', contains('未知选项：--root'));
+
+    final direct = await run(
+      <String>['url', 'https://www.figma.com/design/ABC/app'],
+      withRoot: false,
     );
-    expect(urlNoRoot.exitCode, 0, reason: '${urlNoRoot.stderr}');
-    expect('${urlNoRoot.stderr}', isNot(contains('没有作用')));
-
-    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    server.listen((request) async {
-      request.response
-        ..statusCode = 200
-        ..add(<int>[1, 2, 3]);
-      await request.response.close();
-    });
-    addTearDown(() => server.close(force: true));
-    final out = File('${root.path}/img.bin');
-    final get = await run(<String>[
-      'get',
-      'http://${server.address.address}:${server.port}/img',
-      out.path,
-      '--root=${root.path}',
-    ]);
-    expect(get.exitCode, 0, reason: '${get.stderr}');
-    expect('${get.stderr}', contains('--root 对 get 没有作用'));
+    expect(direct.exitCode, 0, reason: '${direct.stderr}');
   });
 
   test('多余的位置参数报错，不再静默忽略', () async {
@@ -718,7 +832,7 @@ void main() {
     expect(spec.exitCode, 2, reason: '${spec.stderr}');
     expect('${spec.stderr}', contains('多余的参数'));
 
-    final url = await run(<String>['url', 'a', 'b']);
+    final url = await run(<String>['url', 'a', 'b'], withRoot: false);
     expect(url.exitCode, 2);
     expect('${url.stderr}', contains('多余的参数'));
 
@@ -726,16 +840,28 @@ void main() {
     expect(fetch.exitCode, 2);
     expect('${fetch.stderr}', contains('多余的参数'));
 
-    final me = await run(<String>['me', 'extra']);
+    final me = await run(<String>['me', 'extra'], withRoot: false);
     expect(me.exitCode, 2);
     expect('${me.stderr}', contains('多余的参数'));
   });
 
-  test('init --force 覆盖已有 token', () async {
+  test('init --force 不覆盖真实 token', () async {
     final first = await run(<String>['init']);
     expect(first.exitCode, 0, reason: '${first.stderr}');
-    final token = CacheStore(root).tokenFile;
+    final token = CacheStore(root, home: home.path).tokenFile;
     token.writeAsStringSync('custom');
+
+    final forced = await run(<String>['init', '--force']);
+    expect(forced.exitCode, 1, reason: '${forced.stderr}');
+    expect('${forced.stderr}', contains('已有真实 token'));
+    expect(token.readAsStringSync(), 'custom');
+  });
+
+  test('init --force 会重建模板 token', () async {
+    final first = await run(<String>['init']);
+    expect(first.exitCode, 0, reason: '${first.stderr}');
+    final token = CacheStore(root, home: home.path).tokenFile;
+    token.writeAsStringSync('figd_REPLACE_ME\n');
 
     final forced = await run(<String>['init', '--force']);
     expect(forced.exitCode, 0, reason: '${forced.stderr}');
@@ -746,7 +872,7 @@ void main() {
     if (Platform.isWindows) return;
     final result = await run(<String>['init']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
-    final token = CacheStore(root).tokenFile;
+    final token = CacheStore(root, home: home.path).tokenFile;
     expect(token.existsSync(), isTrue);
     expect(token.statSync().mode & 0x1FF, 0x180);
   });
