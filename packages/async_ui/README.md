@@ -15,10 +15,10 @@
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^2.0.0
+  w_tools_async_ui: ^2.1.0
 ```
 
-要求 Flutter 3.38+、`w_tools_async >=7.4.0 <9.0.0`。
+要求 Flutter 3.38+、`w_tools_async >=8.1.0 <9.0.0`。
 
 ## 单区块
 
@@ -107,9 +107,12 @@ Widget build(BuildContext context) {
 ```text
 loading  → 转圈
 failed   → “重试”按钮
-noMore   → “No more”
+noMore   → WAsyncTheme.strings.noMore（默认 “No more”）
 hidden / loadMore → 不显示
 ```
+
+标准壳的 loading / error / errorBanner 外观走 `WAsyncTheme`；需要每个列表单独
+定制时用 `WAsyncPagedSliver` + 自己的滚动壳。
 
 ### 程序化刷新
 
@@ -176,7 +179,8 @@ WAsyncPagedList<Gift>(
 
 ### 自定义刷新头 / 上拉壳
 
-`WAsyncPagedList` 只提供标准 `RefreshIndicator` + 自动加载。需要完全自定义
+`WAsyncPagedList` 只提供标准 `RefreshIndicator` + 自动加载；`autoLoadThreshold`
+不能为负数。需要完全自定义
 下拉动画或 pull-up 手势时，用 `WAsyncPagedSliver` + 自己的滚动壳：
 
 ```dart
@@ -205,11 +209,12 @@ RefreshIndicator(
 - 不自动 load / refresh；页面 controller 自己负责首屏请求。
 - 不持有 controller；`WAsyncPagedList` 不持有外部刷新控制器。
 - 不包含已删除的执行组合子（`parallel` / `pool` / `serial` / `first` / `map`）；这些已被
-  `Future.wait` / `WAsync.settle` / `Future.any` / for 替代。
+  `Future.wait` / `WAsync.tryAll` / `Future.any` / for 替代。
 - 不包含全局 loading / toast / 登录失效；这些是 app 层策略。
 - 不 import 任何项目设计系统；空态 / 错误外观通过 `WAsyncTheme` 或 builder 注入。
 
 ## 示例
 
-[`example/`](example/) 是一个可运行的最小应用：`WAsyncSection` 单区块 + `WAsyncPagedList`
-分页列表；运行 `cd example && flutter run`，或 `flutter test` 跑 smoke test。
+[`example/`](example/) 是一个可运行的最小应用：`WAsyncSection` 单区块 +
+`WAsyncPagedList` 分页（含 reload / 刷新头样式）+ `WAsyncPagedSliver` 自定义滚动；
+运行 `cd example && flutter run`，或 `flutter test` 跑 smoke test。

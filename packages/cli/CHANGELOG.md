@@ -1,3 +1,9 @@
+## 2.8.2
+
+### Changed
+- `init` 的 `w_tools_async_ui` 约束抬到 `^2.1.0`。
+- catalog 更新 `WAsyncPagedList` / `WAsyncPagedSliver` 的 noMore 与自定义 sliver 示例。
+
 ## 2.8.1
 
 ### Changed

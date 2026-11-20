@@ -832,7 +832,7 @@ components:
     tier: app
     docsAnchor: 'wasyncpagedlist'
     section: '4. View'
-    useFor: '标准 WAsyncPagedList 的 RefreshIndicator 样式：颜色 / 背景 / 线宽 / 位移 / 触发模式'
+    useFor: '标准 WAsyncPagedList 的 RefreshIndicator 样式：颜色 / 背景 / 线宽 / 位移 / 边缘偏移 / 触发模式'
     dontUseFor: '不解决自定义刷新头动画或完成 / 失败文案；这些用 WAsyncPagedSliver 自建壳'
     usage: |
       WAsyncPagedList<Gift>(
@@ -877,7 +877,10 @@ components:
       - '不自动 refresh；页面在 controller 的 initState / onInit 调 refresh()'
       - '下拉刷新是标准 RefreshIndicator；需要自定义刷新头用 WAsyncPagedSliver'
       - '上拉加载改为滚动阈值自动触发；autoLoadThreshold:null 可关闭'
-      - '默认 footer 展示 loading / 重试 / 没有更多；footerBuilder 可覆盖'
+      - '默认 footer 展示 loading / 重试 / 没有更多；文案走 WAsyncTheme.strings'
+      - 'footerBuilder 可覆盖默认 footer'
+      - 'autoLoadThreshold 不能为负数'
+      - 'loading / error / errorBanner 走 WAsyncTheme；per-list 定制用 WAsyncPagedSliver'
       - '标准刷新头用 refreshIndicatorStyle 配颜色 / 背景；自定义头用 WAsyncPagedSliver'
       - '程序化刷新用 reloadRequests.value++；不需要外部刷新控制器'
       - 'loadMore 失败只更新 footer，不清空列表；不要额外 toast'
@@ -899,7 +902,10 @@ components:
           slivers: [
             WAsyncPagedSliver<Gift>.custom(
               controller: gifts,
-              readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
+              readySliverBuilder: (context, items) => SliverList.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) => GiftTile(items[index]),
+              ),
               onRetry: gifts.refresh,
             ),
             SliverToBoxAdapter(child: AppFooter(controller: gifts)),
