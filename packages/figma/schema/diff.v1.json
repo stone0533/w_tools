@@ -25,6 +25,12 @@
       "type": "integer",
       "minimum": 0
     },
+    "baselineCreated": {
+      "type": "boolean"
+    },
+    "firstBaseline": {
+      "type": "boolean"
+    },
     "changes": {
       "type": "array",
       "items": {

@@ -108,6 +108,13 @@ class SpecDiff {
     add('strokes', _strokeKey(before), _strokeKey(after));
     add('effects', _effectKey(before['effects']), _effectKey(after['effects']));
     add('radius', _radius(before), _radius(after));
+    add('rotation', '${before['rotation'] ?? 0}', '${after['rotation'] ?? 0}');
+    add('isMask', '${before['isMask'] ?? false}', '${after['isMask'] ?? false}');
+    add('clipsContent', '${before['clipsContent'] ?? false}', '${after['clipsContent'] ?? false}');
+    add('blendMode', '${before['blendMode'] ?? ''}', '${after['blendMode'] ?? ''}');
+    add('textDecoration', _styleText(before, 'textDecoration'),
+        _styleText(after, 'textDecoration'));
+    add('textCase', _styleText(before, 'textCase'), _styleText(after, 'textCase'));
     add('name', '${before['name'] ?? ''}', '${after['name'] ?? ''}');
     if ('${after['type']}' == 'TEXT' || '${before['type']}' == 'TEXT') {
       add('characters', '${before['characters'] ?? ''}', '${after['characters'] ?? ''}');
@@ -143,9 +150,10 @@ class SpecDiff {
         parts.add('$type:${paint['imageRef'] ?? paint['imageHash'] ?? ''}');
       } else if (type.startsWith('GRADIENT')) {
         parts.add('$type:${_gradientStops(paint['gradientStops'])}:'
-            '${_gradientHandles(paint['gradientHandlePositions'])}:${paint['gradientTransform'] ?? ''}');
+            '${_gradientHandles(paint['gradientHandlePositions'])}:${paint['gradientTransform'] ?? ''}:'
+            'opacity=${paint['opacity'] ?? 1}');
       } else {
-        parts.add('$type:${figmaHex(paint['color'])}');
+        parts.add('$type:${figmaPaintHex(paint)}:opacity=${paint['opacity'] ?? 1}');
       }
     }
     return parts.join(';');
@@ -224,6 +232,11 @@ class SpecDiff {
     return 'layoutMode=${node['layoutMode']} itemSpacing=$spacing '
         'padding=$left,$right,$top,$bottom '
         'primary=${node['primaryAxisAlignItems']} counter=${node['counterAxisAlignItems']}';
+  }
+
+  String _styleText(Map node, String key) {
+    final style = node['style'];
+    return style is Map ? '${style[key] ?? ''}' : '';
   }
 
   String _text(Object? v) {

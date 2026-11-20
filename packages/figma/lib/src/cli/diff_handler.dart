@@ -45,7 +45,7 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
   bool log = true,
 }) async {
   // 基线按缓存索引找（fetch 可能写成 -d<depth> 或批量 ids 的文件名），不要写死键。
-  final baseline = findNodesCache(store, nodeId);
+  final baseline = findNodesCache(store, nodeId, preferFullDepth: false);
   final target = store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: nodeId);
   final notes = diffBaselineNotes(baseline: baseline, targetPath: target.path);
 
@@ -132,6 +132,8 @@ Future<void> runDiff(
         'fileKey': fileKey,
         'nodeId': nodeId,
         'tierCalls': result.tierCalls,
+        'baselineCreated': result.baselineCreated,
+        'firstBaseline': result.baselineCreated,
         'changes': [
           for (final c in result.changes)
             {
@@ -146,6 +148,10 @@ Future<void> runDiff(
           for (final n in result.nodes) {'nodeId': n.nodeId, 'name': n.name, 'added': n.added},
         ],
       }));
+      return;
+    }
+    if (result.baselineCreated) {
+      printLine('已建立基线（无旧缓存，未做比较）');
       return;
     }
     if (result.isEmpty) {

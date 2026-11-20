@@ -98,6 +98,50 @@ void main() {
     expect(markdown, isNot(contains('| id | x,y |')));
   });
 
+  test('逐角圆角 / mask / rotation / decoration / 表格转义', () {
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Root',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'children': [
+        {
+          'id': '1:3',
+          'type': 'RECTANGLE',
+          'name': 'Card | A',
+          'isMask': true,
+          'rotation': 12,
+          'rectangleCornerRadii': [8, 8, 0, 0],
+          'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 40},
+          'fills': [
+            {
+              'type': 'SOLID',
+              'opacity': 0.5,
+              'color': {'r': 0.2, 'g': 0.2, 'b': 0.2},
+            },
+          ],
+          'children': [],
+        },
+        {
+          'id': '1:4',
+          'type': 'TEXT',
+          'name': 'Text',
+          'characters': 'A|B\nC',
+          'absoluteBoundingBox': {'x': 0, 'y': 40, 'width': 100, 'height': 20},
+          'style': {'fontFamily': 'Noto Sans', 'textDecoration': 'UNDERLINE'},
+          'children': [],
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2');
+    expect(md, contains('| 8,8,0,0 |'));
+    expect(md, contains('[mask]'));
+    expect(md, contains('[rot=12.00°]'));
+    expect(md, contains('#333333@0.50'));
+    expect(md, contains('deco=UNDERLINE'));
+    expect(md, contains('A\\|B<br>C'));
+  });
+
   test('描边虚线 / 文字样式 / 隐藏层等关键属性都被渲染', () {
     final md = markdown!;
     expect(md, contains('# Frame 15720  (1915:58517)'));

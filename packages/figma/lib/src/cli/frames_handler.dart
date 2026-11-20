@@ -17,6 +17,10 @@ Future<void> runFrames(List<String> args) async {
   final root = Directory(options.root);
   final store = CacheStore(root);
 
+  final includeNested = options.all ||
+      options.depth != null ||
+      options.nameFilter != null ||
+      options.pageFilter != null;
   var rows = const <Map<String, Object?>>[];
   if (options.file != null) {
     // 显式给文件时直接解析这一份，方便对着任意 nodes 缓存排错。
@@ -25,7 +29,7 @@ Future<void> runFrames(List<String> args) async {
       rows = framesFromFile(
         file,
         root: root,
-        all: options.all || options.depth != null,
+        all: includeNested,
         maxDepth: options.depth,
       );
     } on FormatException catch (e) {
@@ -37,12 +41,12 @@ Future<void> runFrames(List<String> args) async {
     }
   } else {
     if (nodesCacheFiles(store).isEmpty) {
-      throw StateError('缓存里没有 nodes-*.json，先跑 fetch nodes');
+      throw StateError('${store.dir.path} 里没有 nodes-*.json，先跑 fetch nodes');
     }
     final outcome = framesFromIndex(
       store,
       root: root,
-      all: options.all || options.depth != null,
+      all: includeNested,
       maxDepth: options.depth,
     );
     rows = outcome.rows;
@@ -82,25 +86,38 @@ Future<void> runFrames(List<String> args) async {
   if (truncated) {
     stderr.writeln('# 仅显示 ${visible.length}/$total 条（--limit=${options.limit}）');
   }
-  final pageWidth = visible.map((e) => '${e['page']}'.length).reduce(_max);
-  final idWidth = visible.map((e) => '${e['id']}'.length).reduce(_max);
-  final nameWidth = visible.map((e) => '${e['name']}'.length).reduce(_max);
-  final sizeWidth = visible.map((e) => '${e['width']}×${e['height']}'.length).reduce(_max);
+  final pageWidth = visible.map((e) => _width('${e['page']}')).reduce(_max);
+  final idWidth = visible.map((e) => _width('${e['id']}')).reduce(_max);
+  final nameWidth = visible.map((e) => _width('${e['name']}')).reduce(_max);
+  final sizeWidth = visible.map((e) => _width('${e['width']}×${e['height']}')).reduce(_max);
   printLine(
-    '${'page'.padRight(pageWidth)}  ${'id'.padRight(idWidth)}  '
-    '${'name'.padRight(nameWidth)}  ${'size'.padRight(sizeWidth)}  children',
+    '${_pad('page', pageWidth)}  ${_pad('id', idWidth)}  '
+    '${_pad('name', nameWidth)}  ${_pad('size', sizeWidth)}  children',
   );
   for (final frame in visible) {
     final size = '${frame['width']}×${frame['height']}';
-    final line =
-        '${(('${frame['page']}'.isEmpty) ? '-' : '${frame['page']}').padRight(pageWidth)}  '
-        '${'${frame['id']}'.padRight(idWidth)}  '
-        '${'${frame['name']}'.padRight(nameWidth)}  '
-        '${size.padRight(sizeWidth)}  '
+    final line = '${_pad(('${frame['page']}'.isEmpty) ? '-' : '${frame['page']}', pageWidth)}  '
+        '${_pad('${frame['id']}', idWidth)}  '
+        '${_pad('${frame['name']}', nameWidth)}  '
+        '${_pad(size, sizeWidth)}  '
         '${frame['children']}';
-    printLine(options.verbose ? '$line  ${frame['cacheFile']}' : line);
+    printLine(options.verbose ? '$line  ${frame['cacheFile']}  ${frame['fetchedAt'] ?? ''}' : line);
   }
 }
+
+int _width(String value) => value.runes.fold(0, (sum, rune) {
+      final wide = (rune >= 0x1100 && rune <= 0x115F) ||
+          (rune >= 0x2E80 && rune <= 0xA4CF) ||
+          (rune >= 0xAC00 && rune <= 0xD7A3) ||
+          (rune >= 0xF900 && rune <= 0xFAFF) ||
+          (rune >= 0xFE30 && rune <= 0xFE6F) ||
+          (rune >= 0xFF00 && rune <= 0xFF60) ||
+          (rune >= 0xFFE0 && rune <= 0xFFE6) ||
+          (rune >= 0x20000 && rune <= 0x3FFFD);
+      return sum + (wide ? 2 : 1);
+    });
+
+String _pad(String value, int width) => value + ' ' * (width - _width(value)).clamp(0, width);
 
 int _max(int a, int b) => a > b ? a : b;
 
@@ -118,6 +135,9 @@ List<Map<String, Object?>> framesFromFile(
       all: all,
       maxDepth: maxDepth,
       cacheFile: relativeToRoot(root, file),
+      fetchedAt: DateTime.fromMillisecondsSinceEpoch(
+        file.statSync().modified.millisecondsSinceEpoch,
+      ).toIso8601String(),
       out: frames,
     );
   }

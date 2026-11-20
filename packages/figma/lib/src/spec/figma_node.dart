@@ -3,6 +3,8 @@
 /// 这里不做强类型建模：Figma 的 schema 会变，保持 Map 访问 + 防御式取值最稳。
 library;
 
+import 'dart:math' as math;
+
 /// 把 Figma 的 `{r,g,b,a}` 颜色转成 `#RRGGBB`（带透明度时追加 `@0.20`）。
 String figmaHex(Object? color) {
   if (color is! Map) return '';
@@ -12,6 +14,18 @@ String figmaHex(Object? color) {
   final a = (color['a'] as num?)?.toDouble() ?? 1;
   final hex = '#${_hex2(r)}${_hex2(g)}${_hex2(b)}';
   return a < 1 ? '$hex@${a.toStringAsFixed(2)}' : hex;
+}
+
+/// 填充 / 描边 paint 的 hex：把 paint 级 opacity 乘进 alpha。
+String figmaPaintHex(Map paint) {
+  final color = paint['color'];
+  if (color is! Map) return '';
+  final base = figmaHex(color);
+  if (base.isEmpty) return base;
+  final opacity = (paint['opacity'] as num?)?.toDouble() ?? 1;
+  if (opacity >= 1) return base;
+  final alpha = ((color['a'] as num?)?.toDouble() ?? 1) * opacity;
+  return '${base.split('@').first}@${alpha.toStringAsFixed(2)}';
 }
 
 int _channel(Object? v) => (((v as num?) ?? 0) * 255).round();
@@ -25,11 +39,30 @@ String figmaFills(Map node) {
     if (f is! Map || f['visible'] == false) continue;
     final type = '${f['type'] ?? ''}';
     if (type == 'SOLID') {
-      out.add(figmaHex(f['color']));
+      out.add(figmaPaintHex(f));
     } else if (type.startsWith('IMAGE')) {
       out.add('IMG');
     } else if (type.startsWith('GRADIENT')) {
-      out.add('GRAD');
+      final stops = (f['gradientStops'] as List?) ?? const [];
+      final colors = <String>[];
+      for (final stop in stops) {
+        if (stop is Map) {
+          final c = figmaHex(stop['color']);
+          if (c.isNotEmpty) colors.add(c);
+        }
+      }
+      var label = colors.isEmpty ? 'GRAD' : 'GRAD(${colors.first}→${colors.last})';
+      final handles = f['gradientHandlePositions'];
+      if (handles is List && handles.length >= 2 && handles[0] is Map && handles[1] is Map) {
+        final a = handles[0] as Map;
+        final b = handles[1] as Map;
+        final dx = ((b['x'] as num?)?.toDouble() ?? 0) - ((a['x'] as num?)?.toDouble() ?? 0);
+        final dy = ((b['y'] as num?)?.toDouble() ?? 0) - ((a['y'] as num?)?.toDouble() ?? 0);
+        if (dx != 0 || dy != 0) {
+          label += '@${(math.atan2(dy, dx) * 180 / math.pi).toStringAsFixed(0)}°';
+        }
+      }
+      out.add(label);
     }
   }
   return out.isEmpty ? '-' : out.join(',');
@@ -40,7 +73,7 @@ String figmaStrokes(Map node) {
   final out = <String>[];
   for (final s in (node['strokes'] as List?) ?? const []) {
     if (s is! Map || s['visible'] == false) continue;
-    var desc = figmaHex(s['color']);
+    var desc = figmaPaintHex(s);
     if ('${s['type'] ?? ''}' != 'SOLID') desc = '${s['type'] ?? '?'}';
     final weight = _numText(node['strokeWeight']);
     if (weight.isNotEmpty) desc += ' ${weight}px';
@@ -69,6 +102,8 @@ String figmaEffects(Map node) {
   for (final e in (node['effects'] as List?) ?? const []) {
     if (e is! Map || e['visible'] == false) continue;
     var desc = '${e['type'] ?? '?'}';
+    final effectColor = figmaPaintHex(e);
+    if (effectColor.isNotEmpty) desc += ' $effectColor';
     final radius = e['radius'];
     if (radius is num && radius != 0) desc += ' r=$radius';
     final color = e['color'];
@@ -96,6 +131,8 @@ String figmaTextSpec(Map node) {
     'lh=${_pyRound(st['lineHeightPx'], 1)}',
     'ls=${_pyRound(st['letterSpacing'], 2)}',
     'align=${st['textAlignHorizontal'] ?? '?'}',
+    if (st['textDecoration'] != null) 'deco=${st['textDecoration']}',
+    if (st['textCase'] != null) 'case=${st['textCase']}',
   ];
   final color = figmaFills(node);
   if (color != '-') parts.add(color);
@@ -105,21 +142,41 @@ String figmaTextSpec(Map node) {
   final table = (node['styleOverrideTable'] as Map?) ?? const {};
   if (overrides.any((v) => v != 0) && table.isNotEmpty) {
     final chars = '${node['characters'] ?? ''}';
-    final runs = <String>[];
-    for (var i = 0; i < overrides.length; i++) {
+    Map? styleAt(int i) {
+      if (i >= overrides.length) return null;
       final style = table['${overrides[i]}'];
-      if (style is! Map) continue;
-      var runColor = '';
+      return style is Map ? style : null;
+    }
+
+    String styleKey(Map? style) {
+      if (style == null) return '';
       final fs = (style['fills'] as List?) ?? const [];
-      if (fs.isNotEmpty && fs.first is Map) {
-        runColor = figmaHex((fs.first as Map)['color']);
-      }
-      final ch = i < chars.length ? chars[i] : '';
-      runs.add("[$i]='$ch' ${style['fontWeight'] ?? ''} $runColor");
+      final color = fs.isNotEmpty && fs.first is Map ? figmaHex((fs.first as Map)['color']) : '';
+      return '${style['fontWeight'] ?? ''}|$color';
+    }
+
+    String styleText(Map? style) {
+      if (style == null) return '';
+      final fs = (style['fills'] as List?) ?? const [];
+      final color = fs.isNotEmpty && fs.first is Map ? figmaHex((fs.first as Map)['color']) : '';
+      return '${style['fontWeight'] ?? ''} $color'.trim();
+    }
+
+    final runs = <String>[];
+    var start = 0;
+    Map? currentStyle = styleAt(0);
+    for (var i = 1; i <= chars.length; i++) {
+      final style = i < chars.length ? styleAt(i) : null;
+      if (i < chars.length && styleKey(style) == styleKey(currentStyle)) continue;
+      final end = i - 1;
+      final text = chars.substring(start, i);
+      runs.add("[$start..$end]='$text' ${styleText(currentStyle)}".trim());
+      start = i;
+      currentStyle = style;
     }
     if (runs.isNotEmpty) parts.add('runs: ${runs.join(' ')}');
   }
-  return parts.where((p) => p.isNotEmpty).join(' | ');
+  return parts.where((p) => p.isNotEmpty).join(' · ');
 }
 
 /// 在节点树里按 id 查节点（深度优先）。

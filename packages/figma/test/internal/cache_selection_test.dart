@@ -53,10 +53,10 @@ void main() {
     if (home.existsSync()) home.deleteSync(recursive: true);
   });
 
-  test('同 id 命中完整缓存与 --depth 缓存时优先完整缓存', () {
+  test('同 id 命中完整缓存与更新的 --depth 缓存时取最新', () {
     final sources = resolveNodeCaches(CacheStore(root, home: home.path), <String>['1:2']);
 
-    expect(sources['1:2']!.path, full.path);
+    expect(sources['1:2']!.path, depth.path);
   });
 
   test('只有 --depth 缓存时仍可用，并能被识别为裁剪源', () {

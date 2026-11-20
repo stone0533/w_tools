@@ -22,9 +22,8 @@ Map<String, File> resolveNodeCaches(
   final ordered = _sortCacheFiles(files);
   final result = <String, File>{};
   for (final id in nodeIds) {
-    // spec / tokens 需要完整子树：同 id 命中多个缓存时优先未裁剪的那份；
-    // 只有 --depth 缓存时才退回它，由调用方打印提示。
-    final file = _pickNodesCache(ordered, index.entries, id, preferFullDepth: true);
+    // spec / tokens 取最新缓存；若最新是 --depth 裁剪版，调用方会打印子节点可能缺失。
+    final file = _pickNodesCache(ordered, index.entries, id, preferFullDepth: false);
     if (file != null) result[id] = file;
   }
   final missing = nodeIds.where((id) => !result.containsKey(id)).toList();
@@ -36,8 +35,8 @@ Map<String, File> resolveNodeCaches(
 
 /// 找包含 [nodeId] 的 nodes 缓存文件；找不到返回 null（不抛错）。
 ///
-/// [preferFullDepth] 为 true 时优先取没有被 `--depth` 裁剪过的缓存（diff 的基线需要完整树）；
-/// 只有 depth 版缓存时才退回它。同级按 mtime 新→旧。
+/// [preferFullDepth] 为 true 时优先取没有被 `--depth` 裁剪过的缓存；
+/// 为 false 时按 mtime 新→旧取最新（diff 当前用 false，并会在 depth 基线时警告子节点可能缺失）。
 File? findNodesCache(
   CacheStore store,
   String nodeId, {
@@ -95,14 +94,16 @@ void collectFrames(
   required bool all,
   int? maxDepth,
   required String cacheFile,
+  String? fetchedAt,
   required Map<String, Map<String, Object?>> out,
 }) {
   final type = '${document['type']}';
   if (type == 'FRAME') {
     // fetch nodes 只拿到一个 FRAME 时，没有 CANVAS 父节点，不能把画板名当页面名。
-    _addFrame(document, cacheFile, out, '', nested: false, depth: 0);
+    _addFrame(document, cacheFile, out, '', nested: false, depth: 0, fetchedAt: fetchedAt);
     if (all) {
-      _walkChildren(document, cacheFile, out, '', depth: 1, maxDepth: maxDepth);
+      _walkChildren(document, cacheFile, out, '',
+          depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
     }
     return;
   }
@@ -112,12 +113,14 @@ void collectFrames(
   for (final child in children) {
     if (child is! Map) continue;
     if ('${child['type']}' == 'FRAME') {
-      _addFrame(child, cacheFile, out, page, nested: false, depth: 0);
+      _addFrame(child, cacheFile, out, page, nested: false, depth: 0, fetchedAt: fetchedAt);
       if (all) {
-        _walkChildren(child, cacheFile, out, page, depth: 1, maxDepth: maxDepth);
+        _walkChildren(child, cacheFile, out, page,
+            depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
       }
     } else if (all) {
-      _walkChildren(child, cacheFile, out, page, depth: 1, maxDepth: maxDepth);
+      _walkChildren(child, cacheFile, out, page,
+          depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
     }
   }
 }
@@ -129,14 +132,16 @@ void _walkChildren(
   String page, {
   required int depth,
   int? maxDepth,
+  String? fetchedAt,
 }) {
   if (maxDepth != null && depth > maxDepth) return;
   for (final child in (node['children'] as List?) ?? const []) {
     if (child is! Map) continue;
     if ('${child['type']}' == 'FRAME') {
-      _addFrame(child, cacheFile, out, page, nested: depth > 0, depth: depth);
+      _addFrame(child, cacheFile, out, page, nested: depth > 0, depth: depth, fetchedAt: fetchedAt);
     }
-    _walkChildren(child, cacheFile, out, page, depth: depth + 1, maxDepth: maxDepth);
+    _walkChildren(child, cacheFile, out, page,
+        depth: depth + 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
   }
 }
 
@@ -147,6 +152,7 @@ void _addFrame(
   String page, {
   required bool nested,
   required int depth,
+  String? fetchedAt,
 }) {
   final id = '${node['id'] ?? ''}';
   if (id.isEmpty) return;
@@ -162,6 +168,7 @@ void _addFrame(
     'cacheFile': cacheFile,
     'nested': nested,
     'depth': depth,
+    if (fetchedAt != null) 'fetchedAt': fetchedAt,
   };
   _mergeFrameRow(out, id, next);
 }
@@ -186,6 +193,12 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
   final nextDepth = next['depth'] as int? ?? 0;
   final existingDepth = existing['depth'] as int? ?? 0;
   if (nextDepth < existingDepth) existing['depth'] = nextDepth;
+  final nextFetched = next['fetchedAt'];
+  final existingFetched = existing['fetchedAt'];
+  if (nextFetched is String &&
+      (existingFetched is! String || nextFetched.compareTo(existingFetched) > 0)) {
+    existing['fetchedAt'] = nextFetched;
+  }
 }
 
 /// 从索引产出 `frames` 的行；索引缺失 / 过期时重建并写回（只有 frames 维护索引）。
@@ -206,10 +219,15 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
     final entry = index.entries[file.path];
     if (entry == null) continue;
     final cacheFile = relativeToRoot(root, file);
+    final fetchedAt = DateTime.fromMillisecondsSinceEpoch(entry.mtime).toIso8601String();
     for (final row in entry.frames) {
       final id = '${row['id'] ?? ''}';
       if (id.isEmpty) continue;
-      _mergeFrameRow(out, id, <String, Object?>{...row, 'cacheFile': cacheFile});
+      _mergeFrameRow(
+        out,
+        id,
+        <String, Object?>{...row, 'cacheFile': cacheFile, 'fetchedAt': fetchedAt},
+      );
     }
   }
   return (

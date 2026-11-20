@@ -3,7 +3,16 @@
 ### Added
 - `frames --depth=<n>`：限制嵌套层级（0 = 顶层，隐含 `--all`）。
 - `frames --limit=<n>`：限制输出条数；`frames/1` JSON 增加 `total` / `truncated`，每行增加 `depth`。
-- `_nodes-index.json` 升级到 version 6，自动重建；`frames` 大文件可用 `--name` / `--page` / `--depth` / `--limit` 收窄。
+- `frames --name` / `--page` 现在搜索全部 FRAME（包括嵌套），不再静默漏掉嵌套命中。
+- `spec` 输出逐角圆角、paint opacity、rotation、isMask、clipsContent、阴影颜色、
+  textDecoration / textCase、渐变首尾色；markdown 单元格转义 `|` / 换行，富文本 runs 合并区间。
+- `diff` 比较 rotation / isMask / clipsContent / blendMode / textDecoration / textCase / paint opacity；
+  `DiffResult.baselineCreated` / JSON `firstBaseline` 区分“首次建立基线”和“没有变化”。
+- `fetch` 可复用已有缓存里按单 id 命中的节点；缓存损坏时默认报错而不是静默重拉；部分缺失写入 `missingNodeIds`。
+- `cache stats --files` / `cache clean --file` / `cache clean --all` 的索引、路径规范化与所有项目统计。
+- `tokens` 的 samples 带 nodeId，`--out` 数据源不再写本机绝对路径；`--min` 文案修正。
+- `usage` 的 0 次调用不再触发接近上限提示；`/meta` 读取 `last_touched_at`。
+- 项目根默认从当前目录向上找 `pubspec.yaml` / `.git`，从子目录运行复用同一缓存；`frames` 无缓存错误带路径。
 
 ## 1.0.0
 

@@ -72,6 +72,6 @@ UsageSummary usageSummary(CacheStore store, {DateTime? now, int recent = 5}) {
     limit: limit,
     recent: entries.reversed.take(recent).toList(),
     remaining: limit - used,
-    isNearLimit: used >= (limit * 0.8).floor(),
+    isNearLimit: used > 0 && used * 5 >= limit * 4,
   );
 }

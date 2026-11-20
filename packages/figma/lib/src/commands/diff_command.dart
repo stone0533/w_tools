@@ -15,6 +15,7 @@ class DiffResult {
     required this.changes,
     required this.nodes,
     required this.tierCalls,
+    this.baselineCreated = false,
   });
 
   final String fileKey;
@@ -22,6 +23,9 @@ class DiffResult {
   final List<SpecChange> changes;
   final List<SpecNodeDelta> nodes;
   final int tierCalls;
+
+  /// 没有旧缓存、本次只建立基线；不是「没有变化」。
+  final bool baselineCreated;
 
   bool get isEmpty => changes.isEmpty && nodes.isEmpty;
 }
@@ -78,6 +82,7 @@ class DiffCommand {
         changes: const [],
         nodes: const [],
         tierCalls: 1,
+        baselineCreated: true,
       );
     }
     final previousDocument = readDocument(previous, nodeId);

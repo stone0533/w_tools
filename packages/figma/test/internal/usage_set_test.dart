@@ -44,6 +44,14 @@ void main() {
     expect(exitCode, 0);
   });
 
+  test('limit=1 且 0 次调用时不报接近上限', () {
+    store.dir.createSync(recursive: true);
+    store.budgetFile.writeAsStringSync(jsonEncode({'limit': 1}));
+    final summary = usageSummary(store);
+    expect(summary.used, 0);
+    expect(summary.isNearLimit, isFalse);
+  });
+
   test('预算文件损坏时不崩，写成 {"limit"}', () {
     store.dir.createSync(recursive: true);
     store.budgetFile.writeAsStringSync('{bad');

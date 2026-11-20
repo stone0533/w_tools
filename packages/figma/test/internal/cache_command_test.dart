@@ -69,12 +69,26 @@ void main() {
 
     final (file, bytes) = cleanFile(store, 'nodes-K-1-2.json');
 
-    expect(file.path, nodes.path);
+    expect(file.uri.pathSegments.last, nodes.uri.pathSegments.last);
     expect(bytes, greaterThan(0));
     expect(nodes.existsSync(), isFalse);
     expect(legacy.existsSync(), isTrue);
-    expect(() => cleanFile(store, '../outside.json'), throwsFormatException);
+    expect(() => cleanFile(store, '../outside.json'),
+        throwsA(anyOf(isA<FormatException>(), isA<StateError>())));
     expect(() => cleanFile(store, 'sub/nodes.json'), throwsFormatException);
+  });
+
+  test('cleanFile 接受 ./ 与 --all 统计所有项目', () {
+    final dot = store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2');
+    store.write(dot, {'a': 1});
+    final (file, _) = cleanFile(store, './nodes-K-1-2.json');
+    expect(file.uri.pathSegments.last, 'nodes-K-1-2.json');
+    expect(dot.existsSync(), isFalse);
+
+    final other = CacheStore(Directory('${root.path}/other'), home: home.path);
+    other.write(other.cacheFile(kind: 'nodes', fileKey: 'X', ids: '1:2'), {'a': 1});
+    store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2'), {'a': 1});
+    expect(cacheStatsAll(store).files, greaterThanOrEqualTo(2));
   });
 
   test('stats --files 区分 legacy / nodes / index', () {

@@ -2,8 +2,25 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-/// 项目根默认值：`--root` 未给时用当前目录。
-String defaultRoot() => Directory.current.path;
+/// 项目根默认值：从当前目录向上找最近的 `.git`（仓库根）或 `pubspec.yaml`；
+/// 都找不到时回退当前目录。这样从 `tool/` 等子目录运行仍复用同一个项目缓存。
+String defaultRoot() {
+  final current = Directory.current.absolute;
+  final root = _findAncestor(current, 'pubspec.yaml') ?? _findAncestor(current, '.git') ?? current;
+  return root.path;
+}
+
+Directory? _findAncestor(Directory start, String marker) {
+  var dir = start;
+  while (true) {
+    if (File('${dir.path}/$marker').existsSync() || Directory('${dir.path}/$marker').existsSync()) {
+      return dir;
+    }
+    final parent = dir.parent;
+    if (parent.path == dir.path) return null;
+    dir = parent;
+  }
+}
 
 /// 解析后的命令参数（每个命令只声明自己支持的选项）。
 class CommandArgs {
@@ -62,11 +79,11 @@ ArgParser parserFor(String command) {
   switch (command) {
     case 'init':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addFlag('force', negatable: false, help: '只重建模板 token');
     case 'frames':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addOption('file', valueHelp: 'path', help: '直接解析指定 nodes 缓存')
         ..addFlag('json', negatable: false, help: '输出 JSON')
         ..addFlag('all', negatable: false, help: '包含嵌套画板')
@@ -77,7 +94,7 @@ ArgParser parserFor(String command) {
         ..addFlag('verbose', negatable: false, help: '显示 cacheFile');
     case 'fetch':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addFlag('json', negatable: false, help: '输出 JSON')
         ..addOption('depth', valueHelp: 'n', help: 'nodes 的深度（不传则不限制）')
         ..addOption('scale', valueHelp: 'n', help: 'images 的倍率（默认 2）')
@@ -89,7 +106,7 @@ ArgParser parserFor(String command) {
         ..addOption('set', valueHelp: 'n', help: '设置月度预算');
     case 'cache':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addFlag('json', negatable: false, help: '输出 JSON')
         ..addFlag('all', negatable: false, help: '清理所有项目缓存')
         ..addFlag('yes', abbr: 'y', negatable: false, help: '确认破坏性操作')
@@ -98,7 +115,7 @@ ArgParser parserFor(String command) {
         ..addOption('file', valueHelp: 'path', help: 'clean 只删指定缓存文件');
     case 'diff':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addFlag('json', negatable: false, help: '输出 JSON')
         ..addFlag('if-stale', negatable: false, help: '版本没变就跳过请求');
     case 'get':
@@ -109,7 +126,7 @@ ArgParser parserFor(String command) {
       parser.addFlag('json', negatable: false, help: '输出 JSON');
     case 'spec':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addOption('file', valueHelp: 'path', help: '指定缓存节点树 JSON')
         ..addFlag('json', negatable: false, help: '输出 JSON')
         ..addFlag('node-only', negatable: false, help: '只输出 node，不带 markdown')
@@ -119,7 +136,7 @@ ArgParser parserFor(String command) {
         ..addFlag('with-layout', negatable: false, help: 'markdown 表格加布局列');
     case 'tokens':
       parser
-        ..addOption('root', valueHelp: 'dir', help: '项目根（默认当前目录）')
+        ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
         ..addOption('file', valueHelp: 'path', help: '指定缓存节点树 JSON')
         ..addFlag('json', negatable: false, help: '输出 JSON')
         ..addOption('min', valueHelp: 'n', help: '只列出出现次数 >= n 的项')

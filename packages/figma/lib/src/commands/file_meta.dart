@@ -20,6 +20,6 @@ Future<FileMeta?> readFileMeta(FigmaClient client, String fileKey) async {
 
   return FileMeta(
     version: text(file['version']),
-    lastTouchedAt: text(file['lastTouchedAt']),
+    lastTouchedAt: text(file['last_touched_at'] ?? file['lastTouchedAt']),
   );
 }
