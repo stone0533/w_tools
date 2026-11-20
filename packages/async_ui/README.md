@@ -15,7 +15,7 @@
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^2.1.0
+  w_tools_async_ui: ^2.1.1
 ```
 
 要求 Flutter 3.38+、`w_tools_async >=8.1.0 <9.0.0`。
@@ -130,7 +130,8 @@ reloadRequests.value++;
 ```
 
 `reloadRequests` 会复用 `RefreshIndicator` 的刷新动画；刷新中再次触发时，
-最新请求完成后才收起，不会由旧请求提前收尾。业务不需要持有外部刷新控制器。
+最新请求完成后才收起，不会由旧请求提前收尾。刷新期间自动加载会挂起，
+完成后按新列表状态恢复。业务不需要持有外部刷新控制器。
 
 ### 刷新头样式
 

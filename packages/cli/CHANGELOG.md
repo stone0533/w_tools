@@ -1,3 +1,8 @@
+## 2.8.4
+
+### Changed
+- `init` 的 `w_tools_async_ui` 约束抬到 `^2.1.1`。
+
 ## 2.8.3
 
 ### Changed

@@ -13,7 +13,7 @@
 - `WAsyncPagedList` 的 controller 生命周期内保持稳定；per-list loading / error / errorBanner 走 `WAsyncTheme`，需要定制用 `WAsyncPagedSliver`；`refreshIndicatorStyle` 只配标准头。
   默认 footer 读 `snapshot.footerStatus`，文案（含 noMore）走 `WAsyncTheme.strings`，
   `footerBuilder` 可替换；`refreshIndicatorStyle` 只配标准刷新头样式。
-- 程序化刷新用 `reloadRequests.value++`；不需要外部刷新 controller。
+- 程序化刷新用 `reloadRequests.value++`；不需要外部刷新 controller；刷新期间自动加载挂起，完成后恢复。
 - `WAsyncPagedSliver` 只负责四态和 ready 分支；不包含刷新壳 / footer / 文案，
   header / footer 由调用方自己的滚动壳负责；自建刷新壳时传 `onRetry: gifts.refresh`。
 - 不自动 load / refresh；页面 controller 的 `initState` / `onInit` 负责首屏请求。

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.1
+
+### Fixed
+- `reloadRequests` 触发刷新期间挂起自动加载，避免先发旧页码再被 refresh 取消。
+- 去掉 1 秒 fallback timer：`reloadRequests` 立即刷新数据，并抑制 `RefreshIndicator`
+  的重复回调，避免一次信号请求两次 page1。
+
 ## 2.1.0
 
 ### Changed

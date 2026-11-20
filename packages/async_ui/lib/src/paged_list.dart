@@ -78,7 +78,7 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
   Future<void>? _activeRefresh;
   bool _autoLoadInFlight = false;
   bool _refreshRequested = false;
-  Timer? _showFallbackTimer;
+  bool _ignoreNextIndicatorRefresh = false;
 
   @override
   void initState() {
@@ -102,11 +102,19 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
     _reloadRequests = null;
   }
 
-  Future<void> _onRefresh() {
-    _showFallbackTimer?.cancel();
-    _showFallbackTimer = null;
+  Future<void> _startRefresh() {
     _refreshRequested = true;
     return _refreshFuture ??= _drainRefresh();
+  }
+
+  Future<void> _onRefresh() {
+    // reloadRequests 已经直接启动过数据刷新；show() 触发的 onRefresh
+    // 只负责让 indicator 收尾，不能再发一次 page1。
+    if (_ignoreNextIndicatorRefresh) {
+      _ignoreNextIndicatorRefresh = false;
+      return _refreshFuture ?? Future<void>.value();
+    }
+    return _startRefresh();
   }
 
   Future<void> _drainRefresh() async {
@@ -149,21 +157,20 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
       return;
     }
 
-    _refreshRequested = true;
+    // 不等待 show() 的 onRefresh：立即刷新数据，让 show() 只负责动画。
+    // ignore 标记保证 indicator 回调不会再次刷新 page1。
+    _ignoreNextIndicatorRefresh = true;
+    _startRefresh();
     state.show();
-    // show() 在收尾动画期间可能被 Flutter 静默忽略，且不会报错。
-    // 给 onRefresh 一个进入窗口；超时仍未启动时直接刷新数据，避免请求丢失
-    // 或 _refreshRequested 永久卡住。
-    _showFallbackTimer?.cancel();
-    _showFallbackTimer = Timer(const Duration(seconds: 1), () {
-      if (!mounted || !_refreshRequested || _refreshFuture != null) return;
-      _onRefresh();
-    });
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
       return false;
+    }
+    if (notification is ScrollStartNotification && notification.dragDetails != null) {
+      // show() 被忽略后，用户手动下拉仍应能正常刷新。
+      _ignoreNextIndicatorRefresh = false;
     }
     if (notification is ScrollEndNotification) {
       _scheduleAutoLoadCheck();
@@ -184,6 +191,9 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
 
   void _maybeAutoLoad(double extentAfter) {
     if (!mounted) return;
+    // reloadRequests / 下拉刷新在 snap 前已经置位，但 snapshot 仍是 ready；
+    // 这里必须提前挂起 autoLoad，否则会先发旧页码再被 refresh 取消。
+    if (_refreshRequested || _refreshFuture != null) return;
 
     final threshold = widget.autoLoadThreshold;
     if (threshold == null || extentAfter > threshold) return;
@@ -261,7 +271,6 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
   @override
   void dispose() {
     _unbindReloadRequests();
-    _showFallbackTimer?.cancel();
     _snapshot?.removeListener(_onSnapshotChanged);
     _scrollController.dispose();
     super.dispose();
