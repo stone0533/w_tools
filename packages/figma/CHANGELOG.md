@@ -1,3 +1,10 @@
+## 1.1.0
+
+### Added
+- `frames --depth=<n>`：限制嵌套层级（0 = 顶层，隐含 `--all`）。
+- `frames --limit=<n>`：限制输出条数；`frames/1` JSON 增加 `total` / `truncated`，每行增加 `depth`。
+- `_nodes-index.json` 升级到 version 6，自动重建；`frames` 大文件可用 `--name` / `--page` / `--depth` / `--limit` 收窄。
+
 ## 1.0.0
 
 ### Added

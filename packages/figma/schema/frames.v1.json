@@ -11,6 +11,13 @@
     "schema": {
       "const": "w_tools_figma.frames/1"
     },
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "truncated": {
+      "type": "boolean"
+    },
     "frames": {
       "type": "array",
       "items": {
@@ -50,6 +57,10 @@
           },
           "page": {
             "type": "string"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "additionalProperties": true

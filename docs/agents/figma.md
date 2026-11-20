@@ -28,7 +28,8 @@ dart run w_tools_figma:figma url '<figma-url>' --json
 
 # 1b. 不知道 nodeId 时列 FRAME（默认只列顶层画板）
 dart run w_tools_figma:figma frames
-dart run w_tools_figma:figma frames --all --verbose
+dart run w_tools_figma:figma frames --all --depth=1 --verbose
+# 大文件优先先按 name / page 过滤；--all 不加 depth 可能数千行
 dart run w_tools_figma:figma frames --name=会员 --page=我的
 
 # 2. 缓存不存在时先取数（消耗 1 次 Tier 1）
@@ -66,7 +67,7 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
 - `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。
-- `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套；`cacheFile` 是该缓存文件的真实路径
+- `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套（可用 `--depth` / `--limit` 收窄）；`cacheFile` 是该缓存文件的真实路径
   （缓存在 `~/.cache/w_tools/figma/<项目标识>/`，通常是绝对路径），可以直接传给 `--file=`。
 - `spec --json` 固定返回 `w_tools_figma.specs/1`（单个节点也是 `items` 数组）。
 

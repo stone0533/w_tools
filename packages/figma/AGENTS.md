@@ -23,6 +23,7 @@ packages/figma/schema/         # --json 输出契约
 # 1. 从 Figma 链接拿 fileKey / nodeId
 dart run w_tools_figma:figma url '<figma-url>' --json
 dart run w_tools_figma:figma frames
+dart run w_tools_figma:figma frames --all --depth=1  # 需要嵌套画板时先限深度
 
 # 2. 缓存不存在时取节点（1 次 Tier 1；缓存命中 0）
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
@@ -74,7 +75,8 @@ dart run w_tools_cli:w_tools explain <组件名>
 当前稳定版见 pub.dev；下面这些命令可直接用：
 
 ```bash
-dart run w_tools_figma:figma frames --all
+dart run w_tools_figma:figma frames
+dart run w_tools_figma:figma frames --all --depth=1  # 需要嵌套画板时先限深度
 dart run w_tools_figma:figma frames --name=会员 --page=我的
 dart run w_tools_figma:figma frames --verbose
 dart run w_tools_figma:figma spec 1862:9222,1862:9226 --json

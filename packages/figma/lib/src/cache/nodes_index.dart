@@ -93,14 +93,17 @@ List<String> depthLimitedCachePaths(Iterable<String> paths) {
 void collectFrames(
   Map document, {
   required bool all,
+  int? maxDepth,
   required String cacheFile,
   required Map<String, Map<String, Object?>> out,
 }) {
   final type = '${document['type']}';
   if (type == 'FRAME') {
     // fetch nodes 只拿到一个 FRAME 时，没有 CANVAS 父节点，不能把画板名当页面名。
-    _addFrame(document, cacheFile, out, '', nested: false);
-    if (all) _walkChildren(document, cacheFile, out, '', nested: true);
+    _addFrame(document, cacheFile, out, '', nested: false, depth: 0);
+    if (all) {
+      _walkChildren(document, cacheFile, out, '', depth: 1, maxDepth: maxDepth);
+    }
     return;
   }
   final page = '${document['name'] ?? ''}';
@@ -109,10 +112,12 @@ void collectFrames(
   for (final child in children) {
     if (child is! Map) continue;
     if ('${child['type']}' == 'FRAME') {
-      _addFrame(child, cacheFile, out, page, nested: false);
-      if (all) _walkChildren(child, cacheFile, out, page, nested: true);
+      _addFrame(child, cacheFile, out, page, nested: false, depth: 0);
+      if (all) {
+        _walkChildren(child, cacheFile, out, page, depth: 1, maxDepth: maxDepth);
+      }
     } else if (all) {
-      _walkChildren(child, cacheFile, out, page, nested: true);
+      _walkChildren(child, cacheFile, out, page, depth: 1, maxDepth: maxDepth);
     }
   }
 }
@@ -122,14 +127,16 @@ void _walkChildren(
   String cacheFile,
   Map<String, Map<String, Object?>> out,
   String page, {
-  required bool nested,
+  required int depth,
+  int? maxDepth,
 }) {
+  if (maxDepth != null && depth > maxDepth) return;
   for (final child in (node['children'] as List?) ?? const []) {
     if (child is! Map) continue;
     if ('${child['type']}' == 'FRAME') {
-      _addFrame(child, cacheFile, out, page, nested: nested);
+      _addFrame(child, cacheFile, out, page, nested: depth > 0, depth: depth);
     }
-    _walkChildren(child, cacheFile, out, page, nested: nested);
+    _walkChildren(child, cacheFile, out, page, depth: depth + 1, maxDepth: maxDepth);
   }
 }
 
@@ -139,6 +146,7 @@ void _addFrame(
   Map<String, Map<String, Object?>> out,
   String page, {
   required bool nested,
+  required int depth,
 }) {
   final id = '${node['id'] ?? ''}';
   if (id.isEmpty) return;
@@ -153,6 +161,7 @@ void _addFrame(
     'children': children is List ? children.length : 0,
     'cacheFile': cacheFile,
     'nested': nested,
+    'depth': depth,
   };
   _mergeFrameRow(out, id, next);
 }
@@ -174,12 +183,16 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
   if (existing['nested'] == true && next['nested'] != true) {
     existing['nested'] = false;
   }
+  final nextDepth = next['depth'] as int? ?? 0;
+  final existingDepth = existing['depth'] as int? ?? 0;
+  if (nextDepth < existingDepth) existing['depth'] = nextDepth;
 }
 
 /// 从索引产出 `frames` 的行；索引缺失 / 过期时重建并写回（只有 frames 维护索引）。
 ({List<Map<String, Object?>> rows, List<File> corrupt}) framesFromIndex(
   CacheStore store, {
   required bool all,
+  int? maxDepth,
   required Directory root,
 }) {
   final files = _nodesCacheFiles(store);
@@ -202,7 +215,9 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
   return (
     rows: <Map<String, Object?>>[
       for (final row in out.values)
-        if (all || row['nested'] != true) row,
+        if ((all || row['nested'] != true) &&
+            (maxDepth == null || (row['depth'] as int? ?? 0) <= maxDepth))
+          row,
     ],
     corrupt: index.corruptFiles,
   );
@@ -235,7 +250,7 @@ class _IndexEntry {
 }
 
 /// `_nodes-index.json` 的格式版本；不匹配就整份丢弃重建（不做兼容迁移）。
-const int _indexVersion = 5;
+const int _indexVersion = 6;
 
 /// 一次索引读取的结果：条目 + 解析失败的缓存文件 + 是否需要写回。
 class _NodesIndex {
@@ -288,7 +303,13 @@ _NodesIndex _loadIndex(CacheStore store, List<File> files) {
         ids.add(entry.key);
         _collectIds(entry.value, ids);
         // cacheFile 在读索引时按 `--root` 算，存的时候留空。
-        collectFrames(entry.value, all: true, cacheFile: '', out: frames);
+        collectFrames(
+          entry.value,
+          all: true,
+          maxDepth: null,
+          cacheFile: '',
+          out: frames,
+        );
       }
     } on FormatException {
       corrupt = true;

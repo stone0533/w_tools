@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^1.0.0
+  w_tools_figma: ^1.1.0
 ```
 
 开发版使用 path 依赖：
@@ -202,6 +202,7 @@ cd packages/figma
 - `cache clean` 必须给 `--yes`（无论是否 `--all`）；`--all` 清所有项目缓存，但不会动账号级 `_usage.log` / `_budget.json`；
 - `cache stats --files` 列出每个文件并按 `legacy`（旧 `file-*`）/ `nodes` / `index` 分类，`indexed` 表示 `_nodes-index.json` 是否引用该文件；`cache clean --legacy --yes` 只删旧 `file-*`，`cache clean --file=<path> --yes` 只删点名文件；`nodes-<key>-0-1.json` 是有效的整页缓存，不是自动可回收的 orphan；
 - `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；
+- `frames --all` 可配合 `--depth=<n>`（0 = 顶层，隐含 `--all`）和 `--limit=<n>` 收窄；大文件优先 `--name` / `--page`；
 - `fetch images` 不缓存：每次调用都重新请求，直接输出 `id<TAB>url`；`--depth` / `--refresh` / `--check-stale` 不适用；
 - `fetch nodes` 不接受 `--scale`；
 - `diff --if-stale` 先比版本：没变直接退出（0 次 Tier 1），变了才拉。
