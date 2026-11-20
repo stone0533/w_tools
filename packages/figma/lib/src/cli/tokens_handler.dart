@@ -118,7 +118,13 @@ TokensReport buildTokensReport(
     collector.collect(node);
   }
 
-  final sourceFiles = sources.values.map((cache) => cache.path).toSet().toList();
+  final sourceFiles = sources.values
+      .map((cache) {
+        final relative = relativeToRoot(store.root, cache);
+        return relative == cache.path ? cache.uri.pathSegments.last : relative;
+      })
+      .toSet()
+      .toList();
   final markdown = includeMarkdown
       ? renderer.renderMarkdown(
           tokens: collector,

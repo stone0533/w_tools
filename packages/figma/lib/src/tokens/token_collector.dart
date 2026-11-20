@@ -82,7 +82,7 @@ class TokenCollector {
     for (final f in (node['fills'] as List?) ?? const []) {
       if (f is! Map || f['visible'] == false) continue;
       if ('${f['type']}' != 'SOLID') continue;
-      _addColor(figmaHex(f['color']), _label(node));
+      _addColor(figmaPaintHex(f), _label(node));
     }
   }
 
@@ -90,7 +90,7 @@ class TokenCollector {
     for (final s in (node['strokes'] as List?) ?? const []) {
       if (s is! Map || s['visible'] == false) continue;
       if ('${s['type']}' != 'SOLID') continue;
-      _addColor(figmaHex(s['color']), _label(node));
+      _addColor(figmaPaintHex(s), _label(node));
     }
   }
 
@@ -161,12 +161,14 @@ class TokenCollector {
 
   String _label(Map node) {
     final characters = '${node['characters'] ?? ''}';
+    final id = '${node['id'] ?? ''}';
     if (characters.isNotEmpty) {
       final short = characters.length > 12 ? characters.substring(0, 12) : characters;
-      return '「$short」';
+      return '「$short」${id.isEmpty ? '' : ' ($id)'}';
     }
     final name = '${node['name'] ?? ''}';
-    return name.isEmpty ? '${node['id']}' : name;
+    if (name.isEmpty) return id;
+    return id.isEmpty ? name : '$name ($id)';
   }
 
   String _numText(Object? v) {

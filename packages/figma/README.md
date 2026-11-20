@@ -136,7 +136,7 @@ dart run w_tools_figma:figma fetch nodes <fileKey> 0:1 --depth=2   # 大页面�
 ```
 
 `spec` / `tokens` 只读缓存，不先 fetch 会失败。
-同 id 有多份缓存时优先未 `--depth` 裁剪的完整树；只剩裁剪缓存时会在 stderr 提示子节点可能缺失。
+同 id 有多份缓存时取最新一份；最新是 `--depth` 裁剪缓存时会在 stderr 提示子节点可能缺失。需要完整树时用 `--file=` 指定完整缓存。
 
 ### 5. 读规格 / 汇总 token
 
@@ -199,12 +199,13 @@ cd packages/figma
 - `spec --node-only` 只与 `--json` 一起使用；只返回结构化 `node`（不生成 markdown）；`--node-depth=<n>` 只限制 `node` 的子节点深度；
 - `spec --skip-name-prefix=<s>` 跳过名称以该前缀开头的节点（逗号分隔）；`--with-id` 让 markdown 表格加 nodeId 列，`--with-layout` 让 markdown 表格加布局列（layoutMode / itemSpacing / padding），默认都不加；
 - `tokens --skip-markdown` 只与 `--json` 一起用，不渲染 markdown；
-- `cache clean` 必须给 `--yes`（无论是否 `--all`）；`--all` 清所有项目缓存，但不会动账号级 `_usage.log` / `_budget.json`；
+- `cache clean` 必须给 `--yes`（无论是否 `--all`）；`--all` 清所有项目缓存，拒绝提示统计所有项目，但不会动账号级 `_usage.log` / `_budget.json`；
 - `cache stats --files` 列出每个文件并按 `legacy`（旧 `file-*`）/ `nodes` / `index` 分类，`indexed` 表示 `_nodes-index.json` 是否引用该文件；`cache clean --legacy --yes` 只删旧 `file-*`，`cache clean --file=<path> --yes` 只删点名文件；`nodes-<key>-0-1.json` 是有效的整页缓存，不是自动可回收的 orphan；
-- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；
-- `frames --all` 可配合 `--depth=<n>`（0 = 顶层，隐含 `--all`）和 `--limit=<n>` 收窄；大文件优先 `--name` / `--page`；
+- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；`--root` 默认向上找最近的 `pubspec.yaml` / `.git`；
+- `frames --all` 可配合 `--depth=<n>`（0 = 顶层，隐含 `--all`）和 `--limit=<n>` 收窄；`--name` / `--page` 会搜索全部 FRAME（含嵌套）；大文件优先过滤；
 - `fetch images` 不缓存：每次调用都重新请求，直接输出 `id<TAB>url`；`--depth` / `--refresh` / `--check-stale` 不适用；
-- `fetch nodes` 不接受 `--scale`；
+- `fetch nodes` 不接受 `--scale`；缓存损坏默认报错（`--refresh` 才覆盖），部分缺失会写入 `missingNodeIds`；
+- `diff` 首次运行输出「已建立基线（无旧缓存，未做比较）」，JSON 带 `firstBaseline`；
 - `diff --if-stale` 先比版本：没变直接退出（0 次 Tier 1），变了才拉。
 
 完整帮助：

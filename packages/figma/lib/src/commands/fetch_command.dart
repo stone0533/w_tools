@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import '../cache/cache_store.dart';
+import '../cache/nodes_index.dart';
 import '../client/figma_client.dart';
+import '../spec/cache_document.dart';
+import '../spec/figma_node.dart';
 import 'file_meta.dart';
 
 /// `fetch` 的结果（缓存命中或真实请求）。
@@ -110,6 +113,15 @@ class FetchCommand {
     final cached = refresh ? null : store.read(file);
     if (cached != null) {
       final stale = checkStale ? await _checkStale(fileKey, updateMeta: false) : null;
+      final cachedMissing = <String>{
+        ...?(cached['missingNodeIds'] as List?)?.map((e) => '$e'),
+      };
+      if (requestedIds != null) {
+        final nodes = cached['nodes'];
+        for (final id in requestedIds) {
+          if (nodes is! Map || nodes[id] is! Map) cachedMissing.add(id);
+        }
+      }
       return FetchResult(
         file: file,
         json: cached,
@@ -118,6 +130,24 @@ class FetchCommand {
         stale: stale?.stale ?? false,
         cachedVersion: stale?.cachedVersion,
         latestVersion: stale?.latestVersion,
+        missingNodeIds: cachedMissing.toList(),
+      );
+    }
+    if (!refresh && requestedIds != null && requestedIds.isNotEmpty && !file.existsSync()) {
+      final merged = _mergedCachedNodes(requestedIds, nodesCacheDepth(file.path));
+      if (merged != null) {
+        store.write(file, merged);
+        return FetchResult(
+          file: file,
+          json: merged,
+          fromCache: true,
+          tierCalls: 0,
+        );
+      }
+    }
+    if (!refresh && file.existsSync()) {
+      throw StateError(
+        '缓存文件损坏：${file.path}；用 --refresh 重新拉取，或先 cache clean',
       );
     }
     // 只有真的要走网络才写缓存与日志（缓存命中在上面已经返回）
@@ -143,7 +173,7 @@ class FetchCommand {
       if (missing.isNotEmpty) {
         final filtered = Map<String, dynamic>.from(nodes)
           ..removeWhere((key, value) => requested.contains(key) && value is! Map);
-        json = <String, dynamic>{...json, 'nodes': filtered};
+        json = <String, dynamic>{...json, 'nodes': filtered, 'missingNodeIds': missing};
       }
     }
     if (log) {
@@ -159,6 +189,28 @@ class FetchCommand {
       stale: false,
       missingNodeIds: missing,
     );
+  }
+
+  /// 从已有 nodes 缓存里按单 id 拼出一份缓存；全部命中时避免重烧 Tier 1。
+  Map<String, dynamic>? _mergedCachedNodes(List<String> ids, int? targetDepth) {
+    try {
+      final sources = resolveNodeCaches(store, ids);
+      final nodes = <String, dynamic>{};
+      for (final id in ids) {
+        final file = sources[id]!;
+        // 完整目标不能拿裁剪缓存拼：否则 `fetch nodes K id` 会以为拿到了完整树。
+        if (targetDepth == null && nodesCacheDepth(file.path) != null) return null;
+        final docs = readDocuments(file);
+        final doc = docs[id] ?? docs.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
+        if (doc == null) return null;
+        nodes[id] = {'document': doc};
+      }
+      return <String, dynamic>{'nodes': nodes};
+    } on StateError {
+      return null;
+    } on FormatException {
+      return null;
+    }
   }
 
   /// 用 Tier 3 的 `file/meta`（不占 20 次/月）判断缓存是否过期。

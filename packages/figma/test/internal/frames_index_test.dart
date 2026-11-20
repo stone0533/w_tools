@@ -118,6 +118,12 @@ void main() {
     expect(rows.map((r) => r['id']), contains('1:11'));
   });
 
+  test('--name 默认也搜索嵌套画板', () async {
+    final result = await run(<String>['frames', '--json', '--name=Inner']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(framesOf('${result.stdout}').map((row) => row['id']), contains('1:11'));
+  });
+
   test('--depth / --limit 收窄嵌套与输出条数', () async {
     final depth0 = await run(<String>['frames', '--json', '--depth=0']);
     expect(depth0.exitCode, 0, reason: '${depth0.stderr}');

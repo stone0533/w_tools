@@ -1,7 +1,7 @@
 import 'token_collector.dart';
 
 /// 颜色语义映射的 key：去掉 `#`、转大写（CLI 解析 YAML 与渲染共用）。
-String colorKey(String value) => value.replaceAll('#', '').toUpperCase();
+String colorKey(String value) => value.split('@').first.replaceAll('#', '').toUpperCase();
 
 /// 把统计结果渲染成 Markdown（与项目里的 `design-tokens.md` 结构对齐）。
 class TokenRenderer {
@@ -13,6 +13,8 @@ class TokenRenderer {
     required List<String> nodeIds,
     Map<String, String> colorNames = const <String, String>{},
   }) {
+    String cell(Object? value) =>
+        '$value'.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>');
     final buf = StringBuffer()
       ..writeln('# 设计 token 汇总（Figma 节点统计）')
       ..writeln()
@@ -33,9 +35,10 @@ class TokenRenderer {
     for (final c in tokens.colorsSorted()) {
       if (colorNames.isNotEmpty) {
         final name = colorNames[colorKey(c.value)] ?? '新增';
-        buf.writeln('| `${c.value}` | $name | ${c.count} | ${c.samples.join(' / ')} |');
+        buf.writeln(
+            '| `${cell(c.value)}` | ${cell(name)} | ${c.count} | ${cell(c.samples.join(' / '))} |');
       } else {
-        buf.writeln('| `${c.value}` | ${c.count} | ${c.samples.join(' / ')} |');
+        buf.writeln('| `${cell(c.value)}` | ${c.count} | ${cell(c.samples.join(' / '))} |');
       }
     }
 
@@ -49,7 +52,7 @@ class TokenRenderer {
       buf.writeln(
         '| ${t.family} | ${t.size} | ${t.weight} | ${t.lineHeight} | '
         '${t.letterSpacing} | ${t.align} | `${t.color}` | ${t.count} | '
-        '${t.samples.join(' / ')} |',
+        '${cell(t.samples.join(' / '))} |',
       );
     }
 
@@ -79,7 +82,7 @@ class TokenRenderer {
       ..writeln()
       ..writeln('- 把上表的色值/文字对到项目 `AppColors` / `WTextStyles` 的语义名；')
       ..writeln('- 只有设计稿出现、代码里没有的值，补进「待确认」再决定是否新增 token；')
-      ..writeln('- 出现 1 次的值可以用 `--min=1` 查看全部（默认也会列出）。');
+      ..writeln('- 默认 `--min=1` 会列出全部值；只关心高频值时可加 `--min=3`。');
     return buf.toString();
   }
 }

@@ -66,11 +66,22 @@ void runCache(List<String> args) {
     case 'clean':
       // 清理后只能重新 fetch，会消耗额度 —— 当前项目 / --all 都必须显式确认
       if (!options.yes) {
-        final s = cacheStats(store);
-        final megabytes = (s.bytes / (1024 * 1024)).toStringAsFixed(1);
+        final int files;
+        final int bytes;
+        if (options.all) {
+          final all = cacheStatsAll(store);
+          files = all.files;
+          bytes = all.bytes;
+        } else {
+          final s = cacheStats(store);
+          files = s.files;
+          bytes = s.bytes;
+        }
+        final megabytes = (bytes / (1024 * 1024)).toStringAsFixed(1);
         stderr.writeln(
           '清理${options.all ? '所有项目' : '当前项目'}缓存需要 --yes 确认'
-          '（当前项目 ${s.files} 个文件 / $megabytes MB；清理后重新 fetch 会消耗 Figma 额度）',
+          '（${options.all ? '所有项目' : '当前项目'} $files 个文件 / $megabytes MB；'
+          '清理后重新 fetch 会消耗 Figma 额度）',
         );
         exitCode = 2;
         return;
@@ -174,20 +185,31 @@ String _cacheKind(String name) {
   return 'other';
 }
 
+String filePath(File file) => file.absolute.uri.normalizePath().toFilePath();
+
 /// 删一个显式点名的缓存文件；只允许当前项目缓存目录内，防止误删。
 (File file, int bytes) cleanFile(CacheStore store, String raw) {
   final root = store.dir.absolute;
+  final rootPath = Directory(root.path).absolute.path;
   final candidate = File(raw).isAbsolute ? File(raw) : File('${root.path}/$raw');
-  final file = candidate.absolute;
-  if (file.parent.absolute.path != root.path) {
+  final file = File(filePath(candidate));
+  if (file.parent.path != rootPath) {
     throw FormatException('--file 只能删当前项目缓存目录下的文件：$raw');
   }
-  if (FileSystemEntity.typeSync(file.path) != FileSystemEntityType.file) {
+  if (!file.existsSync()) {
     throw StateError('缓存文件不存在：${file.path}');
   }
-  final bytes = file.statSync().size;
-  file.deleteSync();
-  return (file, bytes);
+  final resolved = File(file.resolveSymbolicLinksSync());
+  final resolvedRoot = Directory(rootPath).resolveSymbolicLinksSync();
+  if (resolved.parent.path != resolvedRoot) {
+    throw FormatException('--file 只能删当前项目缓存目录下的文件：$raw');
+  }
+  if (FileSystemEntity.typeSync(resolved.path) != FileSystemEntityType.file) {
+    throw StateError('缓存文件不存在：${resolved.path}');
+  }
+  final bytes = resolved.statSync().size;
+  resolved.deleteSync();
+  return (resolved, bytes);
 }
 
 /// 只删旧 `file-*` 缓存；`nodes-*` 是有效缓存，不能按“看起来没用”删。
@@ -214,6 +236,23 @@ String _cacheKind(String name) {
     }
   }
   return (files, bytes);
+}
+
+/// 所有项目缓存目录的总统计（`cache clean --all` 的确认信息用）。
+({int files, int bytes}) cacheStatsAll(CacheStore store) {
+  var files = 0;
+  var bytes = 0;
+  if (store.cacheRoot.existsSync()) {
+    for (final entity in store.cacheRoot.listSync()) {
+      if (entity is! Directory) continue;
+      for (final child in entity.listSync(recursive: true)) {
+        if (child is! File) continue;
+        files++;
+        bytes += child.statSync().size;
+      }
+    }
+  }
+  return (files: files, bytes: bytes);
 }
 
 /// 一个缓存目录的统计。

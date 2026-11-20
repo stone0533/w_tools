@@ -168,6 +168,39 @@ void main() {
     expect(change.after, contains('primary=CENTER'));
   });
 
+  test('rotation / mask / clip / 文字 decoration / paint opacity 变化都能报', () {
+    final before = _tree(label: 'Hi', size: 16);
+    final after = jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
+    final beforeDoc = ((before['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final afterDoc = ((after['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final beforeChild = (beforeDoc['children'] as List).first as Map;
+    final afterChild = (afterDoc['children'] as List).first as Map;
+
+    beforeChild['rotation'] = 0;
+    afterChild['rotation'] = 12;
+    beforeChild['isMask'] = false;
+    afterChild['isMask'] = true;
+    beforeChild['clipsContent'] = false;
+    afterChild['clipsContent'] = true;
+    beforeChild['style']['textDecoration'] = 'NONE';
+    afterChild['style']['textDecoration'] = 'UNDERLINE';
+    (beforeChild['fills'] as List).first['opacity'] = 1;
+    (afterChild['fills'] as List).first['opacity'] = 0.5;
+
+    final fields = const SpecDiff().changes(beforeDoc, afterDoc).map((c) => c.field).toSet();
+
+    expect(
+      fields,
+      containsAll(<String>[
+        'rotation',
+        'isMask',
+        'clipsContent',
+        'textDecoration',
+        'fills',
+      ]),
+    );
+  });
+
   test('渐变 / 图片的具体内容参与 diff，不只看 GRAD/IMG', () {
     Map<String, dynamic> node(List<Map<String, Object?>> fills) => {
           'id': '1:2',

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:w_tools_figma/src/cli/fetch_handler.dart';
+import 'package:w_tools_figma/src/commands/file_meta.dart';
 import 'package:w_tools_figma/src/cli/init_handler.dart';
 import 'package:w_tools_figma/src/cli/url_handler.dart';
 import 'package:w_tools_figma/src/cli/usage_handler.dart';
@@ -129,6 +130,73 @@ void main() {
       expect(result.missingNodeIds, <String>['2:3']);
       final saved = jsonDecode(result.file.readAsStringSync()) as Map;
       expect((saved['nodes'] as Map).keys, <String>['1:2']);
+
+      final second = await command.nodes(fileKey: 'K', ids: ['1:2', '2:3']);
+      expect(second.fromCache, isTrue);
+      expect(second.missingNodeIds, <String>['2:3']);
+    });
+
+    test('缓存命中时校验 requestedIds，缺的写入 missingNodeIds', () async {
+      final target = store.cacheFile(
+        kind: 'nodes',
+        fileKey: 'K',
+        ids: '1:2,2:3',
+      );
+      target.parent.createSync(recursive: true);
+      target.writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': {'id': '1:2', 'type': 'FRAME', 'name': 'OnlyOne'},
+          },
+        },
+      }));
+      final client = FakeClient({'nodes': <String, Object?>{}});
+
+      final result =
+          await FetchCommand(store: store, client: client).nodes(fileKey: 'K', ids: ['1:2', '2:3']);
+
+      expect(result.fromCache, isTrue);
+      expect(result.missingNodeIds, <String>['2:3']);
+      expect(client.calls, isEmpty);
+    });
+
+    test('拆分 id 命中已有缓存时不再请求', () async {
+      final source = store.cacheFile(
+        kind: 'nodes',
+        fileKey: 'K',
+        ids: '1:2,2:3',
+      );
+      store.write(source, {
+        'nodes': {
+          '1:2': {
+            'document': {'id': '1:2', 'type': 'FRAME', 'name': 'Cached'},
+          },
+        },
+      });
+      final client = FakeClient({'nodes': <String, Object?>{}});
+
+      final result =
+          await FetchCommand(store: store, client: client).nodes(fileKey: 'K', ids: ['1:2']);
+
+      expect(result.fromCache, isTrue);
+      expect(client.calls, isEmpty);
+      expect(
+        store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2').existsSync(),
+        isTrue,
+      );
+    });
+
+    test('损坏的精确缓存报错，不静默重拉', () async {
+      final target = store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2');
+      target.parent.createSync(recursive: true);
+      target.writeAsStringSync('{bad');
+      final client = FakeClient({'nodes': <String, Object?>{}});
+
+      await expectLater(
+        FetchCommand(store: store, client: client).nodes(fileKey: 'K', ids: ['1:2']),
+        throwsStateError,
+      );
+      expect(client.calls, isEmpty);
     });
 
     test('全 null 的 nodes 缓存读成空，不当损坏', () {
@@ -141,6 +209,12 @@ void main() {
     });
 
     test('nodes --depth 会带上 depth 且缓存文件名区分深度', () async {
+      // 前面的用例可能已经写入同 id 的缓存；这个用例专门验证请求参数，先清空。
+      if (store.dir.existsSync()) {
+        for (final entity in store.dir.listSync()) {
+          if (entity is File) entity.deleteSync();
+        }
+      }
       final client = FakeClient(payload);
       final command = FetchCommand(store: store, client: client);
 
@@ -249,6 +323,20 @@ void main() {
     file.parent.createSync(recursive: true);
     file.writeAsStringSync('{not json');
     expect(store.read(file), isNull);
+  });
+
+  test('readFileMeta 读取 last_touched_at', () async {
+    final meta = await readFileMeta(
+      FakeClient({
+        'file': {
+          'version': 'v1',
+          'last_touched_at': '2026-11-13T01:03:43.385Z',
+        },
+      }),
+      'K',
+    );
+    expect(meta?.version, 'v1');
+    expect(meta?.lastTouchedAt, '2026-11-13T01:03:43.385Z');
   });
 
   group('init', () {

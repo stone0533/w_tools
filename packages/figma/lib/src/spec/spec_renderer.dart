@@ -54,13 +54,19 @@ class FigmaSpecRenderer {
       if (showLayout) '布局',
       '文字',
     ];
+    final rootExtras = <String>[
+      if ((frame['rotation'] as num?) != null && (frame['rotation'] as num) != 0)
+        '旋转 ${pyFixed(frame['rotation'], 2)}°',
+      if (frame['clipsContent'] == true) '裁切',
+    ];
     final buf = StringBuffer()
       ..writeln('# ${frame['name']}  ($targetId)')
       ..writeln()
       ..writeln(
         '画板 ${pyFixed(fb['width'], 0)}×${pyFixed(fb['height'], 0)}'
         '，背景 ${figmaFills(frame)}，描边 ${figmaStrokes(frame)}，'
-        '阴影 ${figmaEffects(frame)}',
+        '阴影 ${figmaEffects(frame)}'
+        '${rootExtras.isEmpty ? '' : '，${rootExtras.join('，')}'}',
       )
       ..writeln();
     final rootLayout = showLayout ? _layoutSpec(frame) : '';
@@ -86,9 +92,7 @@ class FigmaSpecRenderer {
           final y = (bb['y'] as num).toDouble() - oy;
           final w = pyFixed(bb['width'], 1);
           final h = pyFixed(bb['height'], 1);
-          // Python 里 `c.get('cornerRadius') or ''`：0 也当空
-          final corner = c['cornerRadius'];
-          final radius = (corner is num && corner != 0) ? '$corner' : '';
+          final radius = _radiusText(c);
           final opacity = (c['opacity'] as num?)?.toDouble();
           final opacityText = opacity != null && opacity < 1 ? pyFixed(opacity, 2) : '';
           final isText = '${c['type']}' == 'TEXT';
@@ -98,9 +102,10 @@ class FigmaSpecRenderer {
           final indent = '  ' * depth;
           buf.writeln(
             '| ${showNodeId ? '${c['id']} | ' : ''}${pyFixed(x, 1)},${pyFixed(y, 1)} | $w×$h | '
-            '${c['type']} | $hidden$indent$name | ${figmaFills(c)} | '
-            '${figmaStrokes(c)} | ${figmaEffects(c)} | $radius | $opacityText | '
-            '${showLayout ? '${_layoutSpec(c)} | ' : ''}$chars$text |',
+            '${c['type']} | $hidden$indent${_visualPrefix(c)}${_cell(name)} | '
+            '${figmaFills(c)} | ${figmaStrokes(c)} | ${figmaEffects(c)} | $radius | '
+            '$opacityText | ${showLayout ? '${_layoutSpec(c)} | ' : ''}'
+            '${_cell('$chars$text')} |',
           );
         }
         walk(c, depth + 1, visible);
@@ -110,6 +115,28 @@ class FigmaSpecRenderer {
     walk(frame, 0, true);
     return buf.toString();
   }
+
+  String _radiusText(Map node) {
+    final radii = node['rectangleCornerRadii'];
+    if (radii is List && radii.length >= 4) {
+      return radii.take(4).map((v) => '${v ?? 0}').join(',');
+    }
+    final corner = node['cornerRadius'];
+    return (corner is num && corner != 0) ? '$corner' : '';
+  }
+
+  String _visualPrefix(Map node) {
+    final flags = <String>[
+      if (node['isMask'] == true) '[mask]',
+      if (node['clipsContent'] == true) '[clip]',
+      if ((node['rotation'] as num?) != null && (node['rotation'] as num) != 0)
+        '[rot=${pyFixed(node['rotation'], 2)}°]',
+    ];
+    return flags.isEmpty ? '' : '${flags.join(' ')} ';
+  }
+
+  String _cell(Object? value) =>
+      '$value'.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>');
 
   String _layoutSpec(Map node) {
     final mode = '${node['layoutMode'] ?? ''}';
