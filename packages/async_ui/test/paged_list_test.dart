@@ -328,6 +328,93 @@ void main() {
     expect(find.text('No more'), findsOneWidget);
   });
 
+  testWidgets('WAsyncPagedList noMore 文案走 WAsyncTheme.strings', (tester) async {
+    final controller = _controller(
+      load: (page) async => page == 1
+          ? const WAsyncPage<int>(items: <int>[1], hasMore: true)
+          : const WAsyncPage<int>(items: <int>[2], hasMore: false),
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+    await controller.loadMore();
+
+    await tester.pumpWidget(
+      WAsyncTheme(
+        strings: const WAsyncStrings(noMore: '没有更多'),
+        child: _app(
+          WAsyncPagedList<int>(
+            controller: controller,
+            itemBuilder: (context, item) => Text('item $item'),
+            autoLoadThreshold: null,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('没有更多'), findsOneWidget);
+    expect(find.text('No more'), findsNothing);
+  });
+
+  testWidgets('WAsyncPagedList 拒绝负数 autoLoadThreshold', (tester) async {
+    final controller = _controller(
+      load: (page) async => const WAsyncPage<int>(items: <int>[1], hasMore: false),
+    );
+    addTearDown(controller.dispose);
+
+    expect(
+      () => WAsyncPagedList<int>(
+        controller: controller,
+        itemBuilder: (context, item) => Text('item $item'),
+        autoLoadThreshold: -1,
+      ),
+      throwsAssertionError,
+    );
+  });
+
+  testWidgets('WAsyncPagedList 刷新完成后立即 reload 仍会发起新请求', (tester) async {
+    final completers = <Completer<WAsyncPage<int>>>[];
+    final controller = _controller(
+      load: (page) {
+        final completer = Completer<WAsyncPage<int>>();
+        completers.add(completer);
+        return completer.future;
+      },
+    );
+    addTearDown(controller.dispose);
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          reloadRequests: reloadRequests,
+          autoLoadThreshold: null,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    reloadRequests.value++;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(completers, hasLength(1));
+
+    completers.single.complete(
+      const WAsyncPage<int>(items: <int>[1], hasMore: false),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    reloadRequests.value++;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(completers, hasLength(2));
+  });
+
   testWidgets('WAsyncPagedList footerBuilder 自定义 footer', (tester) async {
     final controller = _controller(
       load: (page) async => const WAsyncPage<int>(items: <int>[1], hasMore: true),

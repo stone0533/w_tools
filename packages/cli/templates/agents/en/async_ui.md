@@ -1,4 +1,4 @@
 - **Async entries** (`explain WAsyncSection` / `explain WAsyncPagedList`): use
   `WAsyncSection` / `WAsyncPagedList` for blocks / paging; `WAsyncPagedSliver` for custom scroll;
-  `list --tier=app`. Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus` (retry copy comes from `WAsyncTheme.strings`; `footerBuilder` can override).
+  `list --tier=app`. Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus` (footer copy incl. noMore uses `WAsyncTheme.strings`; `footerBuilder` overrides).
   `WAsyncView`/`WAsyncStateSliver` are library/design-system.

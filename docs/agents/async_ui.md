@@ -10,7 +10,7 @@
 
 - `WAsyncSection` 默认 `onRetry: controller.load`；不要再手动拼 `WAsyncView` 的 `state` + `onRetry`。
 - `WAsyncPagedList` 用 `RefreshIndicator` 下拉刷新，滚动阈值自动 loadMore；
-  默认 footer 读 `snapshot.footerStatus`，文案走 `WAsyncTheme.strings`，
+  默认 footer 读 `snapshot.footerStatus`，文案（含 noMore）走 `WAsyncTheme.strings`，
   `footerBuilder` 可替换；`refreshIndicatorStyle` 只配标准刷新头样式。
 - 程序化刷新用 `reloadRequests.value++`；不需要外部刷新 controller。
 - `WAsyncPagedSliver` 只负责四态和 ready 分支；不包含刷新壳 / footer / 文案，

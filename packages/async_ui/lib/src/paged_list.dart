@@ -14,7 +14,11 @@ import 'refresh_indicator_style.dart';
 /// [WAsyncPagedController.snapshot] 展示 loading / 失败重试 / 没有更多。
 ///
 /// [controller] 由页面持有；请在 `initState` / `onInit` 调
-/// `controller.refresh()`，不要在这里自动发起首屏请求。
+/// `controller.refresh()`，不要在这里自动发起首屏请求。controller 应在页面生命周期
+/// 内保持稳定；本组件不支持运行中替换 controller。
+///
+/// 标准壳的 loading / error / errorBanner 走 `WAsyncTheme`；需要 per-list 定制时
+/// 用 [WAsyncPagedSliver] + 自己的滚动壳。
 ///
 /// 程序化刷新用 [reloadRequests]：每次递增触发一次重载。
 ///
@@ -29,7 +33,10 @@ class WAsyncPagedList<T> extends StatefulWidget {
     this.autoLoadThreshold = 200,
     this.footerBuilder,
     this.refreshIndicatorStyle,
-  });
+  }) : assert(
+         autoLoadThreshold == null || autoLoadThreshold >= 0,
+         'autoLoadThreshold 不能为负数',
+       );
 
   final WAsyncPagedController<T> controller;
   final Widget Function(BuildContext context, T item) itemBuilder;
@@ -43,7 +50,7 @@ class WAsyncPagedList<T> extends StatefulWidget {
 
   /// 距离底部多少像素时自动触发 [WAsyncPagedController.loadMore]。
   ///
-  /// `null` 表示关闭自动加载；默认 200。
+  /// `null` 表示关闭自动加载；默认 200。不能为负数。
   final double? autoLoadThreshold;
 
   /// 自定义 footer；不传时使用内置的 loading / 失败重试 / 没有更多。
@@ -69,8 +76,9 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
   bool _autoLoadCheckScheduled = false;
   Future<void>? _refreshFuture;
   Future<void>? _activeRefresh;
-  bool _refreshRequested = false;
   bool _autoLoadInFlight = false;
+  bool _refreshRequested = false;
+  Timer? _showFallbackTimer;
 
   @override
   void initState() {
@@ -95,6 +103,8 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
   }
 
   Future<void> _onRefresh() {
+    _showFallbackTimer?.cancel();
+    _showFallbackTimer = null;
     _refreshRequested = true;
     return _refreshFuture ??= _drainRefresh();
   }
@@ -141,6 +151,14 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
 
     _refreshRequested = true;
     state.show();
+    // show() 在收尾动画期间可能被 Flutter 静默忽略，且不会报错。
+    // 给 onRefresh 一个进入窗口；超时仍未启动时直接刷新数据，避免请求丢失
+    // 或 _refreshRequested 永久卡住。
+    _showFallbackTimer?.cancel();
+    _showFallbackTimer = Timer(const Duration(seconds: 1), () {
+      if (!mounted || !_refreshRequested || _refreshFuture != null) return;
+      _onRefresh();
+    });
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -216,9 +234,9 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
           ),
         );
       case WAsyncPagedFooterStatus.noMore:
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: Center(child: Text('No more')),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(child: Text(strings.noMore)),
         );
       case WAsyncPagedFooterStatus.hidden:
       case WAsyncPagedFooterStatus.loadMore:
@@ -243,6 +261,7 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
   @override
   void dispose() {
     _unbindReloadRequests();
+    _showFallbackTimer?.cancel();
     _snapshot?.removeListener(_onSnapshotChanged);
     _scrollController.dispose();
     super.dispose();

@@ -9,10 +9,13 @@ class AsyncUiExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('w_tools_async_ui')),
-        body: const _ExamplePage(),
+    return WAsyncTheme(
+      strings: const WAsyncStrings(noMore: '没有更多'),
+      child: MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(title: const Text('w_tools_async_ui')),
+          body: const _ExamplePage(),
+        ),
       ),
     );
   }
@@ -35,6 +38,7 @@ class _ExamplePageState extends State<_ExamplePage> {
       hasMore: page < 3,
     ),
   );
+  final _reloadRequests = ValueNotifier<int>(0);
   late final WAsyncPagedController<int> _sliverNumbers = WAsyncPagedController<int>(
     (page, _) async => WAsyncPage<int>(
       items: List<int>.generate(3, (index) => (page - 1) * 3 + index),
@@ -55,6 +59,7 @@ class _ExamplePageState extends State<_ExamplePage> {
     _text.dispose();
     _numbers.dispose();
     _sliverNumbers.dispose();
+    _reloadRequests.dispose();
     super.dispose();
   }
 
@@ -69,10 +74,19 @@ class _ExamplePageState extends State<_ExamplePage> {
             child: Text(data),
           ),
         ),
+        TextButton(
+          onPressed: () => _reloadRequests.value++,
+          child: const Text('reload'),
+        ),
         Expanded(
           child: WAsyncPagedList<int>(
             controller: _numbers,
             itemBuilder: (context, value) => ListTile(title: Text('Item $value')),
+            reloadRequests: _reloadRequests,
+            refreshIndicatorStyle: const WAsyncRefreshIndicatorStyle(
+              color: Color(0xFF00A86B),
+              strokeWidth: 2,
+            ),
           ),
         ),
         SizedBox(

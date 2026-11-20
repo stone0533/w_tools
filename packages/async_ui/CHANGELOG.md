@@ -1,3 +1,15 @@
+# Changelog
+
+## 2.1.0
+
+### Changed
+- `w_tools_async` 最低版本抬到 `>=8.1.0 <9.0.0`，标准 footer 的 noMore 使用
+  `WAsyncTheme.strings.noMore`。
+
+### Fixed
+- `reloadRequests` 在 `RefreshIndicator` 收尾动画期间不会丢刷新请求，也不会卡住刷新状态。
+- `autoLoadThreshold` 增加非负数断言。
+
 ## 2.0.0
 
 ### Breaking
