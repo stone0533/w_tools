@@ -22,7 +22,7 @@ class CommandArgs {
   String? get file => option('file');
   int get min => intOption('min') ?? 1;
   String? get out => option('out');
-  int? get depth => intOption('depth');
+  int? get depth => intOption('depth', positive: false);
   int get scale => intOption('scale') ?? 2;
   int? get nodeDepth => intOption('node-depth', positive: false);
   bool get refresh => flag('refresh');
@@ -35,6 +35,7 @@ class CommandArgs {
   bool get skipMarkdown => flag('skip-markdown');
   bool get withId => flag('with-id');
   bool get withLayout => flag('with-layout');
+  int? get limit => intOption('limit');
   String? get skipNamePrefix => option('skip-name-prefix');
   bool get all => flag('all');
   bool get yes => flag('yes');
@@ -71,6 +72,8 @@ ArgParser parserFor(String command) {
         ..addFlag('all', negatable: false, help: '包含嵌套画板')
         ..addOption('name', help: '按画板名过滤（子串）')
         ..addOption('page', help: '按页面名过滤（子串）')
+        ..addOption('depth', valueHelp: 'n', help: '限制嵌套层级（0 = 顶层，隐含 --all）')
+        ..addOption('limit', valueHelp: 'n', help: '最多输出 n 条')
         ..addFlag('verbose', negatable: false, help: '显示 cacheFile');
     case 'fetch':
       parser

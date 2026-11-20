@@ -29,6 +29,8 @@ void main() {
     expect(parseCommand(<String>['--scale=3'], 'fetch').scale, 3);
     expect(parseCommand(<String>['--with-id'], 'spec').withId, isTrue);
     expect(parseCommand(<String>['--with-layout'], 'spec').withLayout, isTrue);
+    expect(parseCommand(<String>['--depth=0', '--limit=2'], 'frames').depth, 0);
+    expect(parseCommand(<String>['--depth=0', '--limit=2'], 'frames').limit, 2);
   });
 
   test('跨命令选项按未知选项拒绝', () {

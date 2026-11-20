@@ -118,6 +118,26 @@ void main() {
     expect(rows.map((r) => r['id']), contains('1:11'));
   });
 
+  test('--depth / --limit 收窄嵌套与输出条数', () async {
+    final depth0 = await run(<String>['frames', '--json', '--depth=0']);
+    expect(depth0.exitCode, 0, reason: '${depth0.stderr}');
+    expect(
+      framesOf('${depth0.stdout}').map((row) => row['id']),
+      isNot(contains('1:11')),
+    );
+
+    final depth1 = await run(<String>['frames', '--json', '--depth=1']);
+    expect(depth1.exitCode, 0, reason: '${depth1.stderr}');
+    expect(framesOf('${depth1.stdout}').map((row) => row['id']), contains('1:11'));
+
+    final limited = await run(<String>['frames', '--json', '--limit=1']);
+    expect(limited.exitCode, 0, reason: '${limited.stderr}');
+    final payload = jsonDecode('${limited.stdout}') as Map<String, dynamic>;
+    expect((payload['frames'] as List), hasLength(1));
+    expect(payload['truncated'], isTrue);
+    expect(payload['total'], greaterThan(1));
+  });
+
   test('--name / --page 过滤在两条路径上一致', () async {
     final byName = await run(<String>['frames', '--json', '--name=Top']);
     expect(byName.exitCode, 0, reason: '${byName.stderr}');
@@ -177,7 +197,7 @@ void main() {
     final indexFile = File('${cacheDir.path}/_nodes-index.json');
     expect(indexFile.existsSync(), isTrue, reason: 'frames 应该写索引');
     final index = jsonDecode(indexFile.readAsStringSync()) as Map;
-    expect(index['version'], 5);
+    expect(index['version'], 6);
     expect(
       (index['files'] as Map).values.any((entry) => (entry as Map)['frames'] is List),
       isTrue,

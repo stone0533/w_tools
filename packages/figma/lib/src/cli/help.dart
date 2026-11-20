@@ -25,8 +25,9 @@ const _docs = <_CommandDoc>[
   _CommandDoc(
     'frames',
     '列出缓存里的 FRAME',
-    'dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>] [--page=<s>] [--verbose]',
-    '输出 id / name / width×height / children / cacheFile，方便找 nodeId。',
+    'dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>] [--page=<s>] [--depth=<n>] [--limit=<n>] [--verbose]',
+    '输出 id / name / width×height / children / cacheFile，方便找 nodeId。\n'
+        '真实大文件优先 --name / --page；--all 可能数千行，建议配合 --depth / --limit。',
   ),
   _CommandDoc(
     'fetch',

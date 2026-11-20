@@ -22,7 +22,12 @@ Future<void> runFrames(List<String> args) async {
     // 显式给文件时直接解析这一份，方便对着任意 nodes 缓存排错。
     final file = File(options.file!);
     try {
-      rows = framesFromFile(file, root: root, all: options.all);
+      rows = framesFromFile(
+        file,
+        root: root,
+        all: options.all || options.depth != null,
+        maxDepth: options.depth,
+      );
     } on FormatException catch (e) {
       stderr.writeln('跳过损坏缓存 ${file.path}: ${e.message}');
       rows = const <Map<String, Object?>>[];
@@ -34,7 +39,12 @@ Future<void> runFrames(List<String> args) async {
     if (nodesCacheFiles(store).isEmpty) {
       throw StateError('缓存里没有 nodes-*.json，先跑 fetch nodes');
     }
-    final outcome = framesFromIndex(store, root: root, all: options.all);
+    final outcome = framesFromIndex(
+      store,
+      root: root,
+      all: options.all || options.depth != null,
+      maxDepth: options.depth,
+    );
     rows = outcome.rows;
     if (outcome.corrupt.isNotEmpty) {
       final paths = outcome.corrupt.map((file) => file.path).join(', ');
@@ -47,14 +57,19 @@ Future<void> runFrames(List<String> args) async {
     nameFilter: options.nameFilter,
     pageFilter: options.pageFilter,
   );
+  final total = list.length;
+  final limited = options.limit == null ? list : list.take(options.limit!).toList();
+  final truncated = limited.length < total;
   // `nested` 只用于筛选，不进输出：frames --json 的契约里没有这个字段。
   final visible = <Map<String, Object?>>[
-    for (final frame in list) Map<String, Object?>.from(frame)..remove('nested'),
+    for (final frame in limited) Map<String, Object?>.from(frame)..remove('nested'),
   ];
 
   if (options.json) {
     printLine(jsonEncode({
       'schema': 'w_tools_figma.frames/1',
+      'total': total,
+      'truncated': truncated,
       'frames': visible,
     }));
     return;
@@ -64,6 +79,9 @@ Future<void> runFrames(List<String> args) async {
     return;
   }
 
+  if (truncated) {
+    stderr.writeln('# 仅显示 ${visible.length}/$total 条（--limit=${options.limit}）');
+  }
   final pageWidth = visible.map((e) => '${e['page']}'.length).reduce(_max);
   final idWidth = visible.map((e) => '${e['id']}'.length).reduce(_max);
   final nameWidth = visible.map((e) => '${e['name']}'.length).reduce(_max);
@@ -91,12 +109,14 @@ List<Map<String, Object?>> framesFromFile(
   File file, {
   required Directory root,
   required bool all,
+  int? maxDepth,
 }) {
   final frames = <String, Map<String, Object?>>{};
   for (final document in readDocuments(file).values) {
     collectFrames(
       document,
       all: all,
+      maxDepth: maxDepth,
       cacheFile: relativeToRoot(root, file),
       out: frames,
     );
