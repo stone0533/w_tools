@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^8.1.0
+  w_tools_async: ^8.1.1
 ```
 
 要求 Flutter 3.38+。
@@ -455,6 +455,23 @@ final controller = WAsyncController<Gift>(
   onError: (error) => logger.e(error), // 详情只进日志，不上屏
 );
 ```
+
+## 边界与契约
+
+- `WAsyncController.initial` / `WAsyncPagedController.initial` 与 load / refresh 使用同一套规则：
+  `ready([])` 会转 `empty`，列表会复制成 `List.unmodifiable`；`isEmpty` 对 initial 生效。
+- `WAsyncPagedController` 的 `initialPage` 参数是 1-based；0-based 后端在 loader 内减 1；当前只支持
+  page 型分页，不支持 cursor / keyset。
+- `WAsyncState.ready([])` 不等于 `empty`；集合空值用 `WAsyncState.empty()` / `WAsyncState.list(...)`。
+  `isRefreshing` 依赖 `data != null`，nullable T 的 `previousData: null` 不视为刷新。
+- `onError` 只是轻量通知，不带 `StackTrace`；完整堆栈用 `WAsyncFailure.stackTrace`，
+  或在 loader / onError 内记录。
+- Controller 的 loader 只读取 `WCancelToken`，不要自己 `cancel`；取消由 load / refresh /
+  replaceData / dispose 发起。
+- pre-cancelled token 不触发 `onStart` / `onError` / `onFinally`；`retryIf` /
+  `retryDelayBuilder` 抛错按最终失败处理；`timeout` 只结束等待，不取消底层 Future。
+- `w_tools_async` 当前定位是 Flutter 异步层；`view/` 是状态渲染原语，页面级组合在
+  `w_tools_async_ui`。`tryAll` 只支持同构 T；异构区块用多个 controller / record `.wait`。
 
 ## 行为约定
 

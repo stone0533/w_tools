@@ -1,3 +1,8 @@
+## 21.0.2
+
+### Changed
+- `w_tools_async` 约束抬到 `^8.1.1`，接入 initial 归一化与 cancel 重入修复。
+
 ## 21.0.1
 
 ### Changed

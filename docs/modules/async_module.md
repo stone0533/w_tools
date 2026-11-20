@@ -195,12 +195,20 @@ Widget（不是 sliver，也不要返回 `ListView` / `CustomScrollView`）；�
 
 完整示例见 [README 主题](../../packages/async/README.md#主题)。
 
-## 6. 测试与版本
+## 6. 边界与版本
+
+- `initial` 与 load / refresh 同规则：空列表转 empty、列表 unmodifiable、`isEmpty` 生效。
+- `WAsyncPagedController` 的 `initialPage` 参数是 1-based；当前只支持 page 型分页，不支持 cursor。
+- `WAsyncState.ready([]) != empty`；`isRefreshing` 依赖 data 非 null；`onError` 不带 StackTrace。
+- pre-cancelled token 不触发 hooks；`retryIf` / `retryDelayBuilder` 抛错按最终失败；timeout 不取消底层 Future。
+- `async` 当前是 Flutter 异步层；`view/` 是状态渲染原语，页面级组合在 async_ui。
+
+## 7. 测试与版本
 
 ```bash
 cd packages/async
 flutter test
 ```
 
-当前 8.1.0；迁移见 [async-8.0](../migrations/async-8.0.md) / [async-8.1](../migrations/async-8.1.md)。
+当前 8.1.1；迁移见 [async-8.0](../migrations/async-8.0.md) / [async-8.1](../migrations/async-8.1.md)。
 AI 路由见 [docs/agents/async.md](../agents/async.md)。

@@ -35,6 +35,11 @@
   独立区块并行用 `WAsync.tryAll`；普通并发直接用 `Future.wait` / `Future.any`。
 - `WAsyncState.list` 不复制 / 不包装输入列表；需要不可变 data 用
   `WAsyncController.list` 或 `List.unmodifiable`。状态相等性是浅比较，列表按引用比较。
+- `initial` 也会走 empty / unmodifiable：`WAsyncController` 的 `isEmpty` 对 initial 生效；`WAsyncPagedController` 的 `initialPage` 是 1-based，cursor 分页不支持。
+- `ready([])` 不等于 `empty`；`isRefreshing` 依赖 `data != null`，nullable T 的 `previousData: null` 不视为刷新。
+- `onError` 不带 StackTrace；完整堆栈用 `WAsyncFailure.stackTrace` 或 loader 内记录。`loader` 只读取 token，不要自己 cancel。
+- pre-cancelled token 不触发 `onStart` / `onError` / `onFinally`；`retryIf` / `retryDelayBuilder` 抛错按最终失败；`timeout` 不取消底层 Future。
+- `w_tools_async` 当前是 Flutter 异步层；`view/` 是状态渲染原语，`async_ui` 才做页面级组合。
 - `onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
 - `WAsyncHooks` 是回调值对象；`WAsyncExecutor` 携带默认 hooks，在 composition root

@@ -636,6 +636,40 @@ void main() {
   });
 
   group('WCancelToken 边界', () {
+    test('cancel 重入时只通知一次', () {
+      final token = WCancelToken();
+      var calls = 0;
+      token.addListener((_) {
+        calls++;
+        token.cancel('second');
+      });
+
+      token.cancel('first');
+
+      expect(calls, 1);
+      expect(token.cancelReason, 'second');
+    });
+
+    test('tryRun 对进入时已取消的 token 不触发 hooks', () async {
+      final token = WCancelToken()..cancel('pre');
+      var starts = 0;
+      var finallys = 0;
+      var errors = 0;
+
+      final result = await WAsync.tryRun<int>(
+        () async => 1,
+        cancelToken: token,
+        onStart: () => starts++,
+        onError: (_) => errors++,
+        onFinally: () => finallys++,
+      );
+
+      expect(result, isA<WAsyncCancelled<int>>());
+      expect(starts, 0);
+      expect(finallys, 0);
+      expect(errors, 0);
+    });
+
     test('取消后注册监听立即回调', () {
       var reason = Object();
       final token = WCancelToken()..cancel('stop');

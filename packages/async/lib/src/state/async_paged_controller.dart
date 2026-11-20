@@ -128,9 +128,33 @@ class WAsyncPagedController<T> {
   }) : _initialPage = _checkInitialPage(initialPage),
        _page = _resolvePage(initialPage, initial),
        _hasMore = _hasMoreFromInitial(initial),
-       _state = initial ?? WAsyncState<List<T>>.loading() {
+       _state = _normalizeInitial<T>(initial) {
     _snapshot = ValueNotifier<WAsyncPagedSnapshot<T>>(_buildSnapshot());
     _stateView = _PagedStateView<T>(_snapshot);
+  }
+
+  static WAsyncState<List<E>> _normalizeInitial<E>(
+    WAsyncState<List<E>>? initial,
+  ) {
+    if (initial == null) return WAsyncState<List<E>>.loading();
+
+    final data = initial.data;
+    if (data == null) return initial;
+
+    final items = List<E>.unmodifiable(data);
+    if (initial.isReady && items.isEmpty) {
+      return WAsyncState<List<E>>.empty();
+    }
+
+    return switch (initial.status) {
+      WAsyncStatus.loading => WAsyncState<List<E>>.loading(previousData: items),
+      WAsyncStatus.ready => WAsyncState<List<E>>.ready(items),
+      WAsyncStatus.failed => WAsyncState<List<E>>.failed(
+        initial.error!,
+        previousData: items,
+      ),
+      WAsyncStatus.empty => initial,
+    };
   }
 
   static int _checkInitialPage(int initialPage) {
