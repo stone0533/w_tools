@@ -34,7 +34,7 @@ WAsyncSection<List<Gift>>(
 - 滚动接近底部时按 `autoLoadThreshold` 自动 `controller.loadMore()`；
 - 默认 footer 读 `controller.snapshot`，展示 loading / 失败重试 / 没有更多；
   文案（含 noMore）走 `WAsyncTheme.strings`；
-- `footerBuilder` 可替换 footer；`reloadRequests` 负责程序化刷新；
+- `footerBuilder` 可替换 footer；`reloadRequests` 负责程序化刷新；刷新期间自动加载挂起；
 - `refreshIndicatorStyle` 配置标准 `RefreshIndicator` 的颜色 / 背景 / 线宽 / 位移 /
   触发模式；自定义刷新头仍用 `WAsyncPagedSliver`；
 - 不持有外部刷新控制器；需要完全自定义刷新头 / 上拉壳时用 `WAsyncPagedSliver`；
