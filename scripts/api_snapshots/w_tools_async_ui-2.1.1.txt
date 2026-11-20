@@ -1,0 +1,39 @@
+# w_tools_async_ui 2.1.1
+WAsyncPagedList	class
+WAsyncPagedList.autoLoadThreshold	double?
+WAsyncPagedList.controller	WAsyncPagedController<T>
+WAsyncPagedList.createState	State<WAsyncPagedList<T>> ()
+WAsyncPagedList.emptyBuilder	WidgetBuilder?
+WAsyncPagedList.footerBuilder	Widget Function(BuildContext context, WAsyncPagedSnapshot<T> snapshot)?
+WAsyncPagedList.itemBuilder	Widget Function(BuildContext context, T item)
+WAsyncPagedList.new	({ super.key, required this.controller, required this.itemBuilder, this.emptyBuilder, this.reloadRequests, this.autoLoadThreshold = 200, this.footerBuilder, this.refreshIndicatorStyle, })
+WAsyncPagedList.refreshIndicatorStyle	WAsyncRefreshIndicatorStyle?
+WAsyncPagedList.reloadRequests	ValueListenable<int>?
+WAsyncPagedSliver	class
+WAsyncPagedSliver.build	Widget (BuildContext context)
+WAsyncPagedSliver.controller	WAsyncPagedController<T>
+WAsyncPagedSliver.custom	({ super.key, required this.controller, required this.readySliverBuilder, this.emptyBuilder, this.onRetry, })
+WAsyncPagedSliver.emptyBuilder	WidgetBuilder?
+WAsyncPagedSliver.itemBuilder	Widget Function(BuildContext context, T item)?
+WAsyncPagedSliver.new	({ super.key, required this.controller, required this.itemBuilder, this.emptyBuilder, this.onRetry, })
+WAsyncPagedSliver.onRetry	VoidCallback?
+WAsyncPagedSliver.readySliverBuilder	Widget Function(BuildContext context, List<T> items)?
+WAsyncRefreshIndicatorStyle	class
+WAsyncRefreshIndicatorStyle.backgroundColor	Color?
+WAsyncRefreshIndicatorStyle.color	Color?
+WAsyncRefreshIndicatorStyle.displacement	double?
+WAsyncRefreshIndicatorStyle.edgeOffset	double?
+WAsyncRefreshIndicatorStyle.new	({ this.color, this.backgroundColor, this.strokeWidth, this.displacement, this.edgeOffset, this.triggerMode, })
+WAsyncRefreshIndicatorStyle.strokeWidth	double?
+WAsyncRefreshIndicatorStyle.triggerMode	RefreshIndicatorTriggerMode?
+WAsyncSection	class
+WAsyncSection.build	Widget (BuildContext context)
+WAsyncSection.builder	Widget Function(BuildContext context, T data)
+WAsyncSection.controller	WAsyncController<T>
+WAsyncSection.emptyBuilder	WidgetBuilder?
+WAsyncSection.errorBannerBuilder	WAsyncErrorWidgetBuilder?
+WAsyncSection.errorBuilder	WAsyncErrorWidgetBuilder?
+WAsyncSection.loadingBuilder	WidgetBuilder?
+WAsyncSection.new	({ super.key, required this.controller, required this.builder, this.onRetry, this.loadingBuilder, this.emptyBuilder, this.errorBuilder, this.errorBannerBuilder, this.refreshingBuilder, })
+WAsyncSection.onRetry	VoidCallback?
+WAsyncSection.refreshingBuilder	WidgetBuilder?
