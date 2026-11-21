@@ -1,3 +1,10 @@
+## 1.3.2
+
+### Fixed
+- Markdown tokens 样例截断不再反解析外层 `「…」`：内部 `」` 不会被当成结束符；截断改用 grapheme cluster（`characters`），不再切开 ZWJ emoji。
+- `frames` 支持 DOCUMENT 根缓存：按 CANVAS 拆分 `page` / `pageId`，默认也能列出各页顶层 FRAME。
+- `get` 对带尾斜杠、尚不存在的输出路径按目录处理，报 `输出路径是目录：<path>`，不再暴露 `.tmp`。
+
 ## 1.3.1
 
 ### Fixed

@@ -355,6 +355,39 @@ void collectFrames(
   required Map<String, Map<String, Object?>> out,
 }) {
   final type = '${document['type']}';
+  if (type == 'DOCUMENT') {
+    // fetch nodes 0:0 会拿到 DOCUMENT：它的直接 children 是多个 CANVAS，
+    // 每个 CANVAS 才是 frames 的 page / pageId。
+    for (final pageNode in _nodeChildren(document)) {
+      if (pageNode is! Map || '${pageNode['type']}' != 'CANVAS') continue;
+      final pageName = '${pageNode['name'] ?? ''}';
+      final pageId = '${pageNode['id'] ?? ''}';
+      for (final child in _nodeChildren(pageNode)) {
+        if (child is! Map) continue;
+        if (_isFrameLike('${child['type']}')) {
+          _addFrame(child, cacheFile, out, pageName,
+              pageId: pageId.isEmpty ? null : pageId,
+              nested: false,
+              depth: 0,
+              fetchedAt: fetchedAt);
+          if (all) {
+            _walkChildren(child, cacheFile, out, pageName,
+                pageId: pageId.isEmpty ? null : pageId,
+                depth: 1,
+                maxDepth: maxDepth,
+                fetchedAt: fetchedAt);
+          }
+        } else if (all) {
+          _walkChildren(child, cacheFile, out, pageName,
+              pageId: pageId.isEmpty ? null : pageId,
+              depth: 1,
+              maxDepth: maxDepth,
+              fetchedAt: fetchedAt);
+        }
+      }
+    }
+    return;
+  }
   if (_isFrameLike(type)) {
     // fetch nodes 只拿到一个 FRAME 时，没有 CANVAS 父节点，不能把画板名当页面名。
     _addFrame(document, cacheFile, out, '',
@@ -390,6 +423,9 @@ void collectFrames(
     }
   }
 }
+
+List<Object?> _nodeChildren(Map node) =>
+    node['children'] is List ? node['children'] as List : const <Object?>[];
 
 void _walkChildren(
   Map node,

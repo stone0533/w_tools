@@ -194,6 +194,62 @@ void main() {
     expect(md, contains('2025/10/03 2…'));
   });
 
+  test('样例内部的 」 不会被当成外层结束符', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': '1234567890123「引號」後續',
+      'style': {
+        'fontFamily': 'Noto Sans',
+        'fontSize': 14,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0.2, 'g': 0.2, 'b': 0.2},
+        },
+      ],
+      'children': <Object?>[],
+    });
+    final md = const TokenRenderer().renderMarkdown(
+      tokens: c,
+      source: 'test',
+      nodeIds: const ['1:1'],
+    );
+    expect(md, contains('「123456789012…」'));
+    expect(md, isNot(contains('…」後續」')));
+  });
+
+  test('ZWJ emoji 按 grapheme cluster 截断，不切开家庭 emoji', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': '👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦ABCDEFGHIJ',
+      'style': {
+        'fontFamily': 'Noto Sans',
+        'fontSize': 14,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0.2, 'g': 0.2, 'b': 0.2},
+        },
+      ],
+      'children': <Object?>[],
+    });
+    final md = const TokenRenderer().renderMarkdown(
+      tokens: c,
+      source: 'test',
+      nodeIds: const ['1:1'],
+    );
+    expect(md, contains('👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦'));
+    expect(md, isNot(contains('👨‍👩‍👧…')));
+  });
+
   test('opacity=0 的节点及其子树不计入 token', () {
     final c = TokenCollector();
     c.collect({
