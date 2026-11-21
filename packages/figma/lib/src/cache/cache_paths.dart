@@ -3,11 +3,14 @@ import 'dart:io';
 /// 缓存 / token / 用量文件的路径解析（只算路径，不读写内容）。
 class CachePaths {
   CachePaths(
-    this.root, {
+    Directory root, {
     String? home,
     bool? windows,
     Map<String, String>? environment,
-  })  : _home = home ?? defaultHome(),
+  })  : root = (windows ?? Platform.isWindows) ? root : canonicalDirectory(root),
+        _home = (windows ?? Platform.isWindows)
+            ? (home ?? defaultHome())
+            : canonicalDirectory(Directory(home ?? defaultHome())).path,
         _windows = windows ?? Platform.isWindows,
         _env = environment ?? Platform.environment;
 
@@ -15,6 +18,20 @@ class CachePaths {
   final String _home;
   final bool _windows;
   final Map<String, String> _env;
+
+  /// 同一个目录的不同写法（`.` / `./` / 软链 / 尾斜杠）必须落到同一个 projectId。
+  ///
+  /// 存在时解析软链（macOS 的 `/tmp` → `/private/tmp`），不存在时只做绝对化 +
+  /// `.` / `..` 归一化，供 `init` 等还没建目录的场景使用。
+  static Directory canonicalDirectory(Directory root) {
+    final absolute = Directory(root.absolute.uri.normalizePath().toFilePath());
+    if (!absolute.existsSync()) return absolute;
+    try {
+      return Directory(absolute.resolveSymbolicLinksSync());
+    } on FileSystemException {
+      return absolute;
+    }
+  }
 
   static String defaultHome() {
     final env = Platform.environment;

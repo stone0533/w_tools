@@ -14,13 +14,13 @@ Future<void> runFrames(List<String> args) async {
   final options = parseCommand(args, 'frames');
   rejectExtra(options, 0);
 
-  final root = Directory(options.root);
-  final store = CacheStore(root);
+  final store = CacheStore(Directory(options.root));
+  final root = store.root;
+  final nameFilter = _filterValue(options, 'name');
+  final pageFilter = _filterValue(options, 'page');
 
-  final includeNested = options.all ||
-      options.depth != null ||
-      options.nameFilter != null ||
-      options.pageFilter != null;
+  final includeNested =
+      options.all || options.depth != null || nameFilter != null || pageFilter != null;
   var rows = const <Map<String, Object?>>[];
   if (options.file != null) {
     // 显式给文件时直接解析这一份，方便对着任意 nodes 缓存排错。
@@ -33,11 +33,14 @@ Future<void> runFrames(List<String> args) async {
         maxDepth: options.depth,
       );
     } on FormatException catch (e) {
-      stderr.writeln('跳过损坏缓存 ${file.path}: ${e.message}');
-      rows = const <Map<String, Object?>>[];
+      // 显式 --file 解析失败不能伪装成「没有画板」：脚本会误判成功。
+      stderr.writeln('缓存解析失败 ${file.path}: ${e.message}');
+      exitCode = 1;
+      return;
     } on StateError catch (e) {
-      stderr.writeln('跳过损坏缓存 ${file.path}: ${e.message}');
-      rows = const <Map<String, Object?>>[];
+      stderr.writeln('缓存解析失败 ${file.path}: ${e.message}');
+      exitCode = 1;
+      return;
     }
   } else {
     if (nodesCacheFiles(store).isEmpty) {
@@ -58,10 +61,10 @@ Future<void> runFrames(List<String> args) async {
 
   final list = filterFrames(
     rows,
-    nameFilter: options.nameFilter,
-    pageFilter: options.pageFilter,
+    nameFilter: nameFilter,
+    pageFilter: pageFilter,
   );
-  if (options.pageFilter != null && rows.any((row) => '${row['page']}'.isEmpty)) {
+  if (pageFilter != null && pageFilter != '-' && rows.any((row) => '${row['page']}'.isEmpty)) {
     stderr.writeln(
       '# 部分单节点缓存的 FRAME 没有 page 信息，--page 可能漏掉它们；请用完整页面缓存或 --file=',
     );
@@ -103,14 +106,28 @@ Future<void> runFrames(List<String> args) async {
   );
   for (final frame in visible) {
     final size = '${frame['width']}×${frame['height']}';
+    final truncated = frame['cacheDepth'] != null;
     final line = '${_pad(('${frame['page']}'.isEmpty) ? '-' : '${frame['page']}', pageWidth)}  '
         '${_pad('${frame['id']}', idWidth)}  '
         '${_pad('${frame['type'] ?? '-'}', typeWidth)}  '
         '${_pad('${frame['name']}', nameWidth)}  '
         '${_pad(size, sizeWidth)}  '
-        '${frame['children']}';
+        '${frame['children']}${truncated ? '*' : ''}';
     printLine(options.verbose ? '$line  ${frame['cacheFile']}  ${frame['fetchedAt'] ?? ''}' : line);
   }
+  if (visible.any((frame) => frame['cacheDepth'] != null)) {
+    printLine('');
+    printLine('* 来自 --depth 裁剪缓存，children 可能不完整；可用完整缓存或 --file=');
+  }
+}
+
+/// 过滤值不允许空串：`--name=` 以前会把 includeNested 强制打开，静默列出全部嵌套画板。
+String? _filterValue(CommandArgs options, String name) {
+  final raw = options.option(name);
+  if (raw == null) return null;
+  final value = raw.trim();
+  if (value.isEmpty) throw FormatException('--$name 不能为空');
+  return value;
 }
 
 int _width(String value) => value.runes.fold(0, (sum, rune) {
@@ -149,7 +166,10 @@ List<Map<String, Object?>> framesFromFile(
       out: frames,
     );
   }
-  return frames.values.toList();
+  final depth = nodesCacheDepth(file.path);
+  return <Map<String, Object?>>[
+    for (final row in frames.values) {...row, 'cacheDepth': depth},
+  ];
 }
 
 /// 名称 / 页面过滤（大小写不敏感的子串）+ 按 name、id 排序。

@@ -4,8 +4,26 @@
 
 ## 已闭环
 
+
+
+
+
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-21 | stale / depth 提示未按 fileKey 过滤，可能指向别的 Figma 文件 | ✅ 1.3.0：staleDepthReport / fullCachePathsForDepth 按缓存文件名的 fileKey 过滤；JSON newerDepthAvailable 带 fileKey；跨文件不再误报/推荐 |
+| 2026-11-21 | 完整缓存 vs dN 的陈旧判断按 mtime 误报，JSON 也没有对应标记 | ✅ 1.3.0：按 version → lastModified → mtime；JSON staleAgainstDepth / newerDepthAvailable；同 version 不再误报 |
+| 2026-11-21 | spec/tokens 默认仍选中 depth 裁剪缓存（JSON 已可发现，--prefer-full 为 opt-in） | ✅ 1.3.0：默认优先完整树，`--allow-depth` 才读 dN；JSON `depthLimited` / `sourceDepth(s)` 保留 |
+| 2026-11-21 | tokens --out / spec stdout 把含本机绝对路径的 depth 警告写进 markdown | ✅ 1.3.0：depth 警告只写 stderr；`spec` stdout / `tokens --out` 文件不再含本机路径 |
+| 2026-11-21 | 缓存结构异常时未捕获异常，exit 255 | ✅ 1.3.0：individualStrokeWeights 空 key 跳过；run.dart 兜底 Error，坏缓存 exit 1 |
+| 2026-11-21 | init 无法恢复只剩注释的 token 文件 | ✅ 1.3.0：init 按「无有效 token 行」重建；--force 不再误报 |
+| 2026-11-21 | cache clean --file 拒绝同一文件的 /tmp 路径 | ✅ 1.3.0：先解析软链再比较；/tmp 与 /private/tmp 均可，越界软链仍拒 |
+| 2026-11-21 | spec/tokens --file=<dN> warning 误报没有完整缓存 | ✅ 1.3.0：显式 --file 也检查完整缓存并排除当前文件 |
+| 2026-11-21 | init 生成的 token 模板填完后仍被判非法，首次本地配置必失败 | ✅ 1.3.0：readToken 取第一条非注释行；空文件重建；已存在 token 收紧到 600（仅注释文件另见新条目） |
+| 2026-11-21 | --root 未规范化，等价路径落到不同缓存目录 | ✅ 1.3.0：canonicalDirectory 归一 `.` / `./` / 软链 / 尾斜杠；空/不存在 exit 2；选项前置提示（cache clean --file 回归另见新条目） |
+| 2026-11-21 | spec 的 --skip-hidden / --skip-name-prefix 只过滤 Markdown | ✅ 1.3.0：node 与 markdown 同步剪枝，目标及祖先保留 |
+| 2026-11-21 | spec 对 CANVAS/TEXT 根节点语义错误 | ✅ 1.3.0：CANVAS 按页面标题/子树输出；TEXT 标文字色 |
+| 2026-11-21 | rich text 输出错误（spec 空字号出 px；tokens 丢 decoration/case） | ✅ 1.3.0：run 回退 base 字体/字号/字重；tokens 输出 textCase/deco 与 *Num |
+| 2026-11-21 | 1.2.0 使用测试的低优先级问题清单 | ✅ 1.3.0：frames 空过滤/--file、tokens 空 id/去重/page=-、路径、--version、get URL、missing 文案、*Num、tokens --skip-name-prefix |
 | 2026-11-21 | fetch 合并缓存绕过 check-stale / depth 误标 / 漏用旧完整缓存 / 精确 partial | ✅ 1.2.0：按 fileKey、depth、缓存 version 修正；合并命中执行 /meta |
 | 2026-11-21 | 缓存按 nodeId 跨 fileKey 查找，fetch/diff 串文件 | ✅ 1.2.0：fetch/diff 按 fileKey 过滤；spec/tokens 多文件提示 --file= |
 | 2026-11-21 | `tokens --json` 的 `sources` 变成 basename | ✅ 1.2.0：JSON 保留可定位路径；markdown 用短文件名 |

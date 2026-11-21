@@ -11,7 +11,7 @@ String figmaHex(Object? color) {
   final r = _channel(color['r']);
   final g = _channel(color['g']);
   final b = _channel(color['b']);
-  final a = (color['a'] as num?)?.toDouble() ?? 1;
+  final a = color['a'] is num ? (color['a'] as num).toDouble() : 1;
   final hex = '#${_hex2(r)}${_hex2(g)}${_hex2(b)}';
   return a < 1 ? '$hex@${a.toStringAsFixed(2)}' : hex;
 }
@@ -22,25 +22,27 @@ String figmaPaintHex(Map paint) {
   if (color is! Map) return '';
   final base = figmaHex(color);
   if (base.isEmpty) return base;
-  final opacity = (paint['opacity'] as num?)?.toDouble() ?? 1;
+  final opacity = paint['opacity'] is num ? (paint['opacity'] as num).toDouble() : 1;
   if (opacity >= 1) return base;
-  final alpha = ((color['a'] as num?)?.toDouble() ?? 1) * opacity;
+  final alpha = (color['a'] is num ? (color['a'] as num).toDouble() : 1) * opacity;
   return '${base.split('@').first}@${alpha.toStringAsFixed(2)}';
 }
 
 String _opacitySuffix(Map paint) {
-  final opacity = (paint['opacity'] as num?)?.toDouble() ?? 1;
+  final opacity = paint['opacity'] is num ? (paint['opacity'] as num).toDouble() : 1;
   return opacity < 1 ? '@${opacity.toStringAsFixed(2)}' : '';
 }
 
-int _channel(Object? v) => (((v as num?) ?? 0) * 255).round();
+int _channel(Object? v) => v is num ? (v * 255).round() : 0;
+
+double _numValue(Object? v) => v is num ? v.toDouble() : 0;
 
 String _hex2(int v) => v.toRadixString(16).toUpperCase().padLeft(2, '0');
 
 /// 填充：纯色 / 图片 / 渐变（跳过隐藏层）。
 String figmaFills(Map node) {
   final out = <String>[];
-  for (final f in (node['fills'] as List?) ?? const []) {
+  for (final f in _list(node['fills'])) {
     if (f is! Map || f['visible'] == false) continue;
     final type = '${f['type'] ?? ''}';
     if (type == 'SOLID') {
@@ -48,7 +50,7 @@ String figmaFills(Map node) {
     } else if (type.startsWith('IMAGE')) {
       out.add('IMG${_opacitySuffix(f)}');
     } else if (type.startsWith('GRADIENT')) {
-      final stops = (f['gradientStops'] as List?) ?? const [];
+      final stops = _list(f['gradientStops']);
       final colors = <String>[];
       for (final stop in stops) {
         if (stop is Map) {
@@ -61,13 +63,13 @@ String figmaFills(Map node) {
       if (handles is List && handles.length >= 2 && handles[0] is Map && handles[1] is Map) {
         final a = handles[0] as Map;
         final b = handles[1] as Map;
-        final dx = ((b['x'] as num?)?.toDouble() ?? 0) - ((a['x'] as num?)?.toDouble() ?? 0);
-        final dy = ((b['y'] as num?)?.toDouble() ?? 0) - ((a['y'] as num?)?.toDouble() ?? 0);
+        final dx = _numValue(b['x']) - _numValue(a['x']);
+        final dy = _numValue(b['y']) - _numValue(a['y']);
         if (dx != 0 || dy != 0) {
           label += '@${(math.atan2(dy, dx) * 180 / math.pi).toStringAsFixed(0)}°';
         }
       }
-      final gradientOpacity = (f['opacity'] as num?)?.toDouble() ?? 1;
+      final gradientOpacity = f['opacity'] is num ? (f['opacity'] as num).toDouble() : 1;
       if (gradientOpacity < 1) {
         label += ', opacity=${gradientOpacity.toStringAsFixed(2)}';
       }
@@ -80,7 +82,7 @@ String figmaFills(Map node) {
 /// 描边：颜色 / 宽度 / 单边标记 / **虚线**（`strokeDashes` 是最常被漏掉的属性）。
 String figmaStrokes(Map node) {
   final out = <String>[];
-  for (final s in (node['strokes'] as List?) ?? const []) {
+  for (final s in _list(node['strokes'])) {
     if (s is! Map || s['visible'] == false) continue;
     var desc = figmaPaintHex(s);
     if ('${s['type'] ?? ''}' != 'SOLID') {
@@ -94,10 +96,11 @@ String figmaStrokes(Map node) {
     if (sides is Map && sides.isNotEmpty) {
       final marks = <String>[];
       for (final entry in sides.entries) {
-        if ((entry.value as num?) != null && (entry.value as num) != 0) {
-          final side = '${entry.key}'.substring(0, 1).toUpperCase();
-          marks.add('$side=${_numText(entry.value)}');
-        }
+        if (entry.value is! num || (entry.value as num) == 0) continue;
+        final key = '${entry.key}';
+        if (key.isEmpty) continue;
+        final side = key.substring(0, 1).toUpperCase();
+        marks.add('$side=${_numText(entry.value)}');
       }
       desc += ' [${marks.join(',')}]';
     }
@@ -115,7 +118,7 @@ String figmaStrokes(Map node) {
 /// 效果（阴影 / 模糊）：类型 + 半径 + 透明度 + 偏移。
 String figmaEffects(Map node) {
   final out = <String>[];
-  for (final e in (node['effects'] as List?) ?? const []) {
+  for (final e in _list(node['effects'])) {
     if (e is! Map || e['visible'] == false) continue;
     var desc = '${e['type'] ?? '?'}';
     final effectColor = figmaPaintHex(e);
@@ -123,7 +126,7 @@ String figmaEffects(Map node) {
     final radius = e['radius'];
     if (radius is num && radius != 0) desc += ' r=$radius';
     final color = e['color'];
-    if (color is Map && !effectColor.contains('@') && color['a'] != null) {
+    if (color is Map && !effectColor.contains('@') && color['a'] is num) {
       final alpha = (color['a'] as num).toDouble();
       if (alpha < 1) desc += ' a=${alpha.toStringAsFixed(2)}';
     }
@@ -140,11 +143,15 @@ String figmaEffects(Map node) {
 
 /// 文字规格：字体 / 字重 / 字号 / 行高 / 字距 / 对齐 / 颜色 / 富文本分段。
 String figmaTextSpec(Map node) {
-  final st = (node['style'] as Map?) ?? const {};
+  final style = node['style'];
+  if (style != null && style is! Map) {
+    throw StateError('节点 ${node['id']} 的 style 不是对象，缓存可能已损坏');
+  }
+  final st = style is Map ? style : const <String, dynamic>{};
   final parts = <String>[
     '${st['fontFamily'] ?? ''}',
     '${st['fontWeight'] ?? ''}',
-    '${st['fontSize'] ?? ''}px',
+    if (st['fontSize'] != null && '${st['fontSize']}'.isNotEmpty) '${st['fontSize']}px',
     'lh=${_pyRound(st['lineHeightPx'], 1)}',
     'ls=${_pyRound(st['letterSpacing'], 2)}',
     'align=${st['textAlignHorizontal'] ?? '?'}',
@@ -153,7 +160,7 @@ String figmaTextSpec(Map node) {
     if (st['fontStyle'] != null && st['fontStyle'] != 'Regular') 'style=${st['fontStyle']}',
     if (st['textAutoResize'] != null && st['textAutoResize'] != 'NONE')
       'resize=${st['textAutoResize']}',
-    if ((st['paragraphSpacing'] as num?) != null && (st['paragraphSpacing'] as num) != 0)
+    if (st['paragraphSpacing'] is num && (st['paragraphSpacing'] as num) != 0)
       'para=${_pyRound(st['paragraphSpacing'], 1)}',
     if (st['textDecoration'] != null) 'deco=${st['textDecoration']}',
     if (st['textCase'] != null) 'case=${st['textCase']}',
@@ -162,8 +169,9 @@ String figmaTextSpec(Map node) {
   if (color != '-') parts.add(color);
 
   // 富文本：一段文字里多种样式（颜色/字重）是最容易漏的
-  final overrides = (node['characterStyleOverrides'] as List?) ?? const [];
-  final table = (node['styleOverrideTable'] as Map?) ?? const {};
+  final overrides = _list(node['characterStyleOverrides']);
+  final rawTable = node['styleOverrideTable'];
+  final table = rawTable is Map ? rawTable : const <String, dynamic>{};
   if (overrides.any((v) => v != 0) && table.isNotEmpty) {
     final chars = '${node['characters'] ?? ''}';
     Map? styleAt(int i) {
@@ -174,12 +182,18 @@ String figmaTextSpec(Map node) {
 
     String styleText(Map? style) {
       if (style == null) return '';
-      final fs = (style['fills'] as List?) ?? const [];
-      final color = fs.isNotEmpty && fs.first is Map ? figmaHex((fs.first as Map)['color']) : '';
+      final fills = _list(style['fills']);
+      final color =
+          fills.isNotEmpty && fills.first is Map ? figmaHex((fills.first as Map)['color']) : '';
+      // override 只写了 decoration 时，family / fontSize / weight 回退到 base style，
+      // 不要输出孤立的 `px`。
+      final family = style['fontFamily'] ?? st['fontFamily'];
+      final fontSize = style['fontSize'] ?? st['fontSize'];
+      final fontWeight = style['fontWeight'] ?? st['fontWeight'];
       return <String>[
-        '${style['fontFamily'] ?? ''}',
-        '${style['fontSize'] ?? ''}px',
-        '${style['fontWeight'] ?? ''}',
+        if (family != null && '$family'.isNotEmpty) '$family',
+        if (fontSize != null && '$fontSize'.isNotEmpty) '${fontSize}px',
+        if (fontWeight != null && '$fontWeight'.isNotEmpty) '$fontWeight',
         if (style['fontStyle'] != null && style['fontStyle'] != 'Regular') '${style['fontStyle']}',
         if (style['letterSpacing'] != null) 'ls=${_pyRound(style['letterSpacing'], 2)}',
         if (style['textCase'] != null) 'case=${style['textCase']}',
@@ -210,7 +224,7 @@ String figmaTextSpec(Map node) {
 /// 在节点树里按 id 查节点（深度优先）。
 Map? findFigmaNode(Map node, String id) {
   if (node['id'] == id) return node;
-  for (final c in (node['children'] as List?) ?? const []) {
+  for (final c in _list(node['children'])) {
     if (c is Map) {
       final hit = findFigmaNode(c, id);
       if (hit != null) return hit;
@@ -218,6 +232,8 @@ Map? findFigmaNode(Map node, String id) {
   }
   return null;
 }
+
+List<Object?> _list(Object? value) => value is List ? value : const <Object?>[];
 
 String _fmt1(Object? v) => pyFixed(v, 1);
 
@@ -227,7 +243,7 @@ String _fmt1(Object? v) => pyFixed(v, 1);
 /// 规格表的 golden（`test/fixtures/spec-expected.md`）来自迁移期对齐好的 Python 输出，
 /// 所以这里保留同一取整规则，由 `test/spec_renderer_test.dart` 的 golden 与单测守住。
 String pyFixed(Object? value, int digits) {
-  final v = (value as num?)?.toDouble() ?? 0;
+  final v = value is num ? value.toDouble() : 0;
   final factor = _pow10(digits);
   final scaled = v * factor;
   final sign = scaled < 0 ? -1.0 : 1.0;

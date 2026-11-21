@@ -25,7 +25,8 @@ Map<String, File> resolveNodeCaches(
   final ordered = _sortCacheFiles(files);
   final result = <String, File>{};
   for (final id in nodeIds) {
-    // spec / tokens 取最新缓存；若最新是 --depth 裁剪版，调用方会打印子节点可能缺失。
+    // 策略由调用方决定：spec / tokens 默认 preferFullDepth=true（--allow-depth 时取最新），
+    // diff 基线取最新；命中裁剪缓存时由调用方打印提示。
     final file = _pickNodesCache(
       ordered,
       index.entries,
@@ -51,9 +52,8 @@ String? multiFileKeyWarning(CacheStore store, List<String> nodeIds) {
     final keys = <String>{};
     for (final file in files) {
       if (!(index.entries[file.path]?.ids.contains(id) ?? false)) continue;
-      final name = file.uri.pathSegments.last;
-      final match = RegExp(r'^nodes-([^-]+)-').firstMatch(name);
-      if (match != null) keys.add(match.group(1)!);
+      final key = cacheFileKey(file.path);
+      if (key != null) keys.add(key);
     }
     if (keys.length > 1) {
       return '# 节点 $id 同时出现在多个 fileKey 的缓存（${keys.join(', ')}）；'
@@ -124,6 +124,221 @@ List<String> depthLimitedCachePaths(Iterable<String> paths) {
     for (final path in paths)
       if (nodesCacheDepth(path) != null && seen.add(path)) path,
   ];
+}
+
+/// 从 `nodes-<fileKey>-...json` 解析 fileKey；不是标准缓存名时返回 null。
+String? cacheFileKey(String path) {
+  final name = path.replaceAll('\\', '/').split('/').last;
+  return RegExp(r'^nodes-([^-]+)-').firstMatch(name)?.group(1);
+}
+
+/// 对每条 dN 来源，只找同一 fileKey 的完整缓存。
+///
+/// 同一 nodeId（尤其 `0:1`）可能同时存在于多个 Figma 文件；跨 fileKey 推荐完整缓存
+/// 会把用户引到另一个文件，必须按 dN 文件名里的 fileKey 过滤。
+List<String> fullCachePathsForDepth(
+  CacheStore store,
+  Iterable<String> depthPaths,
+  Iterable<String> nodeIds,
+) {
+  final out = <String>{};
+  for (final depth in depthPaths) {
+    final key = cacheFileKey(depth);
+    if (key == null) continue;
+    out.addAll(fullNodesCachePaths(
+      store,
+      nodeIds,
+      fileKey: key,
+      excludePath: depth,
+    ));
+  }
+  return out.toList();
+}
+
+/// 当前项目里包含目标 nodeId 的完整缓存（未带 `-dN` 后缀），用于裁剪缓存的提示。
+///
+/// 按索引过滤，避免把无关项目的完整缓存也列出来；按 mtime 新→旧排序。
+List<String> fullNodesCachePaths(
+  CacheStore store,
+  Iterable<String> nodeIds, {
+  String? fileKey,
+  String? excludePath,
+}) {
+  final ids = nodeIds.toSet();
+  if (ids.isEmpty) return const <String>[];
+  final exclude = excludePath == null ? null : _canonicalPath(excludePath);
+  final files = _nodesCacheFiles(store)
+      .where((file) => _matchesFileKey(file, fileKey))
+      .where((file) => nodesCacheDepth(file.path) == null)
+      .where((file) => exclude == null || _canonicalPath(file.path) != exclude)
+      .toList();
+  if (files.isEmpty) return const <String>[];
+  final index = _loadIndex(store, files);
+  return <String>[
+    for (final file in _sortCacheFiles(files))
+      if (ids.any((id) => index.entries[file.path]?.ids.contains(id) ?? false)) file.path,
+  ];
+}
+
+String _canonicalPath(String path) {
+  try {
+    return File(path).resolveSymbolicLinksSync();
+  } on FileSystemException {
+    return File(path).absolute.uri.normalizePath().toFilePath();
+  }
+}
+
+/// 一个比选中完整缓存更新的 `-dN` 缓存（JSON `newerDepthAvailable` 的元素）。
+class NewerDepthCache {
+  const NewerDepthCache({
+    required this.nodeId,
+    required this.fullSource,
+    required this.source,
+    required this.depth,
+    this.fileKey,
+    this.version,
+    this.lastModified,
+  });
+
+  final String nodeId;
+  final String fullSource;
+  final String source;
+  final int depth;
+  final String? fileKey;
+  final String? version;
+  final String? lastModified;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+        'nodeId': nodeId,
+        'source': source,
+        'depth': depth,
+        if (fileKey != null) 'fileKey': fileKey,
+        if (version != null) 'version': version,
+        if (lastModified != null) 'lastModified': lastModified,
+      };
+}
+
+/// 完整缓存 vs `-dN` 的新旧判断结果。
+class StaleDepthReport {
+  const StaleDepthReport({required this.stale, required this.newer});
+
+  const StaleDepthReport.none()
+      : stale = false,
+        newer = const <NewerDepthCache>[];
+
+  final bool stale;
+  final List<NewerDepthCache> newer;
+
+  List<Map<String, Object?>> toJson() => <Map<String, Object?>>[
+        for (final item in newer) item.toJson(),
+      ];
+}
+
+/// 默认选中完整缓存、但同 id 存在更新的 `-dN` 缓存时的判断。
+///
+/// 优先比较缓存顶层 `version`（Figma 文件版本），再退 `lastModified`，最后才用
+/// 文件 mtime。只看 mtime 会把「同一 version 的 dN 重写」误报成陈旧。
+StaleDepthReport staleDepthReport(
+  CacheStore store,
+  Iterable<String> selectedSources,
+  Iterable<String> nodeIds,
+) {
+  final selected = <File>[];
+  for (final path in selectedSources) {
+    final raw = File(path);
+    final file = raw.isAbsolute ? raw : File('${store.root.path}/$path');
+    if (nodesCacheDepth(file.path) == null && file.existsSync()) selected.add(file);
+  }
+  if (selected.isEmpty) return const StaleDepthReport.none();
+  final depthFiles =
+      _nodesCacheFiles(store).where((file) => nodesCacheDepth(file.path) != null).toList();
+  if (depthFiles.isEmpty) return const StaleDepthReport.none();
+  final index = _loadIndex(store, <File>[...selected, ...depthFiles]);
+  final newer = <NewerDepthCache>[];
+  final seen = <String>{};
+  for (final full in selected) {
+    final fullEntry = index.entries[full.path];
+    if (fullEntry == null) continue;
+    final fullKey = cacheFileKey(full.path);
+    if (fullKey == null) continue;
+    final candidates = depthFiles.where((file) => cacheFileKey(file.path) == fullKey).toList();
+    if (candidates.isEmpty) continue;
+    for (final id in nodeIds) {
+      if (!fullEntry.ids.contains(id)) continue;
+      for (final depth in candidates) {
+        final depthEntry = index.entries[depth.path];
+        if (depthEntry == null || !depthEntry.ids.contains(id)) continue;
+        if (!_isNewerCache(full, fullEntry, depth, depthEntry)) continue;
+        if (!seen.add('$id|${depth.path}')) continue;
+        newer.add(NewerDepthCache(
+          nodeId: id,
+          fullSource: full.path,
+          source: depth.path,
+          depth: nodesCacheDepth(depth.path) ?? 0,
+          fileKey: fullKey,
+          version: depthEntry.version,
+          lastModified: depthEntry.lastModified,
+        ));
+        break;
+      }
+    }
+  }
+  return StaleDepthReport(stale: newer.isNotEmpty, newer: newer);
+}
+
+bool _isNewerCache(File fullFile, _IndexEntry full, File depthFile, _IndexEntry depth) {
+  final fullVersion = full.version;
+  final depthVersion = depth.version;
+  if (fullVersion != null && depthVersion != null) {
+    final fullNumber = int.tryParse(fullVersion);
+    final depthNumber = int.tryParse(depthVersion);
+    if (fullNumber != null && depthNumber != null) return depthNumber > fullNumber;
+    return depthVersion.compareTo(fullVersion) > 0;
+  }
+  final fullModified = full.lastModified;
+  final depthModified = depth.lastModified;
+  if (fullModified != null && depthModified != null) {
+    final fullTime = DateTime.tryParse(fullModified);
+    final depthTime = DateTime.tryParse(depthModified);
+    if (fullTime != null && depthTime != null) return depthTime.isAfter(fullTime);
+    return depthModified.compareTo(fullModified) > 0;
+  }
+  return depthFile.lastModifiedSync().isAfter(fullFile.lastModifiedSync());
+}
+
+String staleDepthMessage(StaleDepthReport report) {
+  final item = report.newer.first;
+  final reason = item.version != null
+      ? 'dN version ${item.version} 更新'
+      : (item.lastModified != null ? 'dN lastModified 更新' : 'dN 文件时间更晚');
+  final shown = report.newer
+      .take(3)
+      .map((entry) => '${entry.fullSource} → ${entry.source}（depth=${entry.depth}）')
+      .join('；');
+  return '# 完整缓存可能陈旧：$shown；$reason；'
+      '如需最新数据请 fetch --refresh，或加 --allow-depth（可能不完整）';
+}
+
+/// `spec` / `tokens` 命中裁剪缓存时的统一提示：给出可用的完整缓存路径。
+String depthLimitedMessage(
+  Iterable<String> depthPaths, {
+  List<String> fullPaths = const <String>[],
+  bool explicitFile = false,
+}) {
+  final buffer = StringBuffer(
+    '# 数据源来自 --depth 裁剪缓存（${depthPaths.join(', ')}），子节点可能缺失',
+  );
+  if (fullPaths.isEmpty) {
+    buffer.write(explicitFile
+        ? '；未找到同一 fileKey 的完整缓存；可用 --file= 指定完整文件，或重新 fetch nodes'
+        : '；未找到同一 fileKey 的完整缓存，可重新 fetch nodes');
+  } else {
+    final shown = fullPaths.take(3).toList();
+    buffer.write('；可用完整缓存：${shown.join(', ')}');
+    if (fullPaths.length > shown.length) buffer.write(' 等');
+    buffer.write('（用 --file= 指定完整缓存）');
+  }
+  return buffer.toString();
 }
 
 /// 从一个 document 里收集 FRAME，按 id 合并进 [out]。
@@ -245,6 +460,13 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
       (existingFetched is! String || nextFetched.compareTo(existingFetched) > 0)) {
     existing['fetchedAt'] = nextFetched;
   }
+  // 同一节点同时出现在完整缓存和裁剪缓存时，完整（null）优先；否则取更小的 depth。
+  final nextCacheDepth = next['cacheDepth'] as int?;
+  final existingCacheDepth = existing['cacheDepth'] as int?;
+  if (existingCacheDepth != null &&
+      (nextCacheDepth == null || nextCacheDepth < existingCacheDepth)) {
+    existing['cacheDepth'] = nextCacheDepth;
+  }
 }
 
 /// 从索引产出 `frames` 的行；索引缺失 / 过期时重建并写回（只有 frames 维护索引）。
@@ -272,7 +494,12 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
       _mergeFrameRow(
         out,
         id,
-        <String, Object?>{...row, 'cacheFile': cacheFile, 'fetchedAt': fetchedAt},
+        <String, Object?>{
+          ...row,
+          'cacheFile': cacheFile,
+          'cacheDepth': nodesCacheDepth(file.path),
+          'fetchedAt': fetchedAt,
+        },
       );
     }
   }
@@ -300,6 +527,8 @@ class _IndexEntry {
     required this.ids,
     required this.frames,
     required this.corrupt,
+    this.version,
+    this.lastModified,
   });
 
   final int mtime;
@@ -309,12 +538,18 @@ class _IndexEntry {
   /// 该缓存文件里的 FRAME 摘要（顶层 + 嵌套），见 [collectFrames]。
   final List<Map<String, Object?>> frames;
 
+  /// 缓存顶层 `version`；缺失时为 null。
+  final String? version;
+
+  /// 缓存顶层 `lastModified`；缺失时为 null。
+  final String? lastModified;
+
   /// 解析失败（截断 / 手改坏）：保留条目，报错时才能点名是哪个文件。
   final bool corrupt;
 }
 
 /// `_nodes-index.json` 的格式版本；不匹配就整份丢弃重建（不做兼容迁移）。
-const int _indexVersion = 7;
+const int _indexVersion = 8;
 
 /// 一次索引读取的结果：条目 + 解析失败的缓存文件 + 是否需要写回。
 class _NodesIndex {
@@ -353,6 +588,8 @@ _NodesIndex _loadIndex(CacheStore store, List<File> files) {
           for (final frame in cached['frames'] as List)
             if (frame is Map) Map<String, Object?>.from(frame),
         ],
+        version: cached['version'] is String ? cached['version'] as String : null,
+        lastModified: cached['lastModified'] is String ? cached['lastModified'] as String : null,
         corrupt: corrupt,
       );
       if (corrupt) corruptFiles.add(file);
@@ -361,9 +598,13 @@ _NodesIndex _loadIndex(CacheStore store, List<File> files) {
     final ids = <String>{};
     final frames = <String, Map<String, Object?>>{};
     var corrupt = false;
+    String? version;
+    String? lastModified;
     try {
-      final documents = readDocuments(file);
-      for (final entry in documents.entries) {
+      final content = readCacheFile(file);
+      version = content.version;
+      lastModified = content.lastModified;
+      for (final entry in content.documents.entries) {
         ids.add(entry.key);
         _collectIds(entry.value, ids);
         // cacheFile 在读索引时按 `--root` 算，存的时候留空。
@@ -385,6 +626,8 @@ _NodesIndex _loadIndex(CacheStore store, List<File> files) {
       size: stat.size,
       ids: ids,
       frames: frames.values.toList(),
+      version: version,
+      lastModified: lastModified,
       corrupt: corrupt,
     );
     if (corrupt) corruptFiles.add(file);
@@ -406,6 +649,8 @@ void _writeIndex(CacheStore store, Map<String, _IndexEntry> entries) {
             'size': entry.value.size,
             'ids': entry.value.ids.toList(),
             'frames': entry.value.frames,
+            'version': entry.value.version,
+            'lastModified': entry.value.lastModified,
             'corrupt': entry.value.corrupt,
           },
       },

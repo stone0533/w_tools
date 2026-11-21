@@ -203,7 +203,7 @@ void main() {
     final indexFile = File('${cacheDir.path}/_nodes-index.json');
     expect(indexFile.existsSync(), isTrue, reason: 'frames 应该写索引');
     final index = jsonDecode(indexFile.readAsStringSync()) as Map;
-    expect(index['version'], 7);
+    expect(index['version'], 8);
     expect(
       (index['files'] as Map).values.any((entry) => (entry as Map)['frames'] is List),
       isTrue,

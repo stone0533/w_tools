@@ -1,3 +1,32 @@
+## 1.3.0
+
+### Added
+- `TokenCollector` 构造函数增加可选 `skipNamePrefixes`（`tokens --skip-name-prefix` 使用）；`CacheStore` 构造参数不变（root 会按规范路径解析）。
+- `spec` / `tokens` 默认优先完整树（有完整缓存时取最新完整缓存）；只有没有完整缓存或显式加 `--allow-depth` 时才读最新的 `-dN` 裁剪缓存。
+- `spec --json` 增加 `depthLimited` / `items[].sourceDepth` / `items[].depthLimited`；`tokens --json` 增加 `depthLimited` / `sourceDepths`。命中裁剪缓存时 stderr 会列出包含目标的完整缓存路径与 `--file=` 用法。
+- 默认选中完整缓存但存在更新的 dN 时，按顶层 `version` → `lastModified` → 文件 mtime 的顺序判断，避免同一 version 的 dN 因 mtime 更新而误报；JSON 增加 `staleAgainstDepth` / `newerDepthAvailable`（含 `nodeId` / `source` / `depth` / `fileKey` / `version` / `lastModified`）。
+- `staleDepthReport` / depth 警告按缓存文件名里的 fileKey 过滤：同一 nodeId 出现在多个 Figma 文件时，只用同一 fileKey 的完整缓存 / dN 做比较和推荐；`multiFileKeyWarning` 保留。
+- `tokens` 新增 `--skip-name-prefix=<s>`（与 spec 同语义，可去掉 iOS 状态栏 mock）。
+- `tokens` 文字项 JSON / markdown 增加 `textCase` / `textDecoration`；`texts` 增加 `sizeNum` / `weightNum` / `lineHeightNum` / `letterSpacingNum`，`radii` / `spacings` 增加 `valueNum`，脚本不用再 parse 字符串。
+- `frames --json` 每行增加 `cacheDepth`（非 null 表示该行来自 `--depth` 裁剪缓存）。
+- `--version` / `-v` 与 `version` 等价。
+
+### Fixed
+- token 模板里的 `#` 注释不再让 token 校验失败：读取时只取第一条非注释行；空 token 文件会被 `init` 重建；已存在的 token 文件也会把权限收紧到 600。
+- `--root` 统一规范化（`.` / `./` / `..` / 软链 / 尾斜杠落到同一 projectId）；空值或目录不存在返回 exit 2；选项放在命令之前会给出明确提示。
+- `spec` 的 CANVAS / DOCUMENT 根节点按页面输出（标题、子节点数、相对页面原点的坐标），不再拿 `children.first` 顶替；TEXT 根节点标「文字色」而不是「背景」；markdown 与 `items[].node` 现在是同一棵子树。
+- `spec --skip-hidden` / `--skip-name-prefix` 同时剪枝 `items[].node` 与 markdown（目标节点及其祖先保留），不再只影响 markdown。
+- rich text 的 override 只写 decoration 时回退 base 的字体 / 字号 / 字重，不再输出孤立的 `px`。
+- 缓存结构异常（bbox 缺字段、TEXT `style` 不是对象）返回 exit 1 + 可读错误，不再 exit 255 打印 Dart 栈。
+- `frames --name=` / `--page=` 空值返回 exit 2；显式 `--file` 解析失败返回 exit 1，不再伪装成「没有 FRAME」；人读输出的 dN 行 children 加 `*` 并附截断说明。
+- `tokens ','` / 空 id 返回 exit 2；重复 id 保序去重，不会把同一子树统计两遍；`tokens --page=-` 不再打印矛盾的漏缓存警告；`--min` 的「按样式出现次数」口径写进 README / help。
+- `individualStrokeWeights` 的空 key 不再触发 `RangeError`；`run.dart` 增加 `Error` 兜底，坏缓存统一 exit 1（不会再有 exit 255 + Dart 栈）。
+- `cache clean --file` 先把候选文件解析软链再与缓存根比较：macOS 上 `/tmp/...` 与 `/private/tmp/...` 都可以删同一文件，指向缓存目录外的软链仍拒绝。
+- 只剩注释的 token 文件按「无有效 token 行」处理：`init` 会重建模板，`--force` 不再误报「已有真实 token」。
+- 显式 `--file=<dN>` 时也会检查项目里的完整缓存并排除当前文件；找不到时不再断言「没有其它完整缓存」。
+- `spec` / `tokens` 的 depth 警告只写 stderr；不再写入 `spec` stdout 或 `tokens --out` 文件，避免把本机绝对缓存路径带进产物。
+- `cache clean --file` 与 `cache stats` 输出一致的规范路径；`get` 的 HTTP 错误带 URL；`fetch` 缓存命中时的缺失文案改为「缓存里记录为缺失」。
+
 ## 1.2.0
 
 ### Fixed

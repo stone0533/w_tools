@@ -49,8 +49,14 @@ class TokenRenderer {
       ..writeln('| 字体 | 字号 | 字重 | 样式 | 行高 | 字距 | 对齐 | 颜色 | 次数 | 示例 |')
       ..writeln('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
     for (final t in tokens.textsSorted()) {
+      final styles = <String>[
+        if (t.fontStyle.isNotEmpty) t.fontStyle,
+        if (t.textCase.isNotEmpty) 'case=${t.textCase}',
+        if (t.textDecoration.isNotEmpty) 'deco=${t.textDecoration}',
+      ];
       buf.writeln(
-        '| ${t.family} | ${t.size} | ${t.weight} | ${t.fontStyle} | ${t.lineHeight} | '
+        '| ${t.family} | ${t.size} | ${t.weight} | ${styles.isEmpty ? '-' : styles.join(' ')} | '
+        '${t.lineHeight} | '
         '${t.letterSpacing} | ${t.align} | `${t.color}` | ${t.count} | '
         '${cell(t.samples.join(' / '))} |',
       );

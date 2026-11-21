@@ -34,7 +34,19 @@ class CommandArgs {
   bool flag(String name) => _defined.contains(name) && (results[name] as bool? ?? false);
   String? option(String name) => _defined.contains(name) ? results[name] as String? : null;
 
-  String get root => option('root') ?? defaultRoot();
+  String get root {
+    final raw = option('root');
+    if (raw == null) return defaultRoot();
+    final value = raw.trim();
+    if (value.isEmpty) {
+      throw const FormatException('--root 需要一个目录，不能为空');
+    }
+    if (!Directory(value).existsSync()) {
+      throw FormatException('--root 目录不存在：$value');
+    }
+    return value;
+  }
+
   bool get json => flag('json');
   String? get file => option('file');
   int get min => intOption('min') ?? 1;
@@ -53,6 +65,7 @@ class CommandArgs {
   bool get withId => flag('with-id');
   bool get withLayout => flag('with-layout');
   bool get skipHidden => flag('skip-hidden');
+  bool get allowDepth => flag('allow-depth');
   int? get limit => intOption('limit');
   String? get skipNamePrefix => option('skip-name-prefix');
   bool get all => flag('all');
@@ -136,7 +149,8 @@ ArgParser parserFor(String command) {
         ..addFlag('with-id', negatable: false, help: 'markdown 表格加 nodeId 列')
         ..addFlag('with-layout', negatable: false, help: 'markdown 表格加布局列')
         ..addFlag('skip-hidden',
-            negatable: false, help: 'markdown 跳过 visible=false / opacity=0 的节点');
+            negatable: false, help: '跳过 visible=false / opacity=0 的节点（node 与 markdown 同步）')
+        ..addFlag('allow-depth', negatable: false, help: '允许读取最新的 --depth 裁剪缓存（默认优先完整树）');
     case 'tokens':
       parser
         ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')
@@ -145,6 +159,8 @@ ArgParser parserFor(String command) {
         ..addOption('min', valueHelp: 'n', help: '只列出出现次数 >= n 的项')
         ..addOption('out', valueHelp: 'path', help: '写入文件（默认 stdout）')
         ..addOption('map', valueHelp: 'path', help: '颜色语义映射 YAML')
+        ..addOption('skip-name-prefix', valueHelp: 's', help: '跳过名称以该前缀开头的节点（逗号分隔）')
+        ..addFlag('allow-depth', negatable: false, help: '允许读取最新的 --depth 裁剪缓存（默认优先完整树）')
         ..addFlag('skip-markdown', negatable: false, help: '只输出结构化数组');
     default:
       throw FormatException('未知命令：$command');
@@ -164,6 +180,18 @@ CommandArgs parseCommand(List<String> args, String command) {
     throw FormatException('参数解析失败：${e.message}');
   }
   return CommandArgs(results, parser.options.keys.toSet());
+}
+
+/// 解析逗号分隔的 nodeId：trim、去空、保序去重。
+///
+/// `tokens 1:1,1:1` 以前会把同一棵子树统计两遍；`fetch` 早已去重，这里统一口径。
+List<String> parseNodeIds(String? raw) {
+  final ids = <String>[];
+  for (final part in (raw ?? '').split(',')) {
+    final id = part.trim();
+    if (id.isNotEmpty && !ids.contains(id)) ids.add(id);
+  }
+  return ids;
 }
 
 /// 位置参数超出上限就报错：多写的参数以前会被静默忽略（`spec 1:2 9:9` 只处理第一个）。

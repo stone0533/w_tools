@@ -25,6 +25,28 @@ void main() {
       throwsA(isA<FigmaTokenException>()),
     );
   });
+
+  test('保留模板的 # 注释时只取第一条有效 token 行', () {
+    final store = CacheStore(root, home: root.path);
+    store.tokenFile.parent.createSync(recursive: true);
+    store.tokenFile.writeAsStringSync(
+      '# Figma 个人访问令牌\n'
+      '# 1. Figma → Settings → Security\n'
+      '# 2. 只读权限即可\n'
+      'figd_real_token\n',
+    );
+    expect(readToken(store), 'figd_real_token');
+  });
+
+  test('只有注释 / 空文件时报模板内容', () {
+    final store = CacheStore(root, home: root.path);
+    store.tokenFile.parent.createSync(recursive: true);
+    store.tokenFile.writeAsStringSync('# 只有说明\n\n');
+    expect(
+      () => readToken(store),
+      throwsA(isA<FigmaTokenException>().having((e) => e.message, 'message', contains('模板内容'))),
+    );
+  });
 }
 
 /// 测试里只需要 tokenFile；直接用 CacheStore 的根目录。
