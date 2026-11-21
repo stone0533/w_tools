@@ -24,16 +24,16 @@
 
 - 状态变更：2026-11-21 待处理
 
-### [待处理] figma: tokens --out 把 depth 警告（含本机绝对路径）写进 design-tokens.md
+### [待处理] figma: tokens --out / spec stdout 把含本机绝对路径的 depth 警告写进 markdown
 
 - 包/版本：w_tools_figma 1.3.0
 - 环境：macOS 26.6.2 / Dart 3.12.2；同一页面同时有完整缓存和更新的 `-d2` 缓存
-- 命令 / 输入：`dart run w_tools_figma:figma tokens 0:1 --out=/tmp/design-tokens.md`
-- 期望：`--out` 写出的文件只包含 token 内容；depth 警告保留在 stderr（或至少不要包含本机绝对缓存路径）
-- 实际：文件首行变成 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）…`，同时 stderr 也有同样警告；`--prefer-full` 或显式完整 `--file` 时不出现。1.3.0 新增的 markdown 顶部警告直接把 local cache path 写进了输出文件。
-- 影响：项目文档里的 `docs/design-tokens.md` 会带上某台机器的 `/Users/...` 或 `/private/tmp/...` 路径，提交后跨机器 diff / 泄露本地目录；任何期望首行是 `# 设计 token 汇总` 的工具也会被 blockquote 干扰。
-- 建议：`--out` 文件不写这条警告（只走 stderr）；或 banner 只用 basename / 相对路径；也可加 `--no-depth-warning` 让脚本关闭。
-- 复现数据：`tokens 0:1 --out=/tmp/design-tokens.md` 文件 head 是 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）`；stderr 同样一行；`--prefer-full` 输出首行是 `# 设计 token 汇总…`。
+- 命令 / 输入：`dart run w_tools_figma:figma tokens 0:1 --out=/tmp/design-tokens.md`；`dart run w_tools_figma:figma spec 0:1 > /tmp/spec.md`
+- 期望：`--out` 文件和 `spec` stdout 只包含规格 / token 内容；depth 警告保留在 stderr（或至少不要包含本机绝对缓存路径）
+- 实际：`tokens --out` 文件首行变成 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）…`；`spec` stdout 也有同一 blockquote。stderr 同时打印一次。`--prefer-full` 或显式完整 `--file` 时不出现。1.3.0 新增的 markdown 顶部警告直接把 local cache path 写进内容。
+- 影响：项目文档 `docs/design-tokens.md` / 贴到 PR 的 spec 会带上某台机器的 `/Users/...` 或 `/private/tmp/...` 路径，提交后跨机器 diff / 泄露本地目录；任何期望首行是 `# 设计 token 汇总` / `# 画板名` 的工具也会被 blockquote 干扰。
+- 建议：`--out` 文件和 `spec` stdout 不写这条警告（只走 stderr）；或 banner 只用 basename / 相对路径；也可加 `--no-depth-warning` 让脚本关闭。
+- 复现数据：`tokens 0:1 --out=/tmp/design-tokens.md` 文件 head 是 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）`；`spec 0:1` stdout 同样；`--prefer-full` 输出首行是 `# 设计 token 汇总…` / `# mockup…`。
 - 状态变更：2026-11-21 待处理
 
 ## 已闭环
