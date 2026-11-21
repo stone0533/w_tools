@@ -238,7 +238,9 @@ class FetchCommand {
       final nodes = json['nodes'];
       if (nodes is! Map) {
         if (log) store.logUsage(kind: kind, cacheFile: '-');
-        throw StateError('Figma 返回的 nodes 字段不是对象（fileKey=$fileKey）');
+        throw StateError(
+          'Figma 返回的 nodes 字段不是对象（fileKey=$fileKey；本次已消耗 1 次 Tier 1）',
+        );
       }
       final requested = requestedIds.toSet();
       missing = <String>[
@@ -248,7 +250,8 @@ class FetchCommand {
       if (missing.length == requested.length) {
         if (log) store.logUsage(kind: kind, cacheFile: '-');
         throw StateError(
-          'Figma 没有返回节点：${missing.join(', ')}（nodeId 不存在或无权访问）',
+          'Figma 没有返回节点：${missing.join(', ')}'
+          '（nodeId 不存在或无权访问；本次已消耗 1 次 Tier 1）',
         );
       }
       if (missing.isNotEmpty) {

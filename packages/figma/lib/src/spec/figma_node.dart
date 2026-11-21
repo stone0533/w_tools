@@ -44,39 +44,44 @@ String figmaFills(Map node) {
   final out = <String>[];
   for (final f in _list(node['fills'])) {
     if (f is! Map || f['visible'] == false) continue;
-    final type = '${f['type'] ?? ''}';
-    if (type == 'SOLID') {
-      out.add(figmaPaintHex(f));
-    } else if (type.startsWith('IMAGE')) {
-      out.add('IMG${_opacitySuffix(f)}');
-    } else if (type.startsWith('GRADIENT')) {
-      final stops = _list(f['gradientStops']);
-      final colors = <String>[];
-      for (final stop in stops) {
-        if (stop is Map) {
-          final c = figmaHex(stop['color']);
-          if (c.isNotEmpty) colors.add(c);
-        }
-      }
-      var label = colors.isEmpty ? 'GRAD' : 'GRAD(${colors.join('→')})';
-      final handles = f['gradientHandlePositions'];
-      if (handles is List && handles.length >= 2 && handles[0] is Map && handles[1] is Map) {
-        final a = handles[0] as Map;
-        final b = handles[1] as Map;
-        final dx = _numValue(b['x']) - _numValue(a['x']);
-        final dy = _numValue(b['y']) - _numValue(a['y']);
-        if (dx != 0 || dy != 0) {
-          label += '@${(math.atan2(dy, dx) * 180 / math.pi).toStringAsFixed(0)}°';
-        }
-      }
-      final gradientOpacity = f['opacity'] is num ? (f['opacity'] as num).toDouble() : 1;
-      if (gradientOpacity < 1) {
-        label += ', opacity=${gradientOpacity.toStringAsFixed(2)}';
-      }
-      out.add(label);
-    }
+    final label = _paintLabel(f);
+    if (label != null && label.isNotEmpty) out.add(label);
   }
   return out.isEmpty ? '-' : out.join(',');
+}
+
+/// paint 的人读标签；SOLID / IMAGE / GRADIENT 共用给填充和描边。
+String? _paintLabel(Map paint) {
+  final type = '${paint['type'] ?? ''}';
+  if (type == 'SOLID') return figmaPaintHex(paint);
+  if (type.startsWith('IMAGE')) return 'IMG${_opacitySuffix(paint)}';
+  if (type.startsWith('GRADIENT')) return _gradientLabel(paint);
+  return null;
+}
+
+String _gradientLabel(Map paint) {
+  final stops = _list(paint['gradientStops']);
+  final colors = <String>[];
+  for (final stop in stops) {
+    if (stop is Map) {
+      final c = figmaHex(stop['color']);
+      if (c.isNotEmpty) colors.add(c);
+    }
+  }
+  var label = colors.isEmpty ? 'GRAD' : 'GRAD(${colors.join('→')})';
+  final handles = paint['gradientHandlePositions'];
+  if (handles is List && handles.length >= 2 && handles[0] is Map && handles[1] is Map) {
+    final a = handles[0] as Map;
+    final b = handles[1] as Map;
+    final dx = _numValue(b['x']) - _numValue(a['x']);
+    final dy = _numValue(b['y']) - _numValue(a['y']);
+    if (dx != 0 || dy != 0) {
+      label += '@${(math.atan2(dy, dx) * 180 / math.pi).toStringAsFixed(0)}°';
+    }
+  }
+  final opacity = paint['opacity'] is num ? (paint['opacity'] as num).toDouble() : 1;
+  if (opacity < 1) label += ', opacity=${opacity.toStringAsFixed(2)}';
+  return label;
 }
 
 /// 描边：颜色 / 宽度 / 单边标记 / **虚线**（`strokeDashes` 是最常被漏掉的属性）。
@@ -85,8 +90,9 @@ String figmaStrokes(Map node) {
   for (final s in _list(node['strokes'])) {
     if (s is! Map || s['visible'] == false) continue;
     var desc = figmaPaintHex(s);
-    if ('${s['type'] ?? ''}' != 'SOLID') {
-      desc = '${s['type'] ?? '?'}${_opacitySuffix(s)}';
+    final type = '${s['type'] ?? ''}';
+    if (type != 'SOLID') {
+      desc = _paintLabel(s) ?? '$type${_opacitySuffix(s)}';
     }
     final weight = _numText(node['strokeWeight']);
     if (weight.isNotEmpty) desc += ' ${weight}px';

@@ -73,6 +73,12 @@
               "integer",
               "null"
             ]
+          },
+          "pageId": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": true

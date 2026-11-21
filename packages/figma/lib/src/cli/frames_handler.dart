@@ -95,19 +95,22 @@ Future<void> runFrames(List<String> args) async {
     stderr.writeln('# 仅显示 ${visible.length}/$total 条（--limit=${options.limit}）');
   }
   final pageWidth = visible.map((e) => _width('${e['page']}')).reduce(_max);
+  final pageIdWidth = visible.map((e) => _width('${e['pageId'] ?? '-'}')).reduce(_max);
   final idWidth = visible.map((e) => _width('${e['id']}')).reduce(_max);
   final typeWidth = visible.map((e) => _width('${e['type'] ?? '-'}')).reduce(_max);
   final nameWidth = visible.map((e) => _width('${e['name']}')).reduce(_max);
   final sizeWidth = visible.map((e) => _width('${e['width']}×${e['height']}')).reduce(_max);
   printLine(
-    '${_pad('page', pageWidth)}  ${_pad('id', idWidth)}  '
+    '${_pad('page', pageWidth)}  ${_pad('pageId', pageIdWidth)}  ${_pad('id', idWidth)}  '
     '${_pad('type', typeWidth)}  ${_pad('name', nameWidth)}  '
     '${_pad('size', sizeWidth)}  children',
   );
   for (final frame in visible) {
     final size = '${frame['width']}×${frame['height']}';
     final truncated = frame['cacheDepth'] != null;
+    final pageId = '${frame['pageId'] ?? ''}';
     final line = '${_pad(('${frame['page']}'.isEmpty) ? '-' : '${frame['page']}', pageWidth)}  '
+        '${_pad(pageId.isEmpty ? '-' : pageId, pageIdWidth)}  '
         '${_pad('${frame['id']}', idWidth)}  '
         '${_pad('${frame['type'] ?? '-'}', typeWidth)}  '
         '${_pad('${frame['name']}', nameWidth)}  '

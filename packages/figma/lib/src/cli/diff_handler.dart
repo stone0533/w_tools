@@ -13,7 +13,9 @@ import 'cli_io.dart';
 /// diff 用的基线提示（打到 stderr；`--json` 的 stdout 不受影响）。
 List<String> diffBaselineNotes({required File? baseline, required String targetPath}) {
   if (baseline == null) {
-    return <String>['# 首次 diff：没有旧缓存可比，本次只写入基线（$targetPath）'];
+    return <String>[
+      '# 首次 diff：没有旧缓存可比，本次需要向 Figma 拉取（消耗 1 次 Tier 1）并写入基线（$targetPath）',
+    ];
   }
   final depth = nodesCacheDepth(baseline.path);
   if (depth != null) {
@@ -114,6 +116,17 @@ Future<void> runDiff(
   final fileKey = positional[0];
   final nodeId = positional[1];
   final cacheStore = store ?? CacheStore(Directory(options.root));
+  // 在发请求前打印基线提示：即使请求失败 / 节点不存在，用户也知道本次会消耗额度。
+  final baseline = findNodesCache(
+    cacheStore,
+    nodeId,
+    preferFullDepth: false,
+    fileKey: fileKey,
+  );
+  final target = cacheStore.cacheFile(kind: 'nodes', fileKey: fileKey, ids: nodeId);
+  for (final note in diffBaselineNotes(baseline: baseline, targetPath: target.path)) {
+    stderr.writeln(note);
+  }
   final client = clientFactory?.call(cacheStore) ?? HttpFigmaClient(token: readToken(cacheStore));
   try {
     final outcome = await executeDiff(
@@ -139,9 +152,6 @@ Future<void> runDiff(
         printLine('没有变化（$nodeId，版本 ${outcome.latestVersion}）');
       }
       return;
-    }
-    for (final note in outcome.notes) {
-      stderr.writeln(note);
     }
     if (options.json) {
       printLine(jsonEncode({

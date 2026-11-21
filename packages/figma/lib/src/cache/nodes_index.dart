@@ -357,27 +357,36 @@ void collectFrames(
   final type = '${document['type']}';
   if (_isFrameLike(type)) {
     // fetch nodes 只拿到一个 FRAME 时，没有 CANVAS 父节点，不能把画板名当页面名。
-    _addFrame(document, cacheFile, out, '', nested: false, depth: 0, fetchedAt: fetchedAt);
+    _addFrame(document, cacheFile, out, '',
+        pageId: null, nested: false, depth: 0, fetchedAt: fetchedAt);
     if (all) {
       _walkChildren(document, cacheFile, out, '',
-          depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
+          pageId: null, depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
     }
     return;
   }
   final page = '${document['name'] ?? ''}';
+  final pageId = '${document['id'] ?? ''}';
   final children = document['children'];
   if (children is! List) return;
   for (final child in children) {
     if (child is! Map) continue;
     if (_isFrameLike('${child['type']}')) {
-      _addFrame(child, cacheFile, out, page, nested: false, depth: 0, fetchedAt: fetchedAt);
+      _addFrame(child, cacheFile, out, page,
+          pageId: pageId.isEmpty ? null : pageId, nested: false, depth: 0, fetchedAt: fetchedAt);
       if (all) {
         _walkChildren(child, cacheFile, out, page,
-            depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
+            pageId: pageId.isEmpty ? null : pageId,
+            depth: 1,
+            maxDepth: maxDepth,
+            fetchedAt: fetchedAt);
       }
     } else if (all) {
       _walkChildren(child, cacheFile, out, page,
-          depth: 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
+          pageId: pageId.isEmpty ? null : pageId,
+          depth: 1,
+          maxDepth: maxDepth,
+          fetchedAt: fetchedAt);
     }
   }
 }
@@ -390,15 +399,17 @@ void _walkChildren(
   required int depth,
   int? maxDepth,
   String? fetchedAt,
+  String? pageId,
 }) {
   if (maxDepth != null && depth > maxDepth) return;
   for (final child in (node['children'] as List?) ?? const []) {
     if (child is! Map) continue;
     if (_isFrameLike('${child['type']}')) {
-      _addFrame(child, cacheFile, out, page, nested: depth > 0, depth: depth, fetchedAt: fetchedAt);
+      _addFrame(child, cacheFile, out, page,
+          pageId: pageId, nested: depth > 0, depth: depth, fetchedAt: fetchedAt);
     }
     _walkChildren(child, cacheFile, out, page,
-        depth: depth + 1, maxDepth: maxDepth, fetchedAt: fetchedAt);
+        depth: depth + 1, maxDepth: maxDepth, fetchedAt: fetchedAt, pageId: pageId);
   }
 }
 
@@ -410,6 +421,7 @@ void _addFrame(
   required bool nested,
   required int depth,
   String? fetchedAt,
+  String? pageId,
 }) {
   final id = '${node['id'] ?? ''}';
   if (id.isEmpty) return;
@@ -420,6 +432,7 @@ void _addFrame(
     'type': '${node['type'] ?? ''}',
     'name': '${node['name'] ?? ''}',
     'page': page,
+    'pageId': pageId,
     'width': bb is Map ? bb['width'] : null,
     'height': bb is Map ? bb['height'] : null,
     'children': children is List ? children.length : 0,
@@ -450,6 +463,12 @@ void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String
   }
   if (existing['nested'] == true && next['nested'] != true) {
     existing['nested'] = false;
+  }
+  final nextPageId = next['pageId'];
+  if (nextPageId is String &&
+      nextPageId.isNotEmpty &&
+      (existing['pageId'] == null || '${existing['pageId']}'.isEmpty)) {
+    existing['pageId'] = nextPageId;
   }
   final nextDepth = next['depth'] as int? ?? 0;
   final existingDepth = existing['depth'] as int? ?? 0;
@@ -549,7 +568,7 @@ class _IndexEntry {
 }
 
 /// `_nodes-index.json` 的格式版本；不匹配就整份丢弃重建（不做兼容迁移）。
-const int _indexVersion = 8;
+const int _indexVersion = 9;
 
 /// 一次索引读取的结果：条目 + 解析失败的缓存文件 + 是否需要写回。
 class _NodesIndex {

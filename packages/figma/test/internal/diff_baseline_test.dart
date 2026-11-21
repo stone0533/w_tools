@@ -165,6 +165,7 @@ void main() {
       final notes = diffBaselineNotes(baseline: null, targetPath: target.path);
       expect(notes, hasLength(1));
       expect(notes.single, contains('首次 diff'));
+      expect(notes.single, contains('消耗 1 次 Tier 1'));
       expect(notes.single, contains(target.path));
     });
 

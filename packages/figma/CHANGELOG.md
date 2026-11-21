@@ -1,3 +1,13 @@
+## 1.3.1
+
+### Fixed
+- 渐变描边复用填充的渐变格式化：输出 stop 颜色 / `@角度` / paint opacity，`diff` 的可读输出同步。
+- `tokens` 的 `samples` 保留完整 characters；Markdown 按 runes 截断并补 `…`，不再把 emoji 截成孤立代理项。
+- `diff` 无本地基线时先提示本次会消耗 1 次 Tier 1；Figma 未返回节点 / nodes 字段异常的错误补「本次已消耗 1 次 Tier 1」。
+- `frames` / `frames --json` 增加 `pageId`（完整页面缓存的 CANVAS id）；索引升到 9。
+- 澄清子目录边界：`dart run` 必须在含 `pubspec.yaml` 的包根执行，`--root` 只影响已启动 CLI 的缓存 projectId。
+- `get` 的输出路径是目录时直接报 `输出路径是目录：<path>`，不再暴露内部 `.tmp` 文件名。
+
 ## 1.3.0
 
 ### Added
@@ -12,6 +22,7 @@
 - `--version` / `-v` 与 `version` 等价。
 
 ### Fixed
+- 澄清子目录运行边界：`dart run` 必须在含 `pubspec.yaml` 的包根执行；`--root` 的向上查找只用于已启动 CLI 的缓存 projectId。
 - token 模板里的 `#` 注释不再让 token 校验失败：读取时只取第一条非注释行；空 token 文件会被 `init` 重建；已存在的 token 文件也会把权限收紧到 600。
 - `--root` 统一规范化（`.` / `./` / `..` / 软链 / 尾斜杠落到同一 projectId）；空值或目录不存在返回 exit 2；选项放在命令之前会给出明确提示。
 - `spec` 的 CANVAS / DOCUMENT 根节点按页面输出（标题、子节点数、相对页面原点的坐标），不再拿 `children.first` 顶替；TEXT 根节点标「文字色」而不是「背景」；markdown 与 `items[].node` 现在是同一棵子树。
@@ -74,7 +85,7 @@
 - `cache stats --files` / `cache clean --file` / `cache clean --all` 的索引、路径规范化与所有项目统计。
 - `tokens` 的 samples 带 nodeId，`--out` 数据源不再写本机绝对路径；`--min` 文案修正。
 - `usage` 的 0 次调用不再触发接近上限提示；`/meta` 读取 `last_touched_at`。
-- 项目根默认从当前目录向上找 `pubspec.yaml` / `.git`，从子目录运行复用同一缓存；`frames` 无缓存错误带路径。
+- 项目根默认从当前目录向上找 `pubspec.yaml` / `.git`（仅对已启动的 CLI 生效；`dart run` 仍需在包根执行）；`frames` 无缓存错误带路径。
 
 ## 1.0.0
 

@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^1.3.0
+  w_tools_figma: ^1.3.1
 ```
 
 开发版使用 path 依赖：
@@ -85,7 +85,8 @@ dev_dependencies:
       ref: main
 ```
 
-monorepo 内可直接在 `packages/figma/` 下运行命令。
+monorepo 内可直接在 `packages/figma/` 下运行命令。注意 `dart run` 必须在含 `pubspec.yaml` 的包根执行；
+在子目录里 `dart run` 会在 Dart 启动阶段失败，`--root` 只用于已经启动的 CLI 指向另一个项目根，不能绕过这一点。
 
 ### 2. 初始化
 
@@ -208,11 +209,11 @@ cd packages/figma
 - `tokens --skip-markdown` 只与 `--json` 一起用，不渲染 markdown；
 - `cache clean` 必须给 `--yes`（无论是否 `--all`）；`--all` 清所有项目缓存，拒绝提示统计所有项目，但不会动账号级 `_usage.log` / `_budget.json`；
 - `cache stats --files` 列出每个文件并按 `legacy`（旧 `file-*`）/ `nodes` / `index` 分类，`indexed` 表示 `_nodes-index.json` 是否引用该文件；`cache clean --legacy --yes` 只删旧 `file-*`，`cache clean --file=<path> --yes` 只删点名文件；`nodes-<key>-0-1.json` 是有效的整页缓存，不是自动可回收的 orphan；
-- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；已有完整缓存时直接返回完整文件、不生成 `-dN`（`--refresh` 才重新拉）；`--root` 默认向上找最近的 `pubspec.yaml` / `.git`；
+- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；已有完整缓存时直接返回完整文件、不生成 `-dN`（`--refresh` 才重新拉）；`--root` 默认向上找最近的 `pubspec.yaml` / `.git`；但 `dart run` 本身仍需在含 `pubspec.yaml` 的包根执行，子目录请先 `cd` 回包根；
 - `--root` 必须指向已存在目录，并且要放在命令之后（`figma frames --root=<dir>`）；同一个目录的 `.` / `./` / 软链 / 尾斜杠写法会归一到同一个项目缓存；空值或不存在返回 exit 2；
 - 单节点缓存没有 CANVAS 父节点，`page` 显示为未知；`frames --page` 会提示可能漏掉这类缓存，需要完整页面缓存或 `--file=`；显式 `--page=-` 可只列这些未知 page 的单节点缓存。 
 - `frames --all` 可配合 `--depth=<n>`（0 = 顶层，隐含 `--all`）和 `--limit=<n>` 收窄；`--name` / `--page` 会搜索全部 FRAME / SECTION / COMPONENT / COMPONENT_SET（含嵌套）；大文件优先过滤；空过滤值（`--name=`）返回 exit 2；
-- `frames --file=<损坏文件>` 返回 exit 1（不再伪装成「没有 FRAME」）；`frames --json` 每行带 `cacheDepth`，非 null 表示该行来自 `--depth` 裁剪缓存；人读输出的 children 会加 `*` 并附说明；
+- `frames --file=<损坏文件>` 返回 exit 1（不再伪装成「没有 FRAME」）；`frames` 每行（人读与 `--json`）都带 `pageId`（来自完整页面缓存的 CANVAS id）；`--json` 的 `cacheDepth` 非 null 表示该行来自 `--depth` 裁剪缓存；人读输出的 children 会加 `*` 并附说明；
 - `tokens` 的 ids 会去重（`1:1,1:1` 不会把同一子树统计两遍）；`tokens ','` / 空 id 返回 exit 2；
 - `fetch images` 不缓存：每次调用都重新请求，直接输出 `id<TAB>url`；`--depth` / `--refresh` / `--check-stale` 不适用；
 - `fetch nodes` 不接受 `--scale`；缓存损坏默认报错（`--refresh` 才覆盖），部分缺失会写入 `missingNodeIds`；

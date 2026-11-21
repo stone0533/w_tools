@@ -235,8 +235,8 @@ class TokenCollector {
     final characters = '${node['characters'] ?? ''}';
     final id = '${node['id'] ?? ''}';
     if (characters.isNotEmpty) {
-      final short = characters.length > 12 ? characters.substring(0, 12) : characters;
-      return '「$short」${id.isEmpty ? '' : ' ($id)'}';
+      // JSON samples 保留全文；视觉截断只在 Markdown 渲染层做，避免 UTF-16 切断代理项。
+      return '「$characters」${id.isEmpty ? '' : ' ($id)'}';
     }
     final name = '${node['name'] ?? ''}';
     if (name.isEmpty) return id;

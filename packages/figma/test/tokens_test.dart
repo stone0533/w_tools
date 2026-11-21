@@ -130,6 +130,70 @@ void main() {
     expect(c.texts.length, 1);
   });
 
+  test('samples 保留完整 emoji，Markdown 按 runes 截断', () {
+    final chars = '😀' * 14;
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': chars,
+      'style': {
+        'fontFamily': 'Noto Sans',
+        'fontSize': 14,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0.2, 'g': 0.2, 'b': 0.2},
+        },
+      ],
+      'children': <Object?>[],
+    });
+
+    final sample = c.colorsSorted().single.samples.single;
+    expect(sample, contains(chars));
+    // 完整 sample 不能含孤立代理项
+    expect(sample.codeUnits.where((unit) => unit >= 0xD800 && unit <= 0xDFFF), hasLength(28));
+
+    final md = const TokenRenderer().renderMarkdown(
+      tokens: c,
+      source: 'test',
+      nodeIds: const ['1:1'],
+    );
+    expect(md, contains('…'));
+    expect(md, isNot(contains('😀' * 14)));
+  });
+
+  test('长文本 Markdown 加省略号；JSON samples 是完整 characters', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': '2025/10/03 20:00 到期',
+      'style': {
+        'fontFamily': 'Noto Sans',
+        'fontSize': 14,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0.2, 'g': 0.2, 'b': 0.2},
+        },
+      ],
+      'children': <Object?>[],
+    });
+    final sample = c.colorsSorted().single.samples.single;
+    expect(sample, contains('2025/10/03 20:00 到期'));
+    final md = const TokenRenderer().renderMarkdown(
+      tokens: c,
+      source: 'test',
+      nodeIds: const ['1:1'],
+    );
+    expect(md, contains('2025/10/03 2…'));
+  });
+
   test('opacity=0 的节点及其子树不计入 token', () {
     final c = TokenCollector();
     c.collect({

@@ -3,6 +3,20 @@ import 'token_collector.dart';
 /// 颜色语义映射的 key：去掉 `#`、转大写（CLI 解析 YAML 与渲染共用）。
 String colorKey(String value) => value.split('@').first.replaceAll('#', '').toUpperCase();
 
+/// Markdown 样例的视觉截断：按 Unicode code point（runes）截 12 个，补 `…`。
+///
+/// 只用于人读表格；`tokens --json` 的 `samples` 保留完整 characters。
+String shortenSample(String sample) {
+  final start = sample.indexOf('「');
+  final end = sample.indexOf('」', start + 1);
+  if (start < 0 || end < 0) return sample;
+  final text = sample.substring(start + 1, end);
+  final runes = text.runes.toList();
+  if (runes.length <= 12) return sample;
+  final short = String.fromCharCodes(runes.take(12));
+  return '${sample.substring(0, start)}「$short…」${sample.substring(end + 1)}';
+}
+
 /// 把统计结果渲染成 Markdown（与项目里的 `design-tokens.md` 结构对齐）。
 class TokenRenderer {
   const TokenRenderer();
@@ -36,9 +50,10 @@ class TokenRenderer {
       if (colorNames.isNotEmpty) {
         final name = colorNames[colorKey(c.value)] ?? '新增';
         buf.writeln(
-            '| `${cell(c.value)}` | ${cell(name)} | ${c.count} | ${cell(c.samples.join(' / '))} |');
+            '| `${cell(c.value)}` | ${cell(name)} | ${c.count} | ${cell(c.samples.map(shortenSample).join(' / '))} |');
       } else {
-        buf.writeln('| `${cell(c.value)}` | ${c.count} | ${cell(c.samples.join(' / '))} |');
+        buf.writeln(
+            '| `${cell(c.value)}` | ${c.count} | ${cell(c.samples.map(shortenSample).join(' / '))} |');
       }
     }
 
@@ -58,7 +73,7 @@ class TokenRenderer {
         '| ${t.family} | ${t.size} | ${t.weight} | ${styles.isEmpty ? '-' : styles.join(' ')} | '
         '${t.lineHeight} | '
         '${t.letterSpacing} | ${t.align} | `${t.color}` | ${t.count} | '
-        '${cell(t.samples.join(' / '))} |',
+        '${cell(t.samples.map(shortenSample).join(' / '))} |',
       );
     }
 
