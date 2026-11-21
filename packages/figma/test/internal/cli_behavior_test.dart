@@ -663,8 +663,11 @@ void main() {
     expect(colors.every((c) => c['count'] == 1), isTrue);
     expect(colors.first['samples'], isA<List<dynamic>>());
 
+    expect('${payload['sources']}', contains('nodes-K-1-2.json'));
+
     final texts = (payload['texts'] as List).cast<Map<String, dynamic>>();
     expect(texts.single['family'], 'Inter');
+    expect(texts.single.containsKey('fontStyle'), isTrue);
     expect(texts.single['size'], '14');
     expect(texts.single['color'], '#333333');
 

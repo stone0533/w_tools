@@ -118,13 +118,23 @@ class SpecDiff {
     add('name', '${before['name'] ?? ''}', '${after['name'] ?? ''}');
     if ('${after['type']}' == 'TEXT' || '${before['type']}' == 'TEXT') {
       add('characters', '${before['characters'] ?? ''}', '${after['characters'] ?? ''}');
-      add('text', figmaTextSpec(before), figmaTextSpec(after));
+      add('text', _textForDiff(before), _textForDiff(after));
     }
 
     // 子节点按 id 配对后递归；顺序变化不计为改动。
     // 位置用相对父节点的坐标，整页平移不会刷出全量子节点改动。
     final beforeChildren = _childrenById(before);
     final afterChildren = _childrenById(after);
+    final beforeOrder = beforeChildren.keys.toList();
+    final afterOrder = afterChildren.keys.toList();
+    final sameSet =
+        beforeOrder.length == afterOrder.length && beforeOrder.every(afterChildren.containsKey);
+    if (sameSet &&
+        beforeOrder.length == afterOrder.length &&
+        !List.generate(beforeOrder.length, (i) => beforeOrder[i] == afterOrder[i])
+            .every((same) => same)) {
+      add('order', beforeOrder.join(','), afterOrder.join(','));
+    }
     for (final entry in afterChildren.entries) {
       final old = beforeChildren[entry.key];
       if (old != null) {
@@ -147,7 +157,8 @@ class SpecDiff {
       if (paint is! Map || paint['visible'] == false) continue;
       final type = '${paint['type'] ?? ''}';
       if (type.startsWith('IMAGE')) {
-        parts.add('$type:${paint['imageRef'] ?? paint['imageHash'] ?? ''}');
+        parts.add('$type:${paint['imageRef'] ?? paint['imageHash'] ?? ''}:'
+            'opacity=${paint['opacity'] ?? 1}');
       } else if (type.startsWith('GRADIENT')) {
         parts.add('$type:${_gradientStops(paint['gradientStops'])}:'
             '${_gradientHandles(paint['gradientHandlePositions'])}:${paint['gradientTransform'] ?? ''}:'
@@ -209,7 +220,8 @@ class SpecDiff {
   String _radius(Map node) {
     final r = node['cornerRadius'];
     final radii = node['rectangleCornerRadii'];
-    return '${r ?? ''}|${radii is List ? radii.join(',') : ''}';
+    return '${r ?? ''}|${radii is List ? radii.join(',') : ''}|'
+        '${node['cornerSmoothing'] ?? 0}';
   }
 
   String _position(Map node, Map? parent) {
@@ -229,9 +241,25 @@ class SpecDiff {
     final right = node['paddingRight'];
     final top = node['paddingTop'];
     final bottom = node['paddingBottom'];
+    final constraints = node['constraints'];
     return 'layoutMode=${node['layoutMode']} itemSpacing=$spacing '
-        'padding=$left,$right,$top,$bottom '
-        'primary=${node['primaryAxisAlignItems']} counter=${node['counterAxisAlignItems']}';
+        'padding=l:$left,r:$right,t:$top,b:$bottom '
+        'primary=${node['primaryAxisAlignItems']} counter=${node['counterAxisAlignItems']} '
+        'sizing=${node['layoutSizingHorizontal']}/${node['layoutSizingVertical']} '
+        'grow=${node['layoutGrow']} positioning=${node['layoutPositioning']} '
+        'wrap=${node['layoutWrap']} counterSpacing=${node['counterAxisSpacing']} '
+        'constraints=${constraints is Map ? '${constraints['horizontal']}/${constraints['vertical']}' : '-'}';
+  }
+
+  String _textForDiff(Map node) {
+    final style = node['style'];
+    if (style is! Map) return figmaTextSpec(node);
+    final copy = Map<String, dynamic>.from(node);
+    final cleanStyle = Map<String, dynamic>.from(style)
+      ..remove('textDecoration')
+      ..remove('textCase');
+    copy['style'] = cleanStyle;
+    return figmaTextSpec(copy);
   }
 
   String _styleText(Map node, String key) {

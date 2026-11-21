@@ -54,7 +54,12 @@ class FigmaSpecRenderer {
       if (showLayout) '布局',
       '文字',
     ];
+    final rootRadius = _radiusText(frame);
+    final rootOpacity = (frame['opacity'] as num?)?.toDouble();
     final rootExtras = <String>[
+      if (rootRadius.isNotEmpty) '圆角 $rootRadius',
+      if (rootOpacity != null && rootOpacity < 1) '透明度 ${pyFixed(rootOpacity, 2)}',
+      if (frame['isMask'] == true) 'mask',
       if ((frame['rotation'] as num?) != null && (frame['rotation'] as num) != 0)
         '旋转 ${pyFixed(frame['rotation'], 2)}°',
       if (frame['clipsContent'] == true) '裁切',
@@ -79,10 +84,12 @@ class FigmaSpecRenderer {
       ..writeln('| ${columns.join(' | ')} |')
       ..writeln('| ${columns.map((_) => '---').join(' | ')} |');
 
-    void walk(Map n, int depth, bool inheritedVisible) {
+    void walk(Map n, int depth, bool inheritedVisible, double inheritedOpacity) {
       for (final c in (n['children'] as List?) ?? const []) {
         if (c is! Map) continue;
-        final visible = inheritedVisible && c['visible'] != false;
+        final childOpacity = (c['opacity'] as num?)?.toDouble() ?? 1;
+        final effectiveOpacity = inheritedOpacity * childOpacity;
+        final visible = inheritedVisible && c['visible'] != false && effectiveOpacity > 0;
         final name = '${c['name'] ?? ''}';
         if (skipNamePrefixes.any(name.startsWith)) continue;
         final bb = c['absoluteBoundingBox'];
@@ -93,8 +100,7 @@ class FigmaSpecRenderer {
           final w = pyFixed(bb['width'], 1);
           final h = pyFixed(bb['height'], 1);
           final radius = _radiusText(c);
-          final opacity = (c['opacity'] as num?)?.toDouble();
-          final opacityText = opacity != null && opacity < 1 ? pyFixed(opacity, 2) : '';
+          final opacityText = childOpacity < 1 ? pyFixed(childOpacity, 2) : '';
           final isText = '${c['type']}' == 'TEXT';
           final text = isText ? figmaTextSpec(c) : '';
           final characters = '${c['characters'] ?? ''}';
@@ -108,21 +114,32 @@ class FigmaSpecRenderer {
             '${_cell('$chars$text')} |',
           );
         }
-        walk(c, depth + 1, visible);
+        walk(c, depth + 1, visible, effectiveOpacity);
       }
     }
 
-    walk(frame, 0, true);
+    if ('${frame['type']}' == 'TEXT') {
+      final chars = '${frame['characters'] ?? ''}';
+      buf.writeln(
+        '文字：${chars.isEmpty ? '' : '“$chars” '}${_cell(figmaTextSpec(frame))}',
+      );
+      buf.writeln();
+    }
+    walk(frame, 0, true, rootOpacity ?? 1);
     return buf.toString();
   }
 
   String _radiusText(Map node) {
     final radii = node['rectangleCornerRadii'];
+    final smoothing = (node['cornerSmoothing'] as num?)?.toDouble() ?? 0;
+    final smooth = smoothing > 0 ? ' smooth=${pyFixed(smoothing, 2)}' : '';
     if (radii is List && radii.length >= 4) {
-      return radii.take(4).map((v) => '${v ?? 0}').join(',');
+      return '${radii.take(4).map((v) => '${v ?? 0}').join(',')}$smooth';
     }
     final corner = node['cornerRadius'];
-    return (corner is num && corner != 0) ? '$corner' : '';
+    return corner is num
+        ? '$corner$smooth'
+        : (smoothing > 0 ? 'smooth=${pyFixed(smoothing, 2)}' : '');
   }
 
   String _visualPrefix(Map node) {
@@ -140,24 +157,39 @@ class FigmaSpecRenderer {
 
   String _layoutSpec(Map node) {
     final mode = '${node['layoutMode'] ?? ''}';
-    if (mode != 'HORIZONTAL' && mode != 'VERTICAL') return '';
-    final parts = <String>['layoutMode=$mode'];
-    final spacing = node['itemSpacing'];
-    if (spacing != null) parts.add('itemSpacing=$spacing');
-    final pads = <Object?>[
-      node['paddingLeft'],
-      node['paddingRight'],
-      node['paddingTop'],
-      node['paddingBottom'],
-    ];
-    if (pads.any((v) => v != null)) {
-      parts.add('padding=${pads.map((v) => v ?? '-').join(',')}');
+    final parts = <String>[];
+    if (mode == 'HORIZONTAL' || mode == 'VERTICAL') {
+      parts.add('layoutMode=$mode');
+      final spacing = node['itemSpacing'];
+      if (spacing != null) parts.add('itemSpacing=$spacing');
+    }
+    final left = node['paddingLeft'];
+    final right = node['paddingRight'];
+    final top = node['paddingTop'];
+    final bottom = node['paddingBottom'];
+    if (<Object?>[left, right, top, bottom].any((v) => v != null)) {
+      parts.add('padding=(l:${left ?? '-'},r:${right ?? '-'},t:${top ?? '-'},b:${bottom ?? '-'})');
     }
     final primary = node['primaryAxisAlignItems'];
     final counter = node['counterAxisAlignItems'];
     if (primary != null || counter != null) {
       parts.add('align=${primary ?? '-'}/${counter ?? '-'}');
     }
+    final hs = node['layoutSizingHorizontal'];
+    final vs = node['layoutSizingVertical'];
+    if (hs != null || vs != null) parts.add('sizing=${hs ?? '-'}/${vs ?? '-'}');
+    final grow = node['layoutGrow'];
+    if (grow is num && grow != 0) parts.add('grow=$grow');
+    if (node['layoutPositioning'] == 'ABSOLUTE') parts.add('position=ABSOLUTE');
+    final constraints = node['constraints'];
+    if (constraints is Map) {
+      parts
+          .add('constraints=${constraints['horizontal'] ?? '-'}/${constraints['vertical'] ?? '-'}');
+    }
+    final wrap = node['layoutWrap'];
+    if (wrap != null) parts.add('wrap=$wrap');
+    final counterSpacing = node['counterAxisSpacing'];
+    if (counterSpacing != null) parts.add('counterSpacing=$counterSpacing');
     return parts.join(' ');
   }
 }

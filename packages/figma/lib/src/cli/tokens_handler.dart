@@ -22,7 +22,7 @@ Future<void> runTokens(List<String> args) async {
     exitCode = 2;
     return;
   }
-  final nodeIds = rawIds.split(',').where((e) => e.isNotEmpty).toList();
+  final nodeIds = rawIds.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
   if (options.json && options.out != null) {
     throw const FormatException('--json 与 --out 不能同时使用');
   }
@@ -34,8 +34,13 @@ Future<void> runTokens(List<String> args) async {
   }
 
   final colorNames = _loadColorNames(options.mapFile);
+  final cacheStore = CacheStore(Directory(options.root));
+  if (options.file == null) {
+    final warning = multiFileKeyWarning(cacheStore, nodeIds);
+    if (warning != null) printNote(warning);
+  }
   final report = buildTokensReport(
-    CacheStore(Directory(options.root)),
+    cacheStore,
     nodeIds: nodeIds,
     file: options.file,
     min: options.min,
@@ -118,17 +123,14 @@ TokensReport buildTokensReport(
     collector.collect(node);
   }
 
-  final sourceFiles = sources.values
-      .map((cache) {
-        final relative = relativeToRoot(store.root, cache);
-        return relative == cache.path ? cache.uri.pathSegments.last : relative;
-      })
-      .toSet()
-      .toList();
+  final sourceFiles =
+      sources.values.map((cache) => relativeToRoot(store.root, cache)).toSet().toList();
+  final sourceLabels =
+      sources.values.map((cache) => cache.uri.pathSegments.last).toSet().join(', ');
   final markdown = includeMarkdown
       ? renderer.renderMarkdown(
           tokens: collector,
-          source: sourceFiles.join(', '),
+          source: sourceLabels,
           nodeIds: nodeIds,
           colorNames: colorNames,
         )
@@ -187,6 +189,7 @@ List<Map<String, Object?>> _textsJson(List<TextStyleUsage> items) => [
           'family': item.family,
           'size': item.size,
           'weight': item.weight,
+          'fontStyle': item.fontStyle,
           'lineHeight': item.lineHeight,
           'letterSpacing': item.letterSpacing,
           'align': item.align,

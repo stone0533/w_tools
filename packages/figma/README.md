@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^1.1.0
+  w_tools_figma: ^1.2.0
 ```
 
 开发版使用 path 依赖：
@@ -197,12 +197,13 @@ cd packages/figma
 
 - `tokens --out=<path>` 与 `--json` 互斥；`--map=<yaml>` 用于语义名映射，`--json` 的 `colors[].name` 也会带上映射；
 - `spec --node-only` 只与 `--json` 一起使用；只返回结构化 `node`（不生成 markdown）；`--node-depth=<n>` 只限制 `node` 的子节点深度；
-- `spec --skip-name-prefix=<s>` 跳过名称以该前缀开头的节点（逗号分隔）；`--with-id` 让 markdown 表格加 nodeId 列，`--with-layout` 让 markdown 表格加布局列（layoutMode / itemSpacing / padding），默认都不加；
+- `spec --skip-name-prefix=<s>` 跳过名称以该前缀开头的节点（逗号分隔）；`--with-id` 让 markdown 表格加 nodeId 列，`--with-layout` 让 markdown 表格加布局列（layoutMode / itemSpacing / padding=(l/r/t/b) / sizing / positioning / constraints），默认都不加；`clipsContent` / `isMask` 只标 `true`，`false` 与字段缺失不单独输出；
 - `tokens --skip-markdown` 只与 `--json` 一起用，不渲染 markdown；
 - `cache clean` 必须给 `--yes`（无论是否 `--all`）；`--all` 清所有项目缓存，拒绝提示统计所有项目，但不会动账号级 `_usage.log` / `_budget.json`；
 - `cache stats --files` 列出每个文件并按 `legacy`（旧 `file-*`）/ `nodes` / `index` 分类，`indexed` 表示 `_nodes-index.json` 是否引用该文件；`cache clean --legacy --yes` 只删旧 `file-*`，`cache clean --file=<path> --yes` 只删点名文件；`nodes-<key>-0-1.json` 是有效的整页缓存，不是自动可回收的 orphan；
-- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；`--root` 默认向上找最近的 `pubspec.yaml` / `.git`；
-- `frames --all` 可配合 `--depth=<n>`（0 = 顶层，隐含 `--all`）和 `--limit=<n>` 收窄；`--name` / `--page` 会搜索全部 FRAME（含嵌套）；大文件优先过滤；
+- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；已有完整缓存时直接返回完整文件、不生成 `-dN`（`--refresh` 才重新拉）；`--root` 默认向上找最近的 `pubspec.yaml` / `.git`；
+- 单节点缓存没有 CANVAS 父节点，`page` 显示为未知；`frames --page` 会提示可能漏掉这类缓存，需要完整页面缓存或 `--file=`；显式 `--page=-` 可只列这些未知 page 的单节点缓存。 
+- `frames --all` 可配合 `--depth=<n>`（0 = 顶层，隐含 `--all`）和 `--limit=<n>` 收窄；`--name` / `--page` 会搜索全部 FRAME / SECTION / COMPONENT / COMPONENT_SET（含嵌套）；大文件优先过滤；
 - `fetch images` 不缓存：每次调用都重新请求，直接输出 `id<TAB>url`；`--depth` / `--refresh` / `--check-stale` 不适用；
 - `fetch nodes` 不接受 `--scale`；缓存损坏默认报错（`--refresh` 才覆盖），部分缺失会写入 `missingNodeIds`；
 - `diff` 首次运行输出「已建立基线（无旧缓存，未做比较）」，JSON 带 `firstBaseline`；
@@ -293,10 +294,10 @@ dart run w_tools_figma:figma me
 ## 输出
 
 `--json` 输出带 `schema` 字段（`w_tools_figma.<命令>/1`）；文件清单、字段与"什么时候 bump"的策略见
-[`schema/README.md`](schema/README.md)。`tokens --json` 同时给结构化数组
+[`schema/README.md`](schema/README.md)。`tokens --json` 同时给结构化数组（文字项含 `fontStyle`，markdown 文字表有「样式」列）
 （`colors` / `texts` / `radii` / `spacings`）与 `markdown`，脚本不用解析人读文本。
 `tokens --json --skip-markdown` 可以只取结构化数组；多缓存汇总时看 `sources`。
-`fetch --json` 的 `missingNodeIds` 会列出 Figma 返回 null 的节点 id。
+`fetch --json` 的 `missingNodeIds` 会列出 Figma 返回 null 的节点 id；`checkedMeta` 表示本次是否执行了 `--check-stale` 的 `/meta` 检查；`versionUnknown` 表示缓存没有 version、无法判断是否过期。
 
 `spec --json` 固定返回 `items`（单个节点也是数组）：
 

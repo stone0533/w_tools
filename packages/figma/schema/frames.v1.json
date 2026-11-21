@@ -37,6 +37,9 @@
           "name": {
             "type": "string"
           },
+          "type": {
+            "type": "string"
+          },
           "width": {
             "type": [
               "number",

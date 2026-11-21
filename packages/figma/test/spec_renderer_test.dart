@@ -76,11 +76,11 @@ void main() {
     expect(md, contains('| 布局 |'));
     expect(
       md,
-      contains('根布局：layoutMode=HORIZONTAL itemSpacing=4 padding=12,12,6,6'),
+      contains('根布局：layoutMode=HORIZONTAL itemSpacing=4 padding=(l:12,r:12,t:6,b:6)'),
     );
     expect(
       md,
-      contains('layoutMode=VERTICAL itemSpacing=8 padding=16,16,10,10 align=MIN/CENTER'),
+      contains('layoutMode=VERTICAL itemSpacing=8 padding=(l:16,r:16,t:10,b:10) align=MIN/CENTER'),
     );
     expect(
       const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2'),
@@ -140,6 +140,134 @@ void main() {
     expect(md, contains('#333333@0.50'));
     expect(md, contains('deco=UNDERLINE'));
     expect(md, contains('A\\|B<br>C'));
+  });
+
+  test('TEXT 目标自身输出文字，opacity=0 标隐藏', () {
+    final textRoot = <String, dynamic>{
+      'id': '1:2',
+      'type': 'TEXT',
+      'name': 'OnlyText',
+      'characters': 'Hello',
+      'style': {'fontFamily': 'Inter', 'fontSize': 14, 'textAlignHorizontal': 'LEFT'},
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 20},
+      'children': <Object?>[],
+    };
+    final textMd = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(textRoot, '1:2');
+    expect(textMd, contains('文字：'));
+    expect(textMd, contains('Hello'));
+
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Root',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'children': [
+        {
+          'id': '1:3',
+          'type': 'RECTANGLE',
+          'name': 'Invisible',
+          'opacity': 0,
+          'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          'children': <Object?>[],
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2');
+    expect(md, contains('**隐藏**'));
+  });
+
+  test('文字 valign 与 cornerSmoothing 输出短标记', () {
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Root',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'children': [
+        {
+          'id': '1:3',
+          'type': 'TEXT',
+          'name': 'Text',
+          'characters': 'Hi',
+          'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 20},
+          'style': {
+            'fontFamily': 'Inter',
+            'textAlignHorizontal': 'LEFT',
+            'textAlignVertical': 'CENTER',
+          },
+          'children': <Object?>[],
+        },
+        {
+          'id': '1:4',
+          'type': 'RECTANGLE',
+          'name': 'Smooth',
+          'cornerRadius': 13,
+          'cornerSmoothing': 0.6,
+          'absoluteBoundingBox': {'x': 0, 'y': 20, 'width': 100, 'height': 20},
+          'children': <Object?>[],
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2');
+    expect(md, contains('valign=CENTER'));
+    expect(md, contains('13 smooth=0.60'));
+  });
+
+  test('渐变 opacity 用不歧义格式', () {
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Gradient',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'children': [
+        {
+          'id': '1:3',
+          'type': 'RECTANGLE',
+          'name': 'Grad',
+          'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+          'fills': [
+            {
+              'type': 'GRADIENT_LINEAR',
+              'opacity': 0.5,
+              'gradientStops': [
+                {
+                  'position': 0,
+                  'color': {'r': 1, 'g': 0, 'b': 0}
+                },
+                {
+                  'position': 1,
+                  'color': {'r': 0, 'g': 0, 'b': 1}
+                },
+              ],
+              'gradientHandlePositions': [
+                {'x': 0, 'y': 0},
+                {'x': 1, 'y': 0},
+              ],
+            },
+          ],
+          'children': <Object?>[],
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2');
+    expect(md, contains('opacity=0.50'));
+    expect(md, isNot(contains('@0.50@45°')));
+  });
+
+  test('根节点自身输出圆角 / opacity / mask', () {
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Card',
+      'opacity': 0.5,
+      'isMask': true,
+      'rectangleCornerRadii': [4, 0, 0, 4],
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'children': <Object?>[],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2');
+    expect(md, contains('圆角 4,0,0,4'));
+    expect(md, contains('透明度 0.50'));
+    expect(md, contains('mask'));
   });
 
   test('描边虚线 / 文字样式 / 隐藏层等关键属性都被渲染', () {

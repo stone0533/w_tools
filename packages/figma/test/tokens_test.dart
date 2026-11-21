@@ -41,6 +41,77 @@ void main() {
     expect(body16.count, 6);
   });
 
+  test('run 的 textCase 不同不会合并', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': 'AB',
+      'style': {
+        'fontFamily': 'Inter',
+        'fontSize': 14,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'characterStyleOverrides': [1, 2],
+      'styleOverrideTable': {
+        '1': {'fontSize': 14, 'textCase': 'UPPER'},
+        '2': {'fontSize': 14, 'textCase': 'LOWER'},
+      },
+      'children': <Object?>[],
+    });
+    expect(c.texts.length, 3, reason: 'base + UPPER + LOWER');
+  });
+
+  test('opacity=0 的节点及其子树不计入 token', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'FRAME',
+      'opacity': 0,
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 1, 'g': 0, 'b': 0, 'a': 1},
+        },
+      ],
+      'children': <Object?>[],
+    });
+    expect(c.colors, isEmpty);
+  });
+
+  test('rich text run 的颜色进入 token', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': 'AB',
+      'style': {
+        'fontFamily': 'Inter',
+        'fontSize': 14,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0.1, 'g': 0.2, 'b': 0.3, 'a': 1},
+        },
+      ],
+      'characterStyleOverrides': [1, 1],
+      'styleOverrideTable': {
+        '1': {
+          'fills': [
+            {
+              'type': 'SOLID',
+              'color': {'r': 1, 'g': 0, 'b': 0, 'a': 1},
+            },
+          ],
+        },
+      },
+      'children': <Object?>[],
+    });
+    expect(c.colors.values.map((e) => e.value), contains('#FF0000'));
+  });
+
   test('minCount 过滤掉低频项', () {
     final all = collect().colorsSorted();
     final filtered = collect(minCount: 6).colorsSorted();

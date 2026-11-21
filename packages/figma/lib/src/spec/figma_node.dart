@@ -28,6 +28,11 @@ String figmaPaintHex(Map paint) {
   return '${base.split('@').first}@${alpha.toStringAsFixed(2)}';
 }
 
+String _opacitySuffix(Map paint) {
+  final opacity = (paint['opacity'] as num?)?.toDouble() ?? 1;
+  return opacity < 1 ? '@${opacity.toStringAsFixed(2)}' : '';
+}
+
 int _channel(Object? v) => (((v as num?) ?? 0) * 255).round();
 
 String _hex2(int v) => v.toRadixString(16).toUpperCase().padLeft(2, '0');
@@ -41,7 +46,7 @@ String figmaFills(Map node) {
     if (type == 'SOLID') {
       out.add(figmaPaintHex(f));
     } else if (type.startsWith('IMAGE')) {
-      out.add('IMG');
+      out.add('IMG${_opacitySuffix(f)}');
     } else if (type.startsWith('GRADIENT')) {
       final stops = (f['gradientStops'] as List?) ?? const [];
       final colors = <String>[];
@@ -51,7 +56,7 @@ String figmaFills(Map node) {
           if (c.isNotEmpty) colors.add(c);
         }
       }
-      var label = colors.isEmpty ? 'GRAD' : 'GRAD(${colors.first}→${colors.last})';
+      var label = colors.isEmpty ? 'GRAD' : 'GRAD(${colors.join('→')})';
       final handles = f['gradientHandlePositions'];
       if (handles is List && handles.length >= 2 && handles[0] is Map && handles[1] is Map) {
         final a = handles[0] as Map;
@@ -61,6 +66,10 @@ String figmaFills(Map node) {
         if (dx != 0 || dy != 0) {
           label += '@${(math.atan2(dy, dx) * 180 / math.pi).toStringAsFixed(0)}°';
         }
+      }
+      final gradientOpacity = (f['opacity'] as num?)?.toDouble() ?? 1;
+      if (gradientOpacity < 1) {
+        label += ', opacity=${gradientOpacity.toStringAsFixed(2)}';
       }
       out.add(label);
     }
@@ -74,7 +83,9 @@ String figmaStrokes(Map node) {
   for (final s in (node['strokes'] as List?) ?? const []) {
     if (s is! Map || s['visible'] == false) continue;
     var desc = figmaPaintHex(s);
-    if ('${s['type'] ?? ''}' != 'SOLID') desc = '${s['type'] ?? '?'}';
+    if ('${s['type'] ?? ''}' != 'SOLID') {
+      desc = '${s['type'] ?? '?'}${_opacitySuffix(s)}';
+    }
     final weight = _numText(node['strokeWeight']);
     if (weight.isNotEmpty) desc += ' ${weight}px';
     final align = node['strokeAlign'];
@@ -84,13 +95,18 @@ String figmaStrokes(Map node) {
       final marks = <String>[];
       for (final entry in sides.entries) {
         if ((entry.value as num?) != null && (entry.value as num) != 0) {
-          marks.add('${entry.key}'[0].toUpperCase());
+          final side = '${entry.key}'.substring(0, 1).toUpperCase();
+          marks.add('$side=${_numText(entry.value)}');
         }
       }
       desc += ' [${marks.join(',')}]';
     }
     final dashes = node['strokeDashes'];
     if (dashes is List && dashes.isNotEmpty) desc += ' dash$dashes';
+    final cap = node['strokeCap'];
+    if (cap is String && cap != 'NONE' && cap != 'BUTT') desc += ' cap=$cap';
+    final join = node['strokeJoin'];
+    if (join is String && join != 'MITER') desc += ' join=$join';
     out.add(desc);
   }
   return out.isEmpty ? '-' : out.join('; ');
@@ -107,8 +123,9 @@ String figmaEffects(Map node) {
     final radius = e['radius'];
     if (radius is num && radius != 0) desc += ' r=$radius';
     final color = e['color'];
-    if (color is Map && color['a'] != null) {
-      desc += ' a=${(color['a'] as num).toDouble().toStringAsFixed(2)}';
+    if (color is Map && !effectColor.contains('@') && color['a'] != null) {
+      final alpha = (color['a'] as num).toDouble();
+      if (alpha < 1) desc += ' a=${alpha.toStringAsFixed(2)}';
     }
     final spread = e['spread'];
     if (spread is num && spread != 0) desc += ' spread=$spread';
@@ -131,6 +148,13 @@ String figmaTextSpec(Map node) {
     'lh=${_pyRound(st['lineHeightPx'], 1)}',
     'ls=${_pyRound(st['letterSpacing'], 2)}',
     'align=${st['textAlignHorizontal'] ?? '?'}',
+    if (st['textAlignVertical'] != null && st['textAlignVertical'] != 'TOP')
+      'valign=${st['textAlignVertical']}',
+    if (st['fontStyle'] != null && st['fontStyle'] != 'Regular') 'style=${st['fontStyle']}',
+    if (st['textAutoResize'] != null && st['textAutoResize'] != 'NONE')
+      'resize=${st['textAutoResize']}',
+    if ((st['paragraphSpacing'] as num?) != null && (st['paragraphSpacing'] as num) != 0)
+      'para=${_pyRound(st['paragraphSpacing'], 1)}',
     if (st['textDecoration'] != null) 'deco=${st['textDecoration']}',
     if (st['textCase'] != null) 'case=${st['textCase']}',
   ];
@@ -148,19 +172,23 @@ String figmaTextSpec(Map node) {
       return style is Map ? style : null;
     }
 
-    String styleKey(Map? style) {
-      if (style == null) return '';
-      final fs = (style['fills'] as List?) ?? const [];
-      final color = fs.isNotEmpty && fs.first is Map ? figmaHex((fs.first as Map)['color']) : '';
-      return '${style['fontWeight'] ?? ''}|$color';
-    }
-
     String styleText(Map? style) {
       if (style == null) return '';
       final fs = (style['fills'] as List?) ?? const [];
       final color = fs.isNotEmpty && fs.first is Map ? figmaHex((fs.first as Map)['color']) : '';
-      return '${style['fontWeight'] ?? ''} $color'.trim();
+      return <String>[
+        '${style['fontFamily'] ?? ''}',
+        '${style['fontSize'] ?? ''}px',
+        '${style['fontWeight'] ?? ''}',
+        if (style['fontStyle'] != null && style['fontStyle'] != 'Regular') '${style['fontStyle']}',
+        if (style['letterSpacing'] != null) 'ls=${_pyRound(style['letterSpacing'], 2)}',
+        if (style['textCase'] != null) 'case=${style['textCase']}',
+        if (style['textDecoration'] != null) 'deco=${style['textDecoration']}',
+        color,
+      ].where((e) => e.trim().isNotEmpty).join(' ');
     }
+
+    String styleKey(Map? style) => styleText(style);
 
     final runs = <String>[];
     var start = 0;

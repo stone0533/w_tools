@@ -52,6 +52,7 @@ class CommandArgs {
   bool get skipMarkdown => flag('skip-markdown');
   bool get withId => flag('with-id');
   bool get withLayout => flag('with-layout');
+  bool get skipHidden => flag('skip-hidden');
   int? get limit => intOption('limit');
   String? get skipNamePrefix => option('skip-name-prefix');
   bool get all => flag('all');
@@ -133,7 +134,9 @@ ArgParser parserFor(String command) {
         ..addOption('node-depth', valueHelp: 'n', help: '限制 node 子节点深度（0 = 不带 children）')
         ..addOption('skip-name-prefix', valueHelp: 's', help: '跳过名称以该前缀开头的节点（逗号分隔）')
         ..addFlag('with-id', negatable: false, help: 'markdown 表格加 nodeId 列')
-        ..addFlag('with-layout', negatable: false, help: 'markdown 表格加布局列');
+        ..addFlag('with-layout', negatable: false, help: 'markdown 表格加布局列')
+        ..addFlag('skip-hidden',
+            negatable: false, help: 'markdown 跳过 visible=false / opacity=0 的节点');
     case 'tokens':
       parser
         ..addOption('root', valueHelp: 'dir', help: '项目根（默认向上找 .git / pubspec）')

@@ -46,11 +46,11 @@ class TokenRenderer {
       ..writeln()
       ..writeln('## 文字')
       ..writeln()
-      ..writeln('| 字体 | 字号 | 字重 | 行高 | 字距 | 对齐 | 颜色 | 次数 | 示例 |')
-      ..writeln('| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+      ..writeln('| 字体 | 字号 | 字重 | 样式 | 行高 | 字距 | 对齐 | 颜色 | 次数 | 示例 |')
+      ..writeln('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
     for (final t in tokens.textsSorted()) {
       buf.writeln(
-        '| ${t.family} | ${t.size} | ${t.weight} | ${t.lineHeight} | '
+        '| ${t.family} | ${t.size} | ${t.weight} | ${t.fontStyle} | ${t.lineHeight} | '
         '${t.letterSpacing} | ${t.align} | `${t.color}` | ${t.count} | '
         '${cell(t.samples.join(' / '))} |',
       );

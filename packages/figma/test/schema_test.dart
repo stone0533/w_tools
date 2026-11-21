@@ -77,6 +77,7 @@ void main() {
           'family': 'Inter',
           'size': '14',
           'weight': '500',
+          'fontStyle': 'Regular',
           'lineHeight': '20',
           'letterSpacing': '0',
           'align': 'LEFT',

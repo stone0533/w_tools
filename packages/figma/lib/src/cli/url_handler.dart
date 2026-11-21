@@ -27,10 +27,11 @@ void runUrl(List<String> args) {
 
 /// 从 Figma 链接解析 `fileKey` 与 `nodeId`；只接受 Figma 链接。
 ({String fileKey, String? nodeId}) parseFigmaUrl(String input) {
-  if (input.contains('figma.com')) {
+  if (input.toLowerCase().contains('figma.com')) {
     final uri = Uri.tryParse(input);
-    if (uri == null) {
-      throw FormatException('不是合法的 URL：$input');
+    final host = (uri?.host ?? '').toLowerCase();
+    if (uri == null || (host != 'figma.com' && !host.endsWith('.figma.com'))) {
+      throw FormatException('需要一个 Figma 链接：$input');
     }
     final segments = uri.pathSegments;
     final keyIndex = segments.indexWhere(
@@ -39,8 +40,13 @@ void runUrl(List<String> args) {
     if (keyIndex < 0 || segments.length <= keyIndex + 1) {
       throw FormatException('URL 里找不到 fileKey：$input');
     }
+    final fileKey = segments[keyIndex + 1].trim();
+    if (fileKey.isEmpty) {
+      throw FormatException('URL 里找不到 fileKey：$input');
+    }
     final nodeRaw = uri.queryParameters['node-id'];
-    return (fileKey: segments[keyIndex + 1], nodeId: nodeRaw?.replaceAll('-', ':'));
+    final nodeId = (nodeRaw == null || nodeRaw.isEmpty) ? null : nodeRaw.replaceAll('-', ':');
+    return (fileKey: fileKey, nodeId: nodeId);
   }
   throw FormatException('需要一个 Figma 链接：$input');
 }

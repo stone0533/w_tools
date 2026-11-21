@@ -76,6 +76,7 @@
           "family",
           "size",
           "weight",
+          "fontStyle",
           "lineHeight",
           "letterSpacing",
           "align",
@@ -90,6 +91,9 @@
             "type": "string"
           },
           "weight": {
+            "type": "string"
+          },
+          "fontStyle": {
             "type": "string"
           },
           "lineHeight": {

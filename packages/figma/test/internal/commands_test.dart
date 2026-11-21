@@ -110,6 +110,8 @@ void main() {
       );
 
       expect(fetchJson(result)['missingNodeIds'], const <String>['2:3']);
+      expect(fetchJson(result, checkedMeta: true)['checkedMeta'], isTrue);
+      expect(fetchJson(result, versionUnknown: true)['versionUnknown'], isTrue);
     });
 
     test('nodes 部分 null 只缓存有效节点并报告缺失', () async {
@@ -158,6 +160,212 @@ void main() {
       expect(result.fromCache, isTrue);
       expect(result.missingNodeIds, <String>['2:3']);
       expect(client.calls, isEmpty);
+    });
+
+    test('精确缓存缺 id 时合并其它缓存并清理 missingNodeIds', () async {
+      final target = store.cacheFile(
+        kind: 'nodes',
+        fileKey: 'K',
+        ids: '1:2,2:3',
+      );
+      target.parent.createSync(recursive: true);
+      target.writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': {'id': '1:2', 'type': 'FRAME', 'name': 'One'},
+          },
+        },
+        'missingNodeIds': ['2:3'],
+      }));
+      store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '2:3'), {
+        'nodes': {
+          '2:3': {
+            'document': {'id': '2:3', 'type': 'FRAME', 'name': 'Two'},
+          },
+        },
+      });
+
+      final result = await FetchCommand(store: store, client: FakeClient({}))
+          .nodes(fileKey: 'K', ids: ['1:2', '2:3']);
+
+      expect(result.fromCache, isTrue);
+      expect(result.missingNodeIds, isEmpty);
+      final saved = jsonDecode(result.file.readAsStringSync()) as Map;
+      expect((saved['nodes'] as Map).keys, containsAll(<String>['1:2', '2:3']));
+      expect(saved.containsKey('missingNodeIds'), isFalse);
+    });
+
+    test('--depth 不复用完整缓存冒充 depth 缓存', () async {
+      store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '9:9,8:8'), {
+        'nodes': {
+          '9:9': {
+            'document': {'id': '9:9', 'type': 'FRAME', 'name': 'Full'},
+          },
+        },
+      });
+      final client = FakeClient({
+        'nodes': {
+          '9:9': {
+            'document': {'id': '9:9', 'type': 'FRAME', 'name': 'Fresh'},
+          },
+        },
+      });
+
+      final result = await FetchCommand(store: store, client: client)
+          .nodes(fileKey: 'K', ids: ['9:9'], depth: 2);
+
+      expect(result.fromCache, isTrue);
+      expect(result.file.path, endsWith('nodes-K-9-9-8-8.json'));
+      expect(client.calls, isEmpty);
+      expect(
+        store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '9:9', depth: 2).existsSync(),
+        isFalse,
+      );
+    });
+
+    test('多完整缓存合并时保留目标里未请求的节点', () async {
+      final target = store.cacheFile(
+        kind: 'nodes',
+        fileKey: 'K',
+        ids: '1:1,2:2',
+      );
+      store.write(target, {
+        'nodes': {
+          '1:1': {
+            'document': {'id': '1:1', 'type': 'FRAME', 'name': 'One'},
+            'components': {'comp': 1},
+          },
+          '3:3': {
+            'document': {'id': '3:3', 'type': 'FRAME', 'name': 'Keep'},
+          },
+        },
+      });
+      store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '2:2'), {
+        'nodes': {
+          '2:2': {
+            'document': {'id': '2:2', 'type': 'FRAME', 'name': 'Two'},
+          },
+        },
+      });
+
+      final result = await FetchCommand(store: store, client: FakeClient({}))
+          .nodes(fileKey: 'K', ids: ['1:1', '2:2'], depth: 2);
+
+      expect(result.fromCache, isTrue);
+      final saved = jsonDecode(result.file.readAsStringSync()) as Map;
+      expect((saved['nodes'] as Map).keys, containsAll(<String>['1:1', '2:2', '3:3']));
+    });
+
+    test('多个完整缓存分摊 ids 时 depth 合并为完整结果', () async {
+      store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:1'), {
+        'nodes': {
+          '1:1': {
+            'document': {'id': '1:1', 'type': 'FRAME', 'name': 'One'},
+            'components': {'comp': 1},
+          },
+        },
+      });
+      store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '2:2'), {
+        'nodes': {
+          '2:2': {
+            'document': {'id': '2:2', 'type': 'FRAME', 'name': 'Two'},
+          },
+        },
+      });
+      final client = FakeClient({});
+
+      final result = await FetchCommand(store: store, client: client)
+          .nodes(fileKey: 'K', ids: ['1:1', '2:2'], depth: 2);
+
+      expect(result.fromCache, isTrue);
+      expect(result.file.path, endsWith('nodes-K-1-1-2-2.json'));
+      expect(client.calls, isEmpty);
+      expect(
+        store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:1,2:2', depth: 2).existsSync(),
+        isFalse,
+      );
+      final saved = jsonDecode(result.file.readAsStringSync()) as Map;
+      expect((saved['nodes'] as Map).keys, containsAll(<String>['1:1', '2:2']));
+      expect(((saved['nodes'] as Map)['1:1'] as Map)['components'], isNotNull);
+    });
+
+    test('合并单 id 时保留批量缓存顶层 version 并报 stale', () async {
+      final batch = store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:1,2:2');
+      store.write(batch, {
+        'version': 'old',
+        'missingNodeIds': ['2:2'],
+        'nodes': {
+          '1:1': {
+            'document': {'id': '1:1', 'type': 'FRAME', 'name': 'One'},
+          },
+          '2:2': {
+            'document': {'id': '2:2', 'type': 'FRAME', 'name': 'Two'},
+          },
+        },
+      });
+      store.write(store.metaFile('K'), {'version': 'latest'});
+      final client = FakeClient({
+        'file': {'version': 'latest'}
+      });
+
+      final result = await FetchCommand(store: store, client: client)
+          .nodes(fileKey: 'K', ids: ['1:1'], checkStale: true);
+
+      expect(result.fromCache, isTrue);
+      expect(result.stale, isTrue);
+      expect(result.cachedVersion, 'old');
+      final saved = jsonDecode(result.file.readAsStringSync()) as Map;
+      expect(saved['version'], 'old');
+      expect(saved.containsKey('missingNodeIds'), isFalse);
+    });
+
+    test('--check-stale 用缓存自己的 version，不被 meta 洗白', () async {
+      store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:1'), {
+        'version': 'v1',
+        'nodes': {
+          '1:1': {
+            'document': {'id': '1:1', 'type': 'FRAME', 'name': 'Old'},
+          },
+        },
+      });
+      store.write(store.metaFile('K'), {'version': 'v2'});
+      final client = FakeClient({
+        'file': {'version': 'v2'},
+      });
+
+      final result = await FetchCommand(store: store, client: client)
+          .nodes(fileKey: 'K', ids: ['1:1'], checkStale: true);
+
+      expect(result.fromCache, isTrue);
+      expect(result.cachedVersion, 'v1');
+      expect(result.latestVersion, 'v2');
+      expect(result.stale, isTrue);
+    });
+
+    test('fetch 不跨 fileKey 复用缓存', () async {
+      final other = store.cacheFile(kind: 'nodes', fileKey: 'OTHER', ids: '1:1');
+      store.write(other, {
+        'nodes': {
+          '1:1': {
+            'document': {'id': '1:1', 'type': 'FRAME', 'name': 'from-other-file'},
+          },
+        },
+      });
+      final client = FakeClient({
+        'nodes': {
+          '1:1': {
+            'document': {'id': '1:1', 'type': 'FRAME', 'name': 'from-K'},
+          },
+        },
+      });
+
+      final result =
+          await FetchCommand(store: store, client: client).nodes(fileKey: 'K', ids: ['1:1']);
+
+      expect(result.fromCache, isFalse);
+      expect(client.calls, hasLength(1));
+      final saved = jsonDecode(result.file.readAsStringSync()) as Map;
+      expect(((saved['nodes'] as Map)['1:1'] as Map)['document']['name'], 'from-K');
     });
 
     test('拆分 id 命中已有缓存时不再请求', () async {
@@ -391,6 +599,16 @@ void main() {
       expect(() => parseFigmaUrl('https://example.com/a:b'), throwsFormatException);
       expect(() => parseFigmaUrl('C:/tmp/x'), throwsFormatException);
       expect(() => parseFigmaUrl('not a url'), throwsFormatException);
+      expect(() => parseFigmaUrl('https://notfigma.com/design/ABC'), throwsFormatException);
+      expect(() => parseFigmaUrl('https://www.figma.com/design//'), throwsFormatException);
+      expect(
+        parseFigmaUrl('https://WWW.FIGMA.COM/design/KEY/x?node-id=1-2').fileKey,
+        'KEY',
+      );
+      expect(
+        parseFigmaUrl('https://www.figma.com/design/KEY/x?node-id=').nodeId,
+        isNull,
+      );
     });
   });
 }

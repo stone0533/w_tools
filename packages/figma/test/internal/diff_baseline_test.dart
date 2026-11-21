@@ -31,7 +31,8 @@ class _RoutedClient implements FigmaClient {
   void close() {}
 }
 
-Map<String, dynamic> _nodesPayload(double width) => {
+Map<String, dynamic> _nodesPayload(double width, {String? version}) => {
+      if (version != null) 'version': version,
       'nodes': {
         '1:2': {
           'document': {
@@ -64,9 +65,9 @@ void main() {
     if (home.existsSync()) home.deleteSync(recursive: true);
   });
 
-  File writeNodesCache(File file, {required double width}) {
+  File writeNodesCache(File file, {required double width, String? version}) {
     file.parent.createSync(recursive: true);
-    file.writeAsStringSync(jsonEncode(_nodesPayload(width)));
+    file.writeAsStringSync(jsonEncode(_nodesPayload(width, version: version)));
     return file;
   }
 
@@ -86,6 +87,15 @@ void main() {
 
       expect(findNodesCache(store, '1:2')!.path, full.path);
       expect(findNodesCache(store, '1:2', preferFullDepth: false)!.path, depth.path);
+    });
+
+    test('按 fileKey 过滤，不拿其它文件的缓存当基线', () {
+      writeNodesCache(
+        store.cacheFile(kind: 'nodes', fileKey: 'OTHER', ids: '1:2'),
+        width: 10,
+      );
+      expect(findNodesCache(store, '1:2', fileKey: 'K'), isNull);
+      expect(findNodesCache(store, '1:2', fileKey: 'OTHER'), isNotNull);
     });
 
     test('没有缓存时返回 null，不抛错', () {
@@ -192,6 +202,7 @@ void main() {
       writeNodesCache(
         store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2', depth: 2),
         width: 10,
+        version: 'v1',
       );
       store.write(store.metaFile('K'), <String, dynamic>{'version': 'v1'});
       final client = _RoutedClient(version: 'v1', width: 10);
@@ -241,6 +252,7 @@ void main() {
       writeNodesCache(
         store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2', depth: 2),
         width: 10,
+        version: 'v1',
       );
       store.write(store.metaFile('K'), <String, dynamic>{'version': 'v1'});
       final client = _RoutedClient(version: 'v1', width: 10);

@@ -27,8 +27,13 @@ bool staleVersionUnchanged({
   required File? baseline,
   required Map<String, dynamic>? meta,
   required String? latest,
+  String? cachedVersion,
 }) {
-  if (latest == null || baseline == null || meta == null) return false;
+  if (latest == null || baseline == null) return false;
+  if (cachedVersion != null) {
+    return cachedVersion.isNotEmpty && cachedVersion == latest;
+  }
+  if (meta == null) return false;
   final version = '${meta['version'] ?? ''}';
   return version.isNotEmpty && version == latest;
 }
@@ -45,7 +50,12 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
   bool log = true,
 }) async {
   // 基线按缓存索引找（fetch 可能写成 -d<depth> 或批量 ids 的文件名），不要写死键。
-  final baseline = findNodesCache(store, nodeId, preferFullDepth: false);
+  final baseline = findNodesCache(
+    store,
+    nodeId,
+    preferFullDepth: false,
+    fileKey: fileKey,
+  );
   final target = store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: nodeId);
   final notes = diffBaselineNotes(baseline: baseline, targetPath: target.path);
 
@@ -56,7 +66,14 @@ Future<({DiffResult? result, List<String> notes, String? latestVersion})> execut
     latest = fileMeta?.version;
     lastTouchedAt = fileMeta?.lastTouchedAt;
     final meta = store.read(store.metaFile(fileKey));
-    if (staleVersionUnchanged(baseline: baseline, meta: meta, latest: latest)) {
+    final baselineJson = baseline == null ? null : store.read(baseline);
+    final baselineVersion = baseline == null ? '' : '${baselineJson?['version'] ?? ''}';
+    if (staleVersionUnchanged(
+      baseline: baseline,
+      meta: meta,
+      latest: latest,
+      cachedVersion: baselineVersion,
+    )) {
       return (result: null, notes: const <String>[], latestVersion: latest);
     }
   }
