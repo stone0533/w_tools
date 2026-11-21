@@ -27,7 +27,7 @@ Future<void> runSpec(
     exitCode = 2;
     return;
   }
-  final nodeIds = rawIds.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  final nodeIds = parseNodeIds(rawIds);
   if (nodeIds.isEmpty) {
     stderr.writeln('spec 需要 nodeId，例如：spec 1862:9222');
     exitCode = 2;
@@ -60,22 +60,32 @@ Future<void> runSpec(
     nodeDepth: options.nodeDepth,
     includeMarkdown: includeMarkdown,
     skipHidden: options.skipHidden,
+    preferFullDepth: !options.allowDepth,
     renderer: effectiveRenderer,
   );
 
+  final staleReport = options.file == null
+      ? staleDepthReport(cacheStore, result.entries.map((entry) => entry.source), nodeIds)
+      : const StaleDepthReport.none();
+  if (staleReport.stale) printNote(staleDepthMessage(staleReport));
+
   final depthLimited = depthLimitedCachePaths(result.entries.map((entry) => entry.source));
-  if (depthLimited.isNotEmpty) {
-    printNote(
-      '# 数据源来自 --depth 裁剪缓存（${depthLimited.join(', ')}），子节点可能缺失；'
-      '用 --file= 指定完整缓存，或重新 fetch nodes',
-    );
-  }
+  final depthMessage = depthLimited.isEmpty
+      ? null
+      : depthLimitedMessage(
+          depthLimited,
+          fullPaths: fullCachePathsForDepth(cacheStore, depthLimited, nodeIds),
+          explicitFile: options.file != null,
+        );
+  if (depthMessage != null) printNote(depthMessage);
 
   if (options.json) {
     final items = <Map<String, Object?>>[
       for (final entry in result.entries)
         <String, Object?>{
           'source': entry.source,
+          'sourceDepth': nodesCacheDepth(entry.source),
+          'depthLimited': nodesCacheDepth(entry.source) != null,
           'nodeId': entry.nodeId,
           if (entry.markdown != null && !options.nodeOnly) 'markdown': entry.markdown,
           'node': entry.node,
@@ -83,6 +93,9 @@ Future<void> runSpec(
     ];
     printLine(jsonEncode(<String, Object?>{
       'schema': 'w_tools_figma.specs/1',
+      'depthLimited': depthLimited.isNotEmpty,
+      'staleAgainstDepth': staleReport.stale,
+      'newerDepthAvailable': staleReport.toJson(),
       'items': items,
     }));
     return;
@@ -107,32 +120,62 @@ typedef SpecReport = ({List<SpecEntryData> entries, List<String> markdowns});
 
 bool _containsNode(Map node, String targetId) {
   if ('${node['id'] ?? ''}' == targetId) return true;
-  for (final child in (node['children'] as List?) ?? const []) {
+  final children = node['children'];
+  if (children is! List) return false;
+  for (final child in children) {
     if (child is Map && _containsNode(child, targetId)) return true;
   }
   return false;
 }
 
-/// 递归移除 visible=false / opacity=0 的子树，供 `--skip-hidden` 使用。
-Map<String, dynamic> _pruneHidden(Map node, String targetId) {
+/// 递归移除 `--skip-hidden` / `--skip-name-prefix` 命中的子树。
+///
+/// 目标节点及其祖先必须保留，否则 `findFigmaNode` 会找不到目标；node 与 markdown
+/// 共用这棵剪枝后的树，避免两者不一致。
+Map<String, dynamic> _pruneNodes(
+  Map node,
+  String targetId, {
+  required bool skipHidden,
+  required List<String> prefixes,
+}) {
   final copy = Map<String, dynamic>.from(node);
   final children = node['children'];
   if (children is List) {
-    copy['children'] = <Object?>[
-      for (final child in children)
-        if (child is Map)
-          ...(() {
-            final id = '${child['id'] ?? ''}';
-            final keep = id == targetId ||
-                _containsNode(child, targetId) ||
-                (child['visible'] != false && ((child['opacity'] as num?) ?? 1) > 0);
-            return keep ? <Object?>[_pruneHidden(child, targetId)] : <Object?>[];
-          })()
-        else
+    final kept = <Object?>[];
+    for (final child in children) {
+      if (child is! Map) {
+        kept.add(child);
+        continue;
+      }
+      final id = '${child['id'] ?? ''}';
+      final keep = id == targetId ||
+          _containsNode(child, targetId) ||
+          _keepChild(child, skipHidden: skipHidden, prefixes: prefixes);
+      if (keep) {
+        kept.add(_pruneNodes(
           child,
-    ];
+          targetId,
+          skipHidden: skipHidden,
+          prefixes: prefixes,
+        ));
+      }
+    }
+    copy['children'] = kept;
   }
   return copy;
+}
+
+bool _keepChild(
+  Map child, {
+  required bool skipHidden,
+  required List<String> prefixes,
+}) {
+  final name = '${child['name'] ?? ''}';
+  if (prefixes.any(name.startsWith)) return false;
+  if (!skipHidden) return true;
+  if (child['visible'] == false) return false;
+  final opacity = child['opacity'];
+  return !(opacity is num && opacity <= 0);
 }
 
 /// `spec` 的纯逻辑：定位缓存 → 取节点 → 按需裁剪 / 渲染。
@@ -143,9 +186,15 @@ SpecReport buildSpecReport(
   int? nodeDepth,
   bool includeMarkdown = true,
   bool skipHidden = false,
+  bool preferFullDepth = true,
   FigmaSpecRenderer renderer = const FigmaSpecRenderer(),
 }) {
-  final sources = resolveNodeCaches(store, nodeIds, explicitFile: file);
+  final sources = resolveNodeCaches(
+    store,
+    nodeIds,
+    explicitFile: file,
+    preferFullDepth: preferFullDepth,
+  );
   final documents = <File, Map<String, Map<String, dynamic>>>{};
   final entries = <SpecEntryData>[];
   final markdowns = <String>[];
@@ -161,8 +210,12 @@ SpecReport buildSpecReport(
       continue;
     }
     final rawNode = findFigmaNode(document, nodeId)!;
-    final node = nodeDepth == null ? rawNode : trimNode(rawNode, nodeDepth);
-    final renderDocument = skipHidden ? _pruneHidden(document, nodeId) : document;
+    final prefixes = renderer.skipNamePrefixes;
+    final renderDocument = (skipHidden || prefixes.isNotEmpty)
+        ? _pruneNodes(document, nodeId, skipHidden: skipHidden, prefixes: prefixes)
+        : document;
+    final renderNode = findFigmaNode(renderDocument, nodeId) ?? rawNode;
+    final node = nodeDepth == null ? renderNode : trimNode(renderNode, nodeDepth);
     final markdown =
         includeMarkdown ? renderer.renderMarkdownFromRoot(renderDocument, nodeId) : null;
     if (markdown != null) markdowns.add(markdown);

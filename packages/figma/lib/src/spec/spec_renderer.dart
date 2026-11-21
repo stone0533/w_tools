@@ -21,25 +21,30 @@ class FigmaSpecRenderer {
   final bool showLayout;
 
   /// 从任意根节点开始查找 [targetId]。
+  ///
+  /// markdown 与 `spec --json` 的 `items[].node` 必须描述同一棵子树：CANVAS / DOCUMENT
+  /// 没有 bbox 时按页面输出（子节点坐标相对页面原点），不要拿 `children.first` 顶替。
   String renderMarkdownFromRoot(Map root, String targetId) {
     final found = findFigmaNode(root, targetId);
     if (found == null) {
       throw StateError('在缓存里找不到节点 $targetId');
     }
-    var frame = found;
-    final bbox = frame['absoluteBoundingBox'];
-    if (bbox is! Map) {
-      // 传入的是 CANVAS/页面时没有 bbox，用第一个子节点兜底
-      final children = (frame['children'] as List?) ?? const [];
-      if (children.isEmpty || children.first is! Map) {
-        throw StateError('节点 $targetId 没有 absoluteBoundingBox，也没有子节点');
-      }
-      frame = children.first as Map;
+    final type = '${found['type'] ?? ''}';
+    final isPage = type == 'CANVAS' || type == 'DOCUMENT';
+    final isText = type == 'TEXT';
+    final bbox = found['absoluteBoundingBox'];
+    if (!isPage && bbox is! Map) {
+      throw StateError('节点 $targetId 缺少 absoluteBoundingBox，缓存可能已损坏');
     }
-
-    final fb = frame['absoluteBoundingBox'] as Map;
-    final ox = (fb['x'] as num).toDouble();
-    final oy = (fb['y'] as num).toDouble();
+    final fb = bbox is Map ? bbox : const <Object?, Object?>{};
+    if (!isPage && <Object?>[fb['x'], fb['y'], fb['width'], fb['height']].any((v) => v is! num)) {
+      throw StateError(
+        '节点 $targetId 的 absoluteBoundingBox 结构异常（需要 x/y/width/height），缓存可能已损坏',
+      );
+    }
+    final ox = fb['x'] is num ? (fb['x'] as num).toDouble() : 0.0;
+    final oy = fb['y'] is num ? (fb['y'] as num).toDouble() : 0.0;
+    final children = _list(found['children']);
     final columns = <String>[
       if (showNodeId) 'id',
       'x,y',
@@ -54,27 +59,33 @@ class FigmaSpecRenderer {
       if (showLayout) '布局',
       '文字',
     ];
-    final rootRadius = _radiusText(frame);
-    final rootOpacity = (frame['opacity'] as num?)?.toDouble();
+    final rootRadius = _radiusText(found);
+    final rootOpacity = found['opacity'] is num ? (found['opacity'] as num).toDouble() : null;
     final rootExtras = <String>[
       if (rootRadius.isNotEmpty) '圆角 $rootRadius',
       if (rootOpacity != null && rootOpacity < 1) '透明度 ${pyFixed(rootOpacity, 2)}',
-      if (frame['isMask'] == true) 'mask',
-      if ((frame['rotation'] as num?) != null && (frame['rotation'] as num) != 0)
-        '旋转 ${pyFixed(frame['rotation'], 2)}°',
-      if (frame['clipsContent'] == true) '裁切',
+      if (found['isMask'] == true) 'mask',
+      if (found['rotation'] is num && (found['rotation'] as num) != 0)
+        '旋转 ${pyFixed(found['rotation'], 2)}°',
+      if (found['clipsContent'] == true) '裁切',
     ];
+    final summary = isPage
+        ? '页面，${children.length} 个子节点'
+        : (isText
+            ? '文字 ${pyFixed(fb['width'], 0)}×${pyFixed(fb['height'], 0)}'
+                '，文字色 ${figmaFills(found)}，描边 ${figmaStrokes(found)}，'
+                '阴影 ${figmaEffects(found)}'
+            : '画板 ${pyFixed(fb['width'], 0)}×${pyFixed(fb['height'], 0)}'
+                '，背景 ${figmaFills(found)}，描边 ${figmaStrokes(found)}，'
+                '阴影 ${figmaEffects(found)}');
     final buf = StringBuffer()
-      ..writeln('# ${frame['name']}  ($targetId)')
+      ..writeln('# ${found['name']}  ($targetId)')
       ..writeln()
       ..writeln(
-        '画板 ${pyFixed(fb['width'], 0)}×${pyFixed(fb['height'], 0)}'
-        '，背景 ${figmaFills(frame)}，描边 ${figmaStrokes(frame)}，'
-        '阴影 ${figmaEffects(frame)}'
-        '${rootExtras.isEmpty ? '' : '，${rootExtras.join('，')}'}',
+        '$summary${rootExtras.isEmpty ? '' : '，${rootExtras.join('，')}'}',
       )
       ..writeln();
-    final rootLayout = showLayout ? _layoutSpec(frame) : '';
+    final rootLayout = showLayout ? _layoutSpec(found) : '';
     if (rootLayout.isNotEmpty) {
       buf
         ..writeln('根布局：$rootLayout')
@@ -85,24 +96,25 @@ class FigmaSpecRenderer {
       ..writeln('| ${columns.map((_) => '---').join(' | ')} |');
 
     void walk(Map n, int depth, bool inheritedVisible, double inheritedOpacity) {
-      for (final c in (n['children'] as List?) ?? const []) {
+      for (final c in _list(n['children'])) {
         if (c is! Map) continue;
-        final childOpacity = (c['opacity'] as num?)?.toDouble() ?? 1;
+        final childOpacity = c['opacity'] is num ? (c['opacity'] as num).toDouble() : 1.0;
         final effectiveOpacity = inheritedOpacity * childOpacity;
         final visible = inheritedVisible && c['visible'] != false && effectiveOpacity > 0;
         final name = '${c['name'] ?? ''}';
-        if (skipNamePrefixes.any(name.startsWith)) continue;
+        // 前缀命中时仍保留目标节点及其祖先，否则 --skip-name-prefix 会把目标一起剪掉。
+        if (skipNamePrefixes.any(name.startsWith) && !_containsId(c, targetId)) continue;
         final bb = c['absoluteBoundingBox'];
         final hidden = visible ? '' : '**隐藏** ';
-        if (bb is Map && ((bb['width'] as num?) ?? 0) > 0 && ((bb['height'] as num?) ?? 0) > 0) {
-          final x = (bb['x'] as num).toDouble() - ox;
-          final y = (bb['y'] as num).toDouble() - oy;
+        if (bb is Map && _num(bb['width']) > 0 && _num(bb['height']) > 0) {
+          final x = _num(bb['x']) - ox;
+          final y = _num(bb['y']) - oy;
           final w = pyFixed(bb['width'], 1);
           final h = pyFixed(bb['height'], 1);
           final radius = _radiusText(c);
           final opacityText = childOpacity < 1 ? pyFixed(childOpacity, 2) : '';
-          final isText = '${c['type']}' == 'TEXT';
-          final text = isText ? figmaTextSpec(c) : '';
+          final isTextNode = '${c['type']}' == 'TEXT';
+          final text = isTextNode ? figmaTextSpec(c) : '';
           final characters = '${c['characters'] ?? ''}';
           final chars = characters.isEmpty ? '' : '“$characters” ';
           final indent = '  ' * depth;
@@ -118,20 +130,21 @@ class FigmaSpecRenderer {
       }
     }
 
-    if ('${frame['type']}' == 'TEXT') {
-      final chars = '${frame['characters'] ?? ''}';
+    if (isText) {
+      final chars = '${found['characters'] ?? ''}';
       buf.writeln(
-        '文字：${chars.isEmpty ? '' : '“$chars” '}${_cell(figmaTextSpec(frame))}',
+        '文字：${chars.isEmpty ? '' : '“$chars” '}${_cell(figmaTextSpec(found))}',
       );
       buf.writeln();
     }
-    walk(frame, 0, true, rootOpacity ?? 1);
+    walk(found, 0, true, rootOpacity ?? 1);
     return buf.toString();
   }
 
   String _radiusText(Map node) {
     final radii = node['rectangleCornerRadii'];
-    final smoothing = (node['cornerSmoothing'] as num?)?.toDouble() ?? 0;
+    final smoothing =
+        node['cornerSmoothing'] is num ? (node['cornerSmoothing'] as num).toDouble() : 0.0;
     final smooth = smoothing > 0 ? ' smooth=${pyFixed(smoothing, 2)}' : '';
     if (radii is List && radii.length >= 4) {
       return '${radii.take(4).map((v) => '${v ?? 0}').join(',')}$smooth';
@@ -146,7 +159,7 @@ class FigmaSpecRenderer {
     final flags = <String>[
       if (node['isMask'] == true) '[mask]',
       if (node['clipsContent'] == true) '[clip]',
-      if ((node['rotation'] as num?) != null && (node['rotation'] as num) != 0)
+      if (node['rotation'] is num && (node['rotation'] as num) != 0)
         '[rot=${pyFixed(node['rotation'], 2)}°]',
     ];
     return flags.isEmpty ? '' : '${flags.join(' ')} ';
@@ -154,6 +167,18 @@ class FigmaSpecRenderer {
 
   String _cell(Object? value) =>
       '$value'.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>');
+
+  bool _containsId(Map node, String id) {
+    if ('${node['id'] ?? ''}' == id) return true;
+    for (final child in _list(node['children'])) {
+      if (child is Map && _containsId(child, id)) return true;
+    }
+    return false;
+  }
+
+  num _num(Object? value) => value is num ? value : 0;
+
+  List<Object?> _list(Object? value) => value is List ? value : const <Object?>[];
 
   String _layoutSpec(Map node) {
     final mode = '${node['layoutMode'] ?? ''}';

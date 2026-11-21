@@ -270,6 +270,103 @@ void main() {
     expect(md, contains('mask'));
   });
 
+  test('CANVAS 根节点按页面输出，不拿首个子节点顶替', () {
+    final page = <String, dynamic>{
+      'id': '0:1',
+      'type': 'CANVAS',
+      'name': '首页',
+      'children': [
+        {
+          'id': '10:1',
+          'type': 'FRAME',
+          'name': 'Table',
+          'absoluteBoundingBox': {'x': 20, 'y': 30, 'width': 300, 'height': 200},
+          'children': <Object?>[],
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(page, '0:1');
+    expect(md, contains('# 首页  (0:1)'));
+    expect(md, contains('页面，1 个子节点'));
+    expect(md, isNot(contains('# Table  (0:1)')));
+    expect(md, contains('| 20.0,30.0 |'));
+  });
+
+  test('TEXT 根节点标文字色，不叫背景', () {
+    final textRoot = <String, dynamic>{
+      'id': '20:1',
+      'type': 'TEXT',
+      'name': 'note',
+      'characters': 'Hello',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 48, 'height': 19},
+      'style': {'fontFamily': 'Inter', 'fontSize': 16, 'textAlignHorizontal': 'LEFT'},
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0.2, 'g': 0.2, 'b': 0.2},
+        },
+      ],
+      'children': <Object?>[],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(textRoot, '20:1');
+    expect(md, contains('文字 48×19，文字色 #333333'));
+    expect(md, isNot(contains('画板')));
+    expect(md, isNot(contains('背景')));
+  });
+
+  test('rich run 只有 decoration 时回退 base 字号，不输出孤立 px', () {
+    final text = <String, dynamic>{
+      'id': '21:1',
+      'type': 'TEXT',
+      'name': 'note',
+      'characters': 'abcdef',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 20},
+      'style': {
+        'fontFamily': 'Noto Sans TC',
+        'fontWeight': 400,
+        'fontSize': 16,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'characterStyleOverrides': <int>[0, 0, 0, 0, 3, 3],
+      'styleOverrideTable': {
+        '3': {'textDecoration': 'UNDERLINE'},
+      },
+      'children': <Object?>[],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(text, '21:1');
+    expect(md, contains('Noto Sans TC 16px 400 deco=UNDERLINE'));
+    expect(md, isNot(contains("'ef' px")));
+  });
+
+  test('根节点 bbox / style 结构异常时报可读错误', () {
+    final badBox = <String, dynamic>{
+      'id': '1:1',
+      'type': 'FRAME',
+      'name': 'bad',
+      'absoluteBoundingBox': {'y': 0, 'width': 10, 'height': 10},
+      'children': <Object?>[],
+    };
+    expect(
+      () => const figma.FigmaSpecRenderer().renderMarkdownFromRoot(badBox, '1:1'),
+      throwsA(
+          isA<StateError>().having((e) => e.message, 'message', contains('absoluteBoundingBox'))),
+    );
+
+    final badStyle = <String, dynamic>{
+      'id': '1:1',
+      'type': 'TEXT',
+      'name': 'bad',
+      'characters': 'hi',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+      'style': 'oops',
+      'children': <Object?>[],
+    };
+    expect(
+      () => const figma.FigmaSpecRenderer().renderMarkdownFromRoot(badStyle, '1:1'),
+      throwsA(isA<StateError>().having((e) => e.message, 'message', contains('style'))),
+    );
+  });
+
   test('描边虚线 / 文字样式 / 隐藏层等关键属性都被渲染', () {
     final md = markdown!;
     expect(md, contains('# Frame 15720  (1915:58517)'));

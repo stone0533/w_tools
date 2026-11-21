@@ -27,7 +27,7 @@ Future<void> runGet(List<String> args) async {
     final request = await client.getUrl(uri).timeout(const Duration(seconds: 60));
     final response = await request.close().timeout(const Duration(seconds: 60));
     if (response.statusCode != 200) {
-      throw StateError('下载失败：HTTP ${response.statusCode}');
+      throw StateError('下载失败：HTTP ${response.statusCode}（$rawUrl）');
     }
     final temp = File('${out.path}.tmp');
     if (temp.existsSync()) temp.deleteSync();

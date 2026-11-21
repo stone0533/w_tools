@@ -193,14 +193,16 @@ String filePath(File file) => file.absolute.uri.normalizePath().toFilePath();
   final rootPath = Directory(root.path).absolute.path;
   final candidate = File(raw).isAbsolute ? File(raw) : File('${root.path}/$raw');
   final file = File(filePath(candidate));
-  if (file.parent.path != rootPath) {
+  final resolvedRoot = _canonicalDir(rootPath);
+  // 先比较目录（不存在时只做绝对化），解析软链后再比较文件本身：
+  // macOS 上 `/tmp` 与 `/private/tmp` 是同一目录，但不能因此放行缓存目录外的文件。
+  if (_canonicalDir(file.parent.path) != resolvedRoot) {
     throw FormatException('--file 只能删当前项目缓存目录下的文件：$raw');
   }
   if (!file.existsSync()) {
     throw StateError('缓存文件不存在：${file.path}');
   }
   final resolved = File(file.resolveSymbolicLinksSync());
-  final resolvedRoot = Directory(rootPath).resolveSymbolicLinksSync();
   if (resolved.parent.path != resolvedRoot) {
     throw FormatException('--file 只能删当前项目缓存目录下的文件：$raw');
   }
@@ -210,6 +212,15 @@ String filePath(File file) => file.absolute.uri.normalizePath().toFilePath();
   final bytes = resolved.statSync().size;
   resolved.deleteSync();
   return (resolved, bytes);
+}
+
+String _canonicalDir(String path) {
+  final dir = Directory(path);
+  try {
+    return dir.resolveSymbolicLinksSync();
+  } on FileSystemException {
+    return dir.absolute.uri.normalizePath().toFilePath();
+  }
 }
 
 /// 只删旧 `file-*` 缓存；`nodes-*` 是有效缓存，不能按“看起来没用”删。

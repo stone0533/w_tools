@@ -416,6 +416,25 @@ void main() {
       expect(readDocument(file, '1:2'), isNull);
     });
 
+    test('readCacheFile 保留顶层 version / lastModified', () {
+      final file = File('${store.dir.path}/nodes-meta.json');
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(jsonEncode({
+        'version': '2415310932909825311',
+        'lastModified': '2026-10-28T07:39:10Z',
+        'nodes': {
+          '1:2': {
+            'document': {'id': '1:2', 'type': 'FRAME', 'name': 'Meta'}
+          },
+        },
+      }));
+
+      final content = readCacheFile(file);
+      expect(content.version, '2415310932909825311');
+      expect(content.lastModified, '2026-10-28T07:39:10Z');
+      expect(content.documents.keys, ['1:2']);
+    });
+
     test('nodes --depth 会带上 depth 且缓存文件名区分深度', () async {
       // 前面的用例可能已经写入同 id 的缓存；这个用例专门验证请求参数，先清空。
       if (store.dir.existsSync()) {
@@ -556,6 +575,30 @@ void main() {
 
       final second = initProject(store);
       expect(second.tokenCreated, isFalse);
+    });
+
+    test('token 文件为空时重建模板（不必加 --force）', () {
+      initProject(store);
+      store.tokenFile.writeAsStringSync('');
+      final result = initProject(store);
+      expect(result.tokenCreated, isTrue);
+      expect(store.tokenFile.readAsStringSync(), contains('figd_REPLACE_ME'));
+    });
+
+    test('token 文件只剩注释时也重建模板', () {
+      initProject(store);
+      store.tokenFile.writeAsStringSync('# only comments\n');
+      final result = initProject(store);
+      expect(result.tokenCreated, isTrue);
+      expect(store.tokenFile.readAsStringSync(), contains('figd_REPLACE_ME'));
+    });
+
+    test('只剩注释时 --force 不会误报已有真实 token', () {
+      initProject(store);
+      store.tokenFile.writeAsStringSync('# only comments\n');
+      final result = initProject(store, force: true);
+      expect(result.tokenCreated, isTrue);
+      expect(store.tokenFile.readAsStringSync(), contains('figd_REPLACE_ME'));
     });
   });
 

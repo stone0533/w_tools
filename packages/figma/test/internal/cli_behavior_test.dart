@@ -880,6 +880,561 @@ void main() {
     expect(token.statSync().mode & 0x1FF, 0x180);
   });
 
+  test('init 对已存在的 token 也收紧到 600', () async {
+    if (Platform.isWindows) return;
+    final token = CacheStore(root, home: home.path).tokenFile;
+    token.parent.createSync(recursive: true);
+    token.writeAsStringSync('figd_real');
+    Process.runSync('chmod', <String>['644', token.path]);
+
+    final result = await run(<String>['init']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(token.statSync().mode & 0x1FF, 0x180);
+  });
+
+  File writeCache(
+    String name,
+    Map<String, dynamic> document, {
+    String nodeId = '1:2',
+  }) {
+    final file = File('${store.dir.path}/$name');
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync(jsonEncode({
+      'nodes': {
+        nodeId: {'document': document}
+      },
+    }));
+    return file;
+  }
+
+  Map<String, dynamic> frame({
+    String id = '1:2',
+    String name = 'Demo',
+    List<Object?> children = const <Object?>[],
+  }) =>
+      <String, dynamic>{
+        'id': id,
+        'type': 'FRAME',
+        'name': name,
+        'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+        'children': children,
+      };
+
+  test('--root 不同写法落到同一缓存；空 / 不存在 / 选项在前都 exit 2', () async {
+    final plain = await run(<String>['cache', 'stats', '--root=${root.path}'], withRoot: false);
+    final dotted = await run(<String>['cache', 'stats', '--root=${root.path}/./'], withRoot: false);
+    expect(plain.exitCode, 0, reason: '${plain.stderr}');
+    expect(dotted.exitCode, 0, reason: '${dotted.stderr}');
+    final dirLine = '缓存目录：';
+    expect(
+      '${dotted.stdout}'.split('\n').firstWhere((line) => line.startsWith(dirLine)),
+      '${plain.stdout}'.split('\n').firstWhere((line) => line.startsWith(dirLine)),
+    );
+
+    final empty = await run(<String>['cache', 'stats', '--root='], withRoot: false);
+    expect(empty.exitCode, 2, reason: '${empty.stderr}');
+    final missing =
+        await run(<String>['cache', 'stats', '--root=/no/such/figma/dir'], withRoot: false);
+    expect(missing.exitCode, 2, reason: '${missing.stderr}');
+    final before = await run(<String>['--root=${root.path}', 'cache', 'stats'], withRoot: false);
+    expect(before.exitCode, 2, reason: '${before.stderr}');
+    expect('${before.stderr}', contains('选项要放在命令之后'));
+  });
+
+  test('--version / -v 与 version 等价', () async {
+    for (final args in <List<String>>[
+      <String>['--version'],
+      <String>['-v'],
+      <String>['version'],
+    ]) {
+      final result = await run(args, withRoot: false);
+      expect(result.exitCode, 0, reason: '$args: ${result.stderr}');
+      expect('${result.stdout}', contains('w_tools_figma'));
+    }
+  });
+
+  test('frames 空过滤值 exit 2；显式 --file 损坏 exit 1', () async {
+    writeCache('nodes-K-1-2.json', frame());
+
+    final emptyName = await run(<String>['frames', '--name=']);
+    expect(emptyName.exitCode, 2, reason: '${emptyName.stderr}');
+    expect('${emptyName.stderr}', contains('--name 不能为空'));
+
+    final bad = File('${store.dir.path}/nodes-K-bad.json')..writeAsStringSync('{not json');
+    final corrupt = await run(<String>['frames', '--file=${bad.path}']);
+    expect(corrupt.exitCode, 1, reason: '${corrupt.stderr}');
+    expect('${corrupt.stderr}', contains('缓存解析失败'));
+    expect('${corrupt.stdout}', isNot(contains('没有 FRAME')));
+  });
+
+  test('tokens 空 id exit 2；重复 id 去重', () async {
+    writeCache('nodes-K-red.json', {
+      'id': '1:2',
+      'type': 'RECTANGLE',
+      'name': 'Red',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+      'fills': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 1, 'g': 0, 'b': 0},
+        },
+      ],
+    });
+
+    final empty = await run(<String>['tokens', ',']);
+    expect(empty.exitCode, 2, reason: '${empty.stderr}');
+
+    final single = await run(<String>['tokens', '1:2', '--json', '--skip-markdown']);
+    final duplicate = await run(<String>['tokens', '1:2,1:2', '--json', '--skip-markdown']);
+    final singlePayload = jsonDecode('${single.stdout}') as Map<String, dynamic>;
+    final duplicatePayload = jsonDecode('${duplicate.stdout}') as Map<String, dynamic>;
+    expect(singlePayload['nodeIds'], <String>['1:2']);
+    expect(duplicatePayload['nodeIds'], <String>['1:2']);
+    expect(
+      (duplicatePayload['colors'] as List).first['count'],
+      (singlePayload['colors'] as List).first['count'],
+    );
+  });
+
+  test('frames 人类输出对 dN 行加截断标记', () async {
+    final file = File('${store.dir.path}/nodes-K-1-2-d2.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'version': '1',
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    expect(file.existsSync(), isTrue);
+
+    final result = await run(<String>['frames']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('0*'));
+    expect('${result.stdout}', contains('来自 --depth 裁剪缓存'));
+  });
+
+  test('frames --page=- 不再提示可能漏掉单节点缓存', () async {
+    writeCache('nodes-K-1-2.json', frame(name: 'Solo'));
+    final result = await run(<String>['frames', '--page=-']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stderr}', isNot(contains('可能漏掉')));
+  });
+
+  test('cache clean --file 输出路径与 cache stats 一致', () async {
+    writeCache('nodes-K-1-2.json', frame());
+    File('${store.dir.path}/dump.json').writeAsStringSync('{}');
+
+    final stats = await run(<String>['cache', 'stats']);
+    final dir = '${stats.stdout}'
+        .split('\n')
+        .firstWhere((line) => line.startsWith('缓存目录：'))
+        .replaceFirst('缓存目录：', '')
+        .trim();
+    final clean = await run(<String>['cache', 'clean', '--file=dump.json', '--yes']);
+    expect(clean.exitCode, 0, reason: '${clean.stderr}');
+    expect('${clean.stdout}', contains(dir));
+  });
+
+  test('spec / tokens 默认优先完整树，--allow-depth 才读裁剪缓存', () async {
+    final full = File('${store.dir.path}/nodes-K-1-2.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': frame(children: <Object?>[
+              {
+                'id': '1:3',
+                'type': 'TEXT',
+                'name': 'Title',
+                'characters': 'Hi',
+                'style': {'fontFamily': 'Inter', 'fontSize': 16},
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              },
+            ]),
+          },
+        },
+      }));
+    final depth = File('${store.dir.path}/nodes-K-1-2-d2.json')
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    full.setLastModifiedSync(DateTime.now().subtract(const Duration(hours: 1)));
+    depth.setLastModifiedSync(DateTime.now());
+
+    final tokens = await run(<String>['tokens', '1:2', '--json', '--skip-markdown']);
+    final tokensPayload = jsonDecode('${tokens.stdout}') as Map<String, dynamic>;
+    expect(tokens.exitCode, 0, reason: '${tokens.stderr}');
+    expect(tokensPayload['depthLimited'], isFalse);
+    expect((tokensPayload['sourceDepths'] as List).first['depth'], isNull);
+    expect('${tokens.stderr}', contains('完整缓存可能陈旧'));
+    expect('${tokens.stderr}', contains('dN 文件时间更晚'));
+
+    final spec = await run(<String>['spec', '1:2', '--json', '--node-only']);
+    final specPayload = jsonDecode('${spec.stdout}') as Map<String, dynamic>;
+    expect(spec.exitCode, 0, reason: '${spec.stderr}');
+    expect(specPayload['depthLimited'], isFalse);
+    expect((specPayload['items'] as List).first['sourceDepth'], isNull);
+
+    final depthOnly = await run(
+      <String>['tokens', '1:2', '--json', '--skip-markdown', '--allow-depth'],
+    );
+    final depthPayload = jsonDecode('${depthOnly.stdout}') as Map<String, dynamic>;
+    expect(depthPayload['depthLimited'], isTrue);
+    expect((depthPayload['sourceDepths'] as List).first['depth'], 2);
+  });
+
+  test('同 version 的 dN 文件更新不报陈旧；JSON 给稳定字段', () async {
+    final full = File('${store.dir.path}/nodes-K-same-1.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'version': '2415310932909825311',
+        'lastModified': '2026-10-28T07:39:10Z',
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    final depth = File('${store.dir.path}/nodes-K-same-1-d2.json')
+      ..writeAsStringSync(jsonEncode({
+        'version': '2415310932909825311',
+        'lastModified': '2026-10-28T07:39:10Z',
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    full.setLastModifiedSync(DateTime.now().subtract(const Duration(hours: 1)));
+    depth.setLastModifiedSync(DateTime.now());
+
+    final tokens = await run(<String>['tokens', '1:2', '--json', '--skip-markdown']);
+    final payload = jsonDecode('${tokens.stdout}') as Map<String, dynamic>;
+    expect(tokens.exitCode, 0, reason: '${tokens.stderr}');
+    expect(payload['staleAgainstDepth'], isFalse);
+    expect(payload['newerDepthAvailable'], isEmpty);
+    expect('${tokens.stderr}', isNot(contains('完整缓存可能陈旧')));
+    expect('${tokens.stderr}', isNot(contains('version')));
+
+    final spec = await run(<String>['spec', '1:2', '--json', '--node-only']);
+    final specPayload = jsonDecode('${spec.stdout}') as Map<String, dynamic>;
+    expect(spec.exitCode, 0, reason: '${spec.stderr}');
+    expect(specPayload['staleAgainstDepth'], isFalse);
+    expect(specPayload['newerDepthAvailable'], isEmpty);
+  });
+
+  test('dN version 更新时警告，并在 JSON 标出 newerDepthAvailable', () async {
+    final full = File('${store.dir.path}/nodes-K-newer-1.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'version': '2415310932909825311',
+        'lastModified': '2026-10-28T07:39:10Z',
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    expect(full.existsSync(), isTrue);
+    final depth = File('${store.dir.path}/nodes-K-newer-1-d2.json')
+      ..writeAsStringSync(jsonEncode({
+        'version': '2415310932909825312',
+        'lastModified': '2026-10-29T07:39:10Z',
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+
+    final tokens = await run(<String>['tokens', '1:2', '--json', '--skip-markdown']);
+    final payload = jsonDecode('${tokens.stdout}') as Map<String, dynamic>;
+    expect(tokens.exitCode, 0, reason: '${tokens.stderr}');
+    expect(payload['staleAgainstDepth'], isTrue);
+    final newer = (payload['newerDepthAvailable'] as List).cast<Map<String, dynamic>>();
+    expect(newer, hasLength(1));
+    expect(newer.single['nodeId'], '1:2');
+    expect(newer.single['source'], depth.path);
+    expect(newer.single['depth'], 2);
+    expect(newer.single['version'], '2415310932909825312');
+    expect('${tokens.stderr}', contains('完整缓存可能陈旧'));
+    expect('${tokens.stderr}', contains('dN version 2415310932909825312 更新'));
+
+    final spec = await run(<String>['spec', '1:2', '--json', '--node-only']);
+    final specPayload = jsonDecode('${spec.stdout}') as Map<String, dynamic>;
+    expect(spec.exitCode, 0, reason: '${spec.stderr}');
+    expect(specPayload['staleAgainstDepth'], isTrue);
+    final specNewer = (specPayload['newerDepthAvailable'] as List).cast<Map<String, dynamic>>();
+    expect(specNewer.single['nodeId'], '1:2');
+    expect(specNewer.single['source'], depth.path);
+    expect(specNewer.single['depth'], 2);
+  });
+
+  test('stale / depth 提示只引用同一 fileKey 的缓存', () async {
+    final fullA = File('${store.dir.path}/nodes-FILEA-10-1.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'version': '100',
+        'lastModified': '2026-10-28T07:39:10Z',
+        'nodes': {
+          '10:1': {'document': frame(id: '10:1', name: 'FILEA')},
+        },
+      }));
+    final depthB = File('${store.dir.path}/nodes-FILEB-10-1-d2.json')
+      ..writeAsStringSync(jsonEncode({
+        'version': '300',
+        'lastModified': '2026-10-29T07:39:10Z',
+        'nodes': {
+          '10:1': {'document': frame(id: '10:1', name: 'FILEB')},
+        },
+      }));
+    fullA.setLastModifiedSync(DateTime.now().subtract(const Duration(hours: 1)));
+    depthB.setLastModifiedSync(DateTime.now());
+
+    final normal = await run(<String>['tokens', '10:1', '--json', '--skip-markdown']);
+    final normalPayload = jsonDecode('${normal.stdout}') as Map<String, dynamic>;
+    expect(normal.exitCode, 0, reason: '${normal.stderr}');
+    expect((normalPayload['sources'] as List).single, contains('FILEA'));
+    expect(normalPayload['staleAgainstDepth'], isFalse);
+    expect(normalPayload['newerDepthAvailable'], isEmpty);
+    expect('${normal.stderr}', isNot(contains('完整缓存可能陈旧')));
+
+    final depth = await run(
+      <String>['tokens', '10:1', '--allow-depth', '--json', '--skip-markdown'],
+    );
+    final depthPayload = jsonDecode('${depth.stdout}') as Map<String, dynamic>;
+    expect(depth.exitCode, 0, reason: '${depth.stderr}');
+    expect((depthPayload['sources'] as List).single, contains('FILEB'));
+    expect(depthPayload['depthLimited'], isTrue);
+    expect('${depth.stderr}', isNot(contains('nodes-FILEA')));
+    expect('${depth.stderr}', contains('未找到同一 fileKey 的完整缓存'));
+  });
+
+  test('depth 警告只走 stderr，不写进 spec stdout / tokens --out', () async {
+    final depth = File('${store.dir.path}/nodes-K-1-2-d2.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    final out = File('${root.path}/design-tokens.md');
+
+    final spec = await run(<String>['spec', '1:2', '--file=${depth.path}']);
+    expect(spec.exitCode, 0, reason: '${spec.stderr}');
+    expect('${spec.stdout}', isNot(contains('⚠️')));
+    expect('${spec.stdout}', startsWith('# Demo  (1:2)'));
+    expect('${spec.stderr}', contains('--depth 裁剪缓存'));
+
+    final tokens = await run(
+      <String>['tokens', '1:2', '--file=${depth.path}', '--out=${out.path}'],
+    );
+    expect(tokens.exitCode, 0, reason: '${tokens.stderr}');
+    expect(out.readAsStringSync(), startsWith('# 设计 token 汇总'));
+    expect(out.readAsStringSync(), isNot(contains('⚠️')));
+    expect('${tokens.stderr}', contains('--depth 裁剪缓存'));
+  });
+
+  test('缓存结构异常 exit 1，不打印 Dart 栈', () async {
+    final badBox = File('${store.dir.path}/nodes-K-badbox.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': {
+              'id': '1:2',
+              'type': 'FRAME',
+              'name': 'bad',
+              'absoluteBoundingBox': {'y': 0, 'width': 10, 'height': 10},
+              'children': <Object?>[],
+            },
+          },
+        },
+      }));
+    final box = await run(<String>['spec', '1:2', '--file=${badBox.path}']);
+    expect(box.exitCode, 1, reason: '${box.stderr}');
+    expect('${box.stderr}', contains('absoluteBoundingBox'));
+    expect('${box.stderr}', isNot(contains('#0')));
+
+    final badStyle = File('${store.dir.path}/nodes-K-badstyle.json')
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': {
+              'id': '1:2',
+              'type': 'TEXT',
+              'name': 'bad',
+              'characters': 'hi',
+              'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              'style': 'oops',
+              'children': <Object?>[],
+            },
+          },
+        },
+      }));
+    final style = await run(<String>['spec', '1:2', '--file=${badStyle.path}']);
+    expect(style.exitCode, 1, reason: '${style.stderr}');
+    expect('${style.stderr}', contains('style'));
+  });
+
+  test('skip-hidden / skip-name-prefix 同时作用于 JSON node', () async {
+    writeCache(
+        'nodes-K-skip.json',
+        frame(children: <Object?>[
+          {
+            'id': '1:3',
+            'type': 'TEXT',
+            'name': 'Hidden',
+            'visible': false,
+            'characters': 'Hidden',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+          {
+            'id': '1:4',
+            'type': 'TEXT',
+            'name': '標題 mock',
+            'characters': 'Title',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+          {
+            'id': '1:5',
+            'type': 'TEXT',
+            'name': 'Body',
+            'characters': 'Body',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+        ]));
+
+    final hidden = await run(
+      <String>['spec', '1:2', '--json', '--node-only', '--skip-hidden'],
+    );
+    final hiddenNode = ((jsonDecode('${hidden.stdout}') as Map<String, dynamic>)['items']
+        as List)[0]['node'] as Map<String, dynamic>;
+    expect(hiddenNode['children'], hasLength(2));
+
+    final prefixed = await run(
+      <String>['spec', '1:2', '--json', '--node-only', '--skip-name-prefix=標題'],
+    );
+    final prefixedNode = ((jsonDecode('${prefixed.stdout}') as Map<String, dynamic>)['items']
+        as List)[0]['node'] as Map<String, dynamic>;
+    final ids = (prefixedNode['children'] as List).map((c) => (c as Map)['id']);
+    expect(ids, isNot(contains('1:4')));
+  });
+
+  test('tokens 输出 textCase / textDecoration 与数值字段；frames 带 cacheDepth', () async {
+    writeCache('nodes-K-style.json', {
+      'id': '1:2',
+      'type': 'TEXT',
+      'name': 'note',
+      'characters': 'abcdef',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+      'style': {
+        'fontFamily': 'Inter',
+        'fontSize': 16,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'characterStyleOverrides': <int>[0, 0, 0, 0, 3, 3],
+      'styleOverrideTable': {
+        '3': {'textDecoration': 'UNDERLINE'},
+      },
+      'cornerRadius': 8,
+    });
+    final tokens = await run(<String>['tokens', '1:2', '--json', '--skip-markdown']);
+    final payload = jsonDecode('${tokens.stdout}') as Map<String, dynamic>;
+    final texts = payload['texts'] as List;
+    expect(texts.any((t) => t['textDecoration'] == 'UNDERLINE'), isTrue);
+    expect(texts.first['sizeNum'], 16);
+    expect((payload['radii'] as List).first['valueNum'], 8);
+
+    File('${store.dir.path}/nodes-K-1-9-d2.json').writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:9': {
+          'document': frame(id: '1:9', name: 'DepthOnly'),
+        },
+      },
+    }));
+    final frames = await run(<String>['frames', '--json']);
+    final rows = (jsonDecode('${frames.stdout}') as Map<String, dynamic>)['frames'] as List;
+    final depthRow = rows.firstWhere((row) => row['id'] == '1:9');
+    expect(depthRow['cacheDepth'], 2);
+  });
+
+  test('空的 individualStrokeWeights key 不会把 CLI 打成 exit 255', () async {
+    writeCache('nodes-K-stroke.json', {
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Stroke',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+      'strokes': [
+        {
+          'type': 'SOLID',
+          'color': {'r': 0, 'g': 0, 'b': 0},
+        },
+      ],
+      'strokeWeight': 2,
+      'individualStrokeWeights': {'': 2},
+      'children': <Object?>[],
+    });
+
+    final result = await run(<String>['spec', '1:2', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stderr}', isNot(contains('Unhandled exception')));
+    expect('${result.stdout}', isNot(contains('[=2]')));
+  });
+
+  test('cache clean --file 接受 /tmp 与 /private/tmp 等等价路径', () async {
+    if (!Platform.isMacOS || !store.dir.path.startsWith('/private/')) return;
+    final file = File('${store.dir.path}/dump-alias.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('{}');
+    final alias = file.path.replaceFirst('/private', '');
+
+    final result = await run(<String>['cache', 'clean', '--file=$alias', '--yes']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(file.existsSync(), isFalse);
+  });
+
+  test('cache clean --file 仍拒绝缓存目录外 / 软链到外部的文件', () async {
+    final outside = File('${home.path}/outside.json')..writeAsStringSync('{}');
+    final link = Link('${store.dir.path}/link-outside.json');
+    if (!Platform.isWindows) {
+      link.parent.createSync(recursive: true);
+      link.createSync(outside.path);
+      final result = await run(<String>['cache', 'clean', '--file=${link.path}', '--yes']);
+      expect(result.exitCode, 2, reason: '${result.stderr}');
+      expect(outside.existsSync(), isTrue);
+    }
+  });
+
+  test('显式 --file=<dN> 时也提示同项目的完整缓存', () async {
+    final full = File('${store.dir.path}/nodes-K-1-2.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    final depth = File('${store.dir.path}/nodes-K-1-2-d2.json')
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {'document': frame()},
+        },
+      }));
+    full.setLastModifiedSync(DateTime.now().subtract(const Duration(hours: 1)));
+    depth.setLastModifiedSync(DateTime.now());
+
+    final tokens = await run(
+      <String>['tokens', '1:2', '--file=${depth.path}', '--json', '--skip-markdown'],
+    );
+    expect(tokens.exitCode, 0, reason: '${tokens.stderr}');
+    expect('${tokens.stderr}', contains(full.path));
+    expect('${tokens.stderr}', isNot(contains('没有其它完整缓存')));
+
+    final spec = await run(<String>['spec', '1:2', '--file=${depth.path}']);
+    expect(spec.exitCode, 0, reason: '${spec.stderr}');
+    expect('${spec.stdout}', isNot(contains('⚠️')));
+    expect('${spec.stdout}', startsWith('# Demo  (1:2)'));
+    expect('${spec.stderr}', contains(full.path));
+
+    final humanTokens = await run(<String>['tokens', '1:2', '--file=${depth.path}']);
+    expect(humanTokens.exitCode, 0, reason: '${humanTokens.stderr}');
+    expect('${humanTokens.stdout}', isNot(contains('⚠️')));
+  });
+
   test('损坏缓存返回 exit 1，不报参数错误', () async {
     final cache = File('${store.dir.path}/nodes-K-broken.json')
       ..createSync(recursive: true)

@@ -68,7 +68,8 @@ dart run w_tools_cli:w_tools explain <组件名>
   - 表单用 `WForm` + `WFormTextField` 等直接字段
   - 间距用原生 `SizedBox` / `Padding`（`WSizeBox` / `WPadding` 5.0 已删除），适配值用 `WScreen.w/h`
 - `tokens` 只给设计 token，不会自动生成页面代码；组件映射必须结合项目 toolkit。
-- `spec --skip-name-prefix=<s>` 跳过状态栏 mock；`spec --with-id` 给 markdown 加 nodeId 列，`spec --with-layout` 加布局列；`tokens --json --skip-markdown` 只取结构化数组。
+- `spec --skip-name-prefix=<s>` / `--skip-hidden` 同时过滤 `node` 与 markdown；`tokens --skip-name-prefix=<s>` 同语义；`spec --with-id` 给 markdown 加 nodeId 列，`spec --with-layout` 加布局列；`tokens --json --skip-markdown` 只取结构化数组。
+- 默认优先完整树；只有没有完整缓存或显式加 `--allow-depth` 时才读 `-dN` 裁剪缓存。命中裁剪缓存时读 JSON 的 `depthLimited` / `sourceDepth`（tokens 为 `sourceDepths`），或按 stderr 提示用 `--file=`。完整缓存是否陈旧看 `staleAgainstDepth` / `newerDepthAvailable`（只比较同一 fileKey）。
 
 ## 常用命令
 

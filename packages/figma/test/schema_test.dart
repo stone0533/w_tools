@@ -22,6 +22,7 @@ void main() {
           'height': 200,
           'children': 0,
           'cacheFile': 'nodes-K-1-2.json',
+          'cacheDepth': 2,
         },
       ],
     },
@@ -52,9 +53,23 @@ void main() {
     },
     'specs.v1.json': {
       'schema': 'w_tools_figma.specs/1',
+      'depthLimited': true,
+      'staleAgainstDepth': true,
+      'newerDepthAvailable': [
+        {
+          'nodeId': '1:2',
+          'source': 'nodes-K-1-2-d2.json',
+          'depth': 2,
+          'fileKey': 'K',
+          'version': 'v2',
+          'lastModified': '2026-10-28T07:39:10Z',
+        },
+      ],
       'items': [
         {
-          'source': 'nodes-K-1-2.json',
+          'source': 'nodes-K-1-2-d2.json',
+          'sourceDepth': 2,
+          'depthLimited': true,
           'nodeId': '1:2',
           'node': {'id': '1:2', 'type': 'FRAME'},
         },
@@ -64,6 +79,12 @@ void main() {
       'schema': 'w_tools_figma.tokens/1',
       'sources': ['nodes-K-1-2.json'],
       'nodeIds': ['1:2'],
+      'depthLimited': false,
+      'staleAgainstDepth': false,
+      'newerDepthAvailable': <Object?>[],
+      'sourceDepths': [
+        {'source': 'nodes-K-1-2.json', 'depth': null},
+      ],
       'counts': {'colors': 1, 'texts': 2, 'radii': 0, 'spacings': 3},
       'colors': [
         {
@@ -78,6 +99,12 @@ void main() {
           'size': '14',
           'weight': '500',
           'fontStyle': 'Regular',
+          'textCase': '',
+          'textDecoration': 'UNDERLINE',
+          'sizeNum': 14,
+          'lineHeightNum': 20,
+          'letterSpacingNum': 0,
+          'weightNum': 500,
           'lineHeight': '20',
           'letterSpacing': '0',
           'align': 'LEFT',
@@ -87,10 +114,10 @@ void main() {
         },
       ],
       'radii': [
-        {'value': '8', 'count': 1},
+        {'value': '8', 'valueNum': 8, 'count': 1},
       ],
       'spacings': [
-        {'value': '16', 'count': 2},
+        {'value': '16', 'valueNum': 16, 'count': 2},
       ],
       'markdown': '# tokens\n',
     },

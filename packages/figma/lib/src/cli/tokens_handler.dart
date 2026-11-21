@@ -22,7 +22,12 @@ Future<void> runTokens(List<String> args) async {
     exitCode = 2;
     return;
   }
-  final nodeIds = rawIds.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  final nodeIds = parseNodeIds(rawIds);
+  if (nodeIds.isEmpty) {
+    stderr.writeln('tokens 需要节点 id，例如：tokens 1862:9222');
+    exitCode = 2;
+    return;
+  }
   if (options.json && options.out != null) {
     throw const FormatException('--json 与 --out 不能同时使用');
   }
@@ -34,6 +39,11 @@ Future<void> runTokens(List<String> args) async {
   }
 
   final colorNames = _loadColorNames(options.mapFile);
+  final prefixes = (options.skipNamePrefix ?? '')
+      .split(',')
+      .map((prefix) => prefix.trim())
+      .where((prefix) => prefix.isNotEmpty)
+      .toList();
   final cacheStore = CacheStore(Directory(options.root));
   if (options.file == null) {
     final warning = multiFileKeyWarning(cacheStore, nodeIds);
@@ -46,15 +56,24 @@ Future<void> runTokens(List<String> args) async {
     min: options.min,
     colorNames: colorNames,
     includeMarkdown: !options.skipMarkdown,
+    skipNamePrefixes: prefixes,
+    preferFullDepth: !options.allowDepth,
   );
 
+  final staleReport = options.file == null
+      ? staleDepthReport(cacheStore, report.sources, nodeIds)
+      : const StaleDepthReport.none();
+  if (staleReport.stale) printNote(staleDepthMessage(staleReport));
+
   final depthLimited = depthLimitedCachePaths(report.sources);
-  if (depthLimited.isNotEmpty) {
-    printNote(
-      '# 数据源来自 --depth 裁剪缓存（${depthLimited.join(', ')}），子节点可能缺失；'
-      '用 --file= 指定完整缓存，或重新 fetch nodes',
-    );
-  }
+  final depthMessage = depthLimited.isEmpty
+      ? null
+      : depthLimitedMessage(
+          depthLimited,
+          fullPaths: fullCachePathsForDepth(cacheStore, depthLimited, nodeIds),
+          explicitFile: options.file != null,
+        );
+  if (depthMessage != null) printNote(depthMessage);
 
   if (options.out != null) {
     final out = File(options.out!);
@@ -75,6 +94,12 @@ Future<void> runTokens(List<String> args) async {
           'radii': report.radii.length,
           'spacings': report.spacings.length,
         },
+        'depthLimited': depthLimited.isNotEmpty,
+        'staleAgainstDepth': staleReport.stale,
+        'newerDepthAvailable': staleReport.toJson(),
+        'sourceDepths': [
+          for (final source in report.sources) {'source': source, 'depth': nodesCacheDepth(source)},
+        ],
         // 结构化数组：脚本 / AI 不该靠解析 markdown 拿 token。
         'colors': _colorsJson(report.colors, colorNames: colorNames),
         'texts': _textsJson(report.texts),
@@ -106,11 +131,18 @@ TokensReport buildTokensReport(
   int min = 1,
   Map<String, String> colorNames = const <String, String>{},
   bool includeMarkdown = true,
+  bool preferFullDepth = true,
+  List<String> skipNamePrefixes = const <String>[],
   TokenRenderer renderer = const TokenRenderer(),
 }) {
-  final sources = resolveNodeCaches(store, nodeIds, explicitFile: file);
+  final sources = resolveNodeCaches(
+    store,
+    nodeIds,
+    explicitFile: file,
+    preferFullDepth: preferFullDepth,
+  );
   final documents = <File, Map<String, dynamic>>{};
-  final collector = TokenCollector(minCount: min);
+  final collector = TokenCollector(minCount: min, skipNamePrefixes: skipNamePrefixes);
 
   for (final id in nodeIds) {
     final cache = sources[id]!;
@@ -188,10 +220,16 @@ List<Map<String, Object?>> _textsJson(List<TextStyleUsage> items) => [
         {
           'family': item.family,
           'size': item.size,
+          'sizeNum': _numOf(item.size),
           'weight': item.weight,
+          'weightNum': _numOf(item.weight),
           'fontStyle': item.fontStyle,
+          'textCase': item.textCase,
+          'textDecoration': item.textDecoration,
           'lineHeight': item.lineHeight,
+          'lineHeightNum': _numOf(item.lineHeight),
           'letterSpacing': item.letterSpacing,
+          'letterSpacingNum': _numOf(item.letterSpacing),
           'align': item.align,
           'color': item.color,
           'count': item.count,
@@ -199,6 +237,9 @@ List<Map<String, Object?>> _textsJson(List<TextStyleUsage> items) => [
         },
     ];
 
+num? _numOf(String value) => int.tryParse(value) ?? double.tryParse(value);
+
 List<Map<String, Object?>> _numbersJson(List<NumberUsage> items) => [
-      for (final item in items) {'value': item.value, 'count': item.count},
+      for (final item in items)
+        {'value': item.value, 'valueNum': _numOf(item.value), 'count': item.count},
     ];

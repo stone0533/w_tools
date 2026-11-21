@@ -30,6 +30,12 @@ void main() {
     expect(commandUsage['init'], contains('w_tools_cli'));
   });
 
+  test('spec help 说明默认优先完整树，不再说选最新文件', () {
+    final spec = commandUsage['spec']!;
+    expect(spec, contains('默认优先完整树'));
+    expect(spec, isNot(contains('选包含目标 nodeId 的最新文件')));
+  });
+
   test('help 选项保留取值占位符', () {
     expect(commandUsage['fetch'], contains('--root=<dir>'));
     expect(commandUsage['fetch'], contains('--depth=<n>'));

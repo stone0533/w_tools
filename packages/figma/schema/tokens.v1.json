@@ -46,13 +46,19 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["value", "count"],
+        "required": [
+          "value",
+          "count"
+        ],
         "properties": {
           "value": {
             "type": "string"
           },
           "name": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "count": {
             "type": "integer",
@@ -117,6 +123,36 @@
             "items": {
               "type": "string"
             }
+          },
+          "sizeNum": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "weightNum": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lineHeightNum": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "letterSpacingNum": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "textCase": {
+            "type": "string"
+          },
+          "textDecoration": {
+            "type": "string"
           }
         },
         "additionalProperties": true
@@ -126,7 +162,10 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["value", "count"],
+        "required": [
+          "value",
+          "count"
+        ],
         "properties": {
           "value": {
             "type": "string"
@@ -134,6 +173,12 @@
           "count": {
             "type": "integer",
             "minimum": 0
+          },
+          "valueNum": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "additionalProperties": true
@@ -143,7 +188,10 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["value", "count"],
+        "required": [
+          "value",
+          "count"
+        ],
         "properties": {
           "value": {
             "type": "string"
@@ -151,6 +199,12 @@
           "count": {
             "type": "integer",
             "minimum": 0
+          },
+          "valueNum": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "additionalProperties": true
@@ -163,6 +217,76 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "depthLimited": {
+      "type": "boolean"
+    },
+    "sourceDepths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "depth"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "depth": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "staleAgainstDepth": {
+      "type": "boolean"
+    },
+    "newerDepthAvailable": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "nodeId",
+          "source",
+          "depth"
+        ],
+        "properties": {
+          "nodeId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastModified": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fileKey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
       }
     }
   },

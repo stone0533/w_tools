@@ -43,7 +43,7 @@ void main() {
       ..writeAsStringSync(jsonEncode(_cache(withChildren: true)));
     depth = File('${dir.path}/nodes-K-1-2-d2.json')
       ..writeAsStringSync(jsonEncode(_cache(withChildren: false)));
-    // 完整缓存更旧，depth 缓存更新；spec / tokens 仍应选完整的那份。
+    // resolveNodeCaches 默认（preferFullDepth=false）取最新；CLI 的 spec / tokens 默认传 true。
     full.setLastModifiedSync(DateTime.now().subtract(const Duration(hours: 1)));
     depth.setLastModifiedSync(DateTime.now());
   });
@@ -57,6 +57,32 @@ void main() {
     final sources = resolveNodeCaches(CacheStore(root, home: home.path), <String>['1:2']);
 
     expect(sources['1:2']!.path, depth.path);
+  });
+
+  test('preferFullDepth: true 时优先完整缓存', () {
+    final sources = resolveNodeCaches(
+      CacheStore(root, home: home.path),
+      <String>['1:2'],
+      preferFullDepth: true,
+    );
+
+    expect(sources['1:2']!.path, full.path);
+  });
+
+  test('cacheFileKey 只从 nodes-<fileKey>- 前缀解析', () {
+    expect(cacheFileKey('/c/nodes-ABC-1-2.json'), 'ABC');
+    expect(cacheFileKey('/c/nodes-FILEA-10-1-d2.json'), 'FILEA');
+    expect(cacheFileKey('/c/nodes-page.json'), isNull);
+    expect(cacheFileKey('/c/_nodes-index.json'), isNull);
+  });
+
+  test('提示能列出包含目标的完整缓存，并带上完整路径', () {
+    final store = CacheStore(root, home: home.path);
+    expect(fullNodesCachePaths(store, <String>['1:2']), <String>[full.path]);
+    final message = depthLimitedMessage(<String>[depth.path], fullPaths: <String>[full.path]);
+    expect(message, contains(depth.path));
+    expect(message, contains(full.path));
+    expect(message, contains('--file='));
   });
 
   test('只有 --depth 缓存时仍可用，并能被识别为裁剪源', () {

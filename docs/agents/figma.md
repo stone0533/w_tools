@@ -56,8 +56,18 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 ```json
 {
   "schema": "w_tools_figma.specs/1",
+  "depthLimited": false,
+  "staleAgainstDepth": false,
+  "newerDepthAvailable": [],
   "items": [
-    { "source": "...", "nodeId": "...", "node": { "id": "...", "type": "FRAME", "children": [] }, "markdown": "..." }
+    {
+      "source": "...",
+      "sourceDepth": null,
+      "depthLimited": false,
+      "nodeId": "...",
+      "node": { "id": "...", "type": "FRAME", "children": [] },
+      "markdown": "..."
+    }
   ]
 }
 ```
@@ -66,7 +76,12 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - `items[].markdown`：人读规格表，适合贴 PR。
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
-- `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。
+- `spec` / `tokens` 默认扫描所有缓存，优先选包含目标 nodeId 的完整缓存（同 fileKey 取最新完整缓存）；
+  只有没有完整缓存或显式加 `--allow-depth` 时，才按 mtime 取最新的 `--depth` 裁剪缓存。命中时 JSON 带
+  `depthLimited` / `sourceDepth`（tokens 为 `sourceDepths`），按 stderr 提示用 `--file=` 指定完整缓存；
+  完整缓存是否陈旧看 `staleAgainstDepth` / `newerDepthAvailable`（只比较同一 fileKey，多个文件共用 nodeId 时以 `--file=` 为准）。
+- `spec --skip-hidden` / `--skip-name-prefix` 同时过滤 `items[].node` 与 markdown；`tokens --skip-name-prefix`
+  可去掉 iOS 状态栏 mock。
 - `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套（可用 `--depth` / `--limit` 收窄）；`--name` / `--page` 会搜索全部 FRAME（含嵌套）；`cacheFile` 是该缓存文件的真实路径
   （缓存在 `~/.cache/w_tools/figma/<项目标识>/`，通常是绝对路径），可以直接传给 `--file=`。
 - `spec --json` 固定返回 `w_tools_figma.specs/1`（单个节点也是 `items` 数组）。
@@ -104,7 +119,10 @@ dart run w_tools_cli:w_tools explain <组件名>
 - **ids 顺序不影响缓存**：`fetch nodes` / `fetch images` 都会去重排序，不要为同一个集合换顺序重复请求。
 - **`fetch images` 不缓存**：直接输出 `id<TAB>url`（签名会过期），需要文件时用 `get <url> <outfile>`；
   它不接受 `--depth` / `--refresh` / `--check-stale`。
-- **`spec --skip-name-prefix=<s>`** 可跳过 iOS 状态栏 mock 等节点；`spec --with-id` 给 markdown 加 nodeId 列；`spec --with-layout` 加 layoutMode / itemSpacing / padding；`tokens --json --skip-markdown` 可只取结构化数组。
+- **`spec --skip-name-prefix=<s>` / `--skip-hidden`** 会同时跳过 `node` 与 markdown 里的对应子树；`tokens --skip-name-prefix=<s>` 同语义。
+  `spec --with-id` 给 markdown 加 nodeId 列；`spec --with-layout` 加 layoutMode / itemSpacing / padding；`tokens --json --skip-markdown` 可只取结构化数组。
+- `spec` / `tokens` 默认优先完整树；只有没有完整缓存或显式 `--allow-depth` 时才读 `-dN`。命中裁剪缓存时读 JSON 的
+  `depthLimited`，不要把它当完整设计事实；按 stderr 提示用 `--file=`。
 - **`spec --json` 的 `node` 在 `items[].node` 里**；优先读它，`markdown` 只给人看。
 - token 用 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。

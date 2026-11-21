@@ -40,6 +40,12 @@ class TextStyleUsage {
   /// 字体样式：Regular / Italic / ...
   String get fontStyle => _fontStyle;
 
+  /// 大小写变换（UPPER / LOWER / TITLE ...）；空串表示未设置。
+  String get textCase => _textCase;
+
+  /// 文字装饰（UNDERLINE / STRIKETHROUGH ...）；空串表示未设置。
+  String get textDecoration => _textDecoration;
+
   int count = 0;
   final List<String> samples = [];
 
@@ -59,10 +65,13 @@ class NumberUsage {
 ///
 /// 只读缓存，不联网；`minCount` 控制「出现次数低于阈值的值是否列出」。
 class TokenCollector {
-  TokenCollector({this.minCount = 1});
+  TokenCollector({this.minCount = 1, this.skipNamePrefixes = const <String>[]});
 
   /// 低于该次数的项不输出。
   final int minCount;
+
+  /// 名称命中任一前缀的子树不统计（与 `spec --skip-name-prefix` 同语义）。
+  final List<String> skipNamePrefixes;
 
   final Map<String, ColorUsage> colors = {};
   final Map<String, TextStyleUsage> texts = {};
@@ -86,15 +95,15 @@ class TokenCollector {
     _collectText(node);
     _collectRadius(node);
     _collectSpacing(node);
-    for (final c in (node['children'] as List?) ?? const []) {
-      if (c is Map) {
-        _walk(c, inheritedVisible: visible, inheritedOpacity: effectiveOpacity);
-      }
+    for (final c in _list(node['children'])) {
+      if (c is! Map) continue;
+      if (skipNamePrefixes.any('${c['name'] ?? ''}'.startsWith)) continue;
+      _walk(c, inheritedVisible: visible, inheritedOpacity: effectiveOpacity);
     }
   }
 
   void _collectFills(Map node) {
-    for (final f in (node['fills'] as List?) ?? const []) {
+    for (final f in _list(node['fills'])) {
       if (f is! Map || f['visible'] == false) continue;
       if ('${f['type']}' != 'SOLID') continue;
       _addColor(figmaPaintHex(f), _label(node));
@@ -102,7 +111,7 @@ class TokenCollector {
   }
 
   void _collectStrokes(Map node) {
-    for (final s in (node['strokes'] as List?) ?? const []) {
+    for (final s in _list(node['strokes'])) {
       if (s is! Map || s['visible'] == false) continue;
       if ('${s['type']}' != 'SOLID') continue;
       _addColor(figmaPaintHex(s), _label(node));
@@ -130,8 +139,9 @@ class TokenCollector {
     if (entry.samples.length < 3) entry.samples.add(_label(node));
 
     // rich text 的 run 样式也要进 token；颜色之外还要区分斜体 / 字号 / 字重。
-    final overrides = (node['characterStyleOverrides'] as List?) ?? const [];
-    final table = (node['styleOverrideTable'] as Map?) ?? const {};
+    final overrides = _list(node['characterStyleOverrides']);
+    final rawTable = node['styleOverrideTable'];
+    final table = rawTable is Map ? rawTable : const <String, dynamic>{};
     final seenRuns = <String>{};
     for (final id in overrides) {
       final style = table['$id'];
@@ -163,7 +173,7 @@ class TokenCollector {
       final runEntry = texts.putIfAbsent(run.key, () => run);
       runEntry.count++;
       if (runEntry.samples.length < 3) runEntry.samples.add('${_label(node)} [run]');
-      final fills = (style['fills'] as List?) ?? const [];
+      final fills = _list(style['fills']);
       for (final fill in fills) {
         if (fill is! Map || fill['visible'] == false || '${fill['type']}' != 'SOLID') continue;
         final color = figmaPaintHex(fill);
@@ -212,12 +222,14 @@ class TokenCollector {
   }
 
   String _firstFillColor(Map node) {
-    for (final f in (node['fills'] as List?) ?? const []) {
+    for (final f in _list(node['fills'])) {
       if (f is! Map || f['visible'] == false) continue;
       if ('${f['type']}' == 'SOLID') return figmaHex(f['color']);
     }
     return '';
   }
+
+  List<Object?> _list(Object? value) => value is List ? value : const <Object?>[];
 
   String _label(Map node) {
     final characters = '${node['characters'] ?? ''}';

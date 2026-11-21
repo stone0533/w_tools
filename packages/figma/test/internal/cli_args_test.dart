@@ -5,9 +5,19 @@ import 'package:w_tools_figma/src/cli/args.dart';
 
 void main() {
   test('--root 默认当前目录，显式值优先', () {
+    final dir = Directory.systemTemp.createTempSync('figma_args_');
+    addTearDown(() => dir.deleteSync(recursive: true));
     expect(parseCommand(const <String>[], 'spec').root, Directory.current.path);
-    expect(parseCommand(<String>['--root=/tmp/y'], 'spec').root, '/tmp/y');
-    expect(parseCommand(<String>['--root', '/tmp/x'], 'spec').root, '/tmp/x');
+    expect(parseCommand(<String>['--root=${dir.path}'], 'spec').root, dir.path);
+    expect(parseCommand(<String>['--root', dir.path], 'spec').root, dir.path);
+  });
+
+  test('--root 为空或目录不存在时报参数错误', () {
+    expect(() => parseCommand(<String>['--root='], 'spec').root, throwsFormatException);
+    expect(
+      () => parseCommand(<String>['--root=/no/such/dir/for/figma'], 'spec').root,
+      throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('不存在'))),
+    );
   });
 
   test('每个命令只接受自己的选项', () {
@@ -23,6 +33,9 @@ void main() {
     expect(parseCommand(<String>['--file=nodes.json'], 'cache').file, 'nodes.json');
     expect(parseCommand(<String>['--skip-markdown'], 'tokens').skipMarkdown, isTrue);
     expect(parseCommand(<String>['--skip-name-prefix=A,B'], 'spec').skipNamePrefix, 'A,B');
+    expect(parseCommand(<String>['--skip-name-prefix=A,B'], 'tokens').skipNamePrefix, 'A,B');
+    expect(parseCommand(<String>['--allow-depth'], 'spec').allowDepth, isTrue);
+    expect(parseCommand(<String>['--allow-depth'], 'tokens').allowDepth, isTrue);
     expect(parseCommand(<String>['--node-depth=0'], 'spec').nodeDepth, 0);
     expect(parseCommand(<String>['--force'], 'init').force, isTrue);
     expect(parseCommand(<String>['--if-stale'], 'diff').ifStale, isTrue);
@@ -64,7 +77,9 @@ void main() {
   });
 
   test('取值选项支持 `--x v` 空格形态，缺值报中文', () {
-    expect(parseCommand(<String>['--root', '/tmp/x'], 'spec').root, '/tmp/x');
+    final dir = Directory.systemTemp.createTempSync('figma_args_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    expect(parseCommand(<String>['--root', dir.path], 'spec').root, dir.path);
     expect(parseCommand(<String>['--node-depth', '0'], 'spec').nodeDepth, 0);
     expect(parseCommand(<String>['--set', '20'], 'usage').budgetSet, 20);
     expect(() => parseCommand(<String>['--depth'], 'fetch'), throwsFormatException);

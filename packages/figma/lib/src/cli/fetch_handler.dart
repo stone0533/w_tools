@@ -136,8 +136,9 @@ Future<void> runFetch(List<String> args) async {
       );
     }
     if (result.missingNodeIds.isNotEmpty) {
+      final reason = result.fromCache && result.tierCalls == 0 ? '缓存里记录为缺失' : 'Figma 返回 null';
       stderr.writeln(
-        '⚠️ 缺少节点：${result.missingNodeIds.join(', ')}（Figma 返回 null，已跳过）',
+        '⚠️ 缺少节点：${result.missingNodeIds.join(', ')}（$reason，已跳过）',
       );
     }
     if (options.json) {

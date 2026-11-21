@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../cache/cache_store.dart';
 import 'args.dart';
+import 'token_source.dart';
 
 const _tokenTemplate = '''
 # Figma 个人访问令牌（figd_ 开头）
@@ -34,18 +35,23 @@ void runInit(List<String> args) {
   var tokenCreated = false;
   final token = store.tokenFile;
   final existingToken = token.existsSync() ? token.readAsStringSync() : null;
-  final isTemplate =
-      existingToken == null || existingToken.trim().isEmpty || existingToken.contains('REPLACE_ME');
-  if (existingToken == null || (force && isTemplate)) {
+  // 只看第一条有效非注释行：只有注释 / 空行的文件也算模板，必须允许恢复。
+  final existingLine = existingToken == null ? '' : tokenLineOf(existingToken);
+  final hasRealToken = existingLine.isNotEmpty && !existingLine.contains('REPLACE_ME');
+  if (existingToken == null || existingLine.isEmpty || (force && !hasRealToken)) {
+    // 文件被清空 / 误删 / 只剩注释时必须能恢复；非空模板只在 --force 时重建。
     token.parent.createSync(recursive: true);
     token.writeAsStringSync(_tokenTemplate);
     _restrictTokenPermissions(token);
     tokenCreated = true;
-  } else if (force && !isTemplate) {
+  } else if (force) {
     // --force 只重建模板，不能把真实凭证覆盖成占位符。
     throw StateError(
       '${token.path} 已有真实 token，--force 不会覆盖；确认要重建时先手动删除该文件',
     );
+  } else {
+    // README 承诺 init 后权限是 600；已存在的文件也要收紧，不能只在创建时做。
+    _restrictTokenPermissions(token);
   }
 
   store.dir.createSync(recursive: true);

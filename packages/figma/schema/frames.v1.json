@@ -67,6 +67,12 @@
           },
           "fetchedAt": {
             "type": "string"
+          },
+          "cacheDepth": {
+            "type": [
+              "integer",
+              "null"
+            ]
           }
         },
         "additionalProperties": true

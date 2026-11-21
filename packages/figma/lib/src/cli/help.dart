@@ -18,6 +18,8 @@ const _docs = <_CommandDoc>[
     '初始化 token / 缓存 / 预算文件',
     'dart run w_tools_figma:figma init [--force]',
     '建 token（~/.config/w_tools/figma-token）与缓存目录（~/.cache/w_tools/figma/），都不在项目仓库里。\n'
+        '模板里的 # 注释可以保留；读取 token 时只取第一条非注释行。\n'
+        '空文件 / 仍是模板时会重建；已存在的 token 文件会把权限收紧到 600。\n'
         '--force 只重建模板；已有真实 token 时不会覆盖（需先手动删除该文件）。\n'
         '旧 .figma-cache / .figma-token 不再自动迁移；需要时手动删除。\n'
         '这是 Figma 取数的 init；`w_tools_cli` 的 init 生成 AGENTS / doctor 配置，不是一回事。',
@@ -40,15 +42,20 @@ const _docs = <_CommandDoc>[
   _CommandDoc(
     'spec',
     '从缓存导出节点规格',
-    'dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>] [--skip-name-prefix=<s>] [--with-id] [--with-layout] [--skip-hidden]',
-    '只读缓存，不访问 Figma；默认扫描所有 nodes-*.json，选包含目标 nodeId 的文件。\n'
-        '--json 输出 {schema:"w_tools_figma.specs/1", items:[...]}；--node-only 只与 --json 一起用；--with-id 加 nodeId 列；--with-layout 加布局列；--skip-hidden 跳过 visible=false / opacity=0 的节点。',
+    'dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>] [--skip-name-prefix=<s>] [--skip-hidden] [--allow-depth] [--with-id] [--with-layout]',
+    '只读缓存，不访问 Figma；默认扫描所有 nodes-*.json，优先选包含目标 nodeId 的完整缓存（同 fileKey 取最新完整缓存）。\n'
+        '--json 输出 {schema:"w_tools_figma.specs/1", items:[...]}，items[].node 与 markdown 是同一棵过滤后的树；\n'
+        '--skip-hidden / --skip-name-prefix 同时作用于 node 与 markdown；--node-only 只与 --json 一起用；\n'
+        '默认优先完整树；--allow-depth 才读最新的 --depth 裁剪缓存；JSON 的 depthLimited / sourceDepth 标出裁剪数据源，staleAgainstDepth / newerDepthAvailable 标出完整缓存是否陈旧；警告只写 stderr。',
   ),
   _CommandDoc(
     'tokens',
     '汇总设计 token',
-    'dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [--min=<n>] [--out=<path>] [--map=<path>] [--json] [--skip-markdown]',
+    'dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [--min=<n>] [--out=<path>] [--map=<path>] [--skip-name-prefix=<s>] [--allow-depth] [--json] [--skip-markdown]',
     '统计 SOLID 颜色、文字样式、圆角、auto-layout 间距；只读缓存。\n'
+        '--skip-name-prefix 跳过状态栏 mock 等子树；默认优先完整树，--allow-depth 才读裁剪缓存；\n'
+        '--min 按样式出现次数过滤（base 与富文本 run 分别计数）；\n'
+        '--json 的 depthLimited / sourceDepths 标出裁剪数据源，数值另带 *Num 字段；\n'
         '--json 与 --out 不能同时使用；--skip-markdown 只与 --json 一起用。',
   ),
   _CommandDoc(
@@ -101,7 +108,7 @@ const _docs = <_CommandDoc>[
   _CommandDoc(
     'version',
     '显示版本',
-    'dart run w_tools_figma:figma version',
+    'dart run w_tools_figma:figma version（--version / -v 等价）',
     '',
   ),
 ];
@@ -142,6 +149,7 @@ String _renderUsage() {
     ..writeln('说明：')
     ..writeln('  · spec / tokens 只读本地缓存，不访问 Figma，不消耗额度；')
     ..writeln('  · token 优先读 FIGMA_TOKEN，其次读 ~/.config/w_tools/figma-token；')
+    ..writeln('  · --root 必须指向已存在目录，且要放在命令之后；路径会按规范路径计算项目缓存；')
     ..writeln('  · 缓存由 fetch nodes 生成；fetch images 不缓存（签名 URL 会过期）。');
   return buf.toString();
 }

@@ -62,6 +62,74 @@ void main() {
     expect(c.texts.length, 3, reason: 'base + UPPER + LOWER');
   });
 
+  test('textCase / textDecoration 是公开字段，markdown 样式列能看到', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': '1:1',
+      'type': 'TEXT',
+      'characters': 'abcdef',
+      'style': {
+        'fontFamily': 'Inter',
+        'fontSize': 16,
+        'textAlignHorizontal': 'LEFT',
+      },
+      'characterStyleOverrides': <int>[0, 0, 0, 0, 3, 3],
+      'styleOverrideTable': {
+        '3': {'textDecoration': 'UNDERLINE'},
+      },
+      'children': <Object?>[],
+    });
+    final texts = c.textsSorted();
+    expect(texts, hasLength(2), reason: 'base 与链接 run 是两条不同样式');
+    final run = texts.firstWhere((t) => t.textDecoration == 'UNDERLINE');
+    expect(run.textDecoration, 'UNDERLINE');
+    expect(run.textCase, '');
+    final md = const TokenRenderer().renderMarkdown(
+      tokens: c,
+      source: 'test',
+      nodeIds: const ['1:1'],
+    );
+    expect(md, contains('deco=UNDERLINE'));
+  });
+
+  test('skipNamePrefixes 跳过指定名称前缀的子树', () {
+    final c = TokenCollector(skipNamePrefixes: const ['標題']);
+    c.collect({
+      'id': '1:1',
+      'type': 'FRAME',
+      'children': [
+        {
+          'id': '1:2',
+          'type': 'TEXT',
+          'name': '標題 mock',
+          'characters': 'Title',
+          'style': {'fontFamily': 'Inter', 'fontSize': 20},
+          'fills': [
+            {
+              'type': 'SOLID',
+              'color': {'r': 0, 'g': 0, 'b': 0},
+            },
+          ],
+        },
+        {
+          'id': '1:3',
+          'type': 'TEXT',
+          'name': 'Body',
+          'characters': 'Body',
+          'style': {'fontFamily': 'Inter', 'fontSize': 14},
+          'fills': [
+            {
+              'type': 'SOLID',
+              'color': {'r': 1, 'g': 0, 'b': 0},
+            },
+          ],
+        },
+      ],
+    });
+    expect(c.colors.keys, <String>['#FF0000']);
+    expect(c.texts.length, 1);
+  });
+
   test('opacity=0 的节点及其子树不计入 token', () {
     final c = TokenCollector();
     c.collect({
