@@ -2,24 +2,15 @@
 
 ## 待处理
 
-### [待处理] figma: stale / depth 提示未按 fileKey 过滤，可能指向别的 Figma 文件
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；同一项目里同时缓存 FILEA 完整树与 FILEB 的 `-d2` 树（node id 都是 `10:1`）
-- 命令 / 输入：`dart run w_tools_figma:figma tokens 10:1 --json --skip-markdown`；`dart run w_tools_figma:figma tokens 10:1 --allow-depth --json --skip-markdown`；`dart run w_tools_figma:figma spec 10:1 --json`
-- 期望：stale 检查和 depth 警告只引用同一 fileKey 的缓存；同一 nodeId 出现在多个文件时，保留 multiFileKey 警告并让用户用 `--file=` 指定，不要把 FILEB 的 dN 当成 FILEA 完整缓存的新版本，也不要把 FILEA 完整缓存推荐给 FILEB 的 dN
-- 实际：默认选 FILEA 完整树时，JSON 输出 `staleAgainstDepth:true`、`newerDepthAvailable:[{"nodeId":"10:1","source":"…/nodes-FILEB-10-1-d2.json","depth":2,"version":"300"}]`；stderr 写「完整缓存可能陈旧：FILEA full → FILEB d2」。反过来 `--allow-depth` 选中 FILEB dN 时，depth 警告的「可用完整缓存」列出 FILEA full。`staleDepthReport` / `fullNodesCachePaths` 都有 `fileKey` 参数，但 spec/tokens 调用时没传，`_nodesCacheFiles` 扫描了所有 fileKey。
-- 影响：主设计稿和组件库/活动页共用 node id（尤其 `0:1`）时，默认完整树会被另一文件的 dN 误标成陈旧，或 dN 警告推荐另一文件的完整缓存；agent 可能按 `newerDepthAvailable.source` / 推荐路径刷新错的文件，或改用不完整的 dN。multiFileKey 警告只说「可能选错文件」，没有解释这些字段来自另一文件。
-- 建议：从选中的缓存文件名解析 `nodes-<fileKey>-`，把该 fileKey 传给 staleDepthReport / fullNodesCachePaths；只比较同一 fileKey 的 dN / 完整缓存；无法确定时跳过 stale 检查并保留 multiFileKey 警告。
-- 复现数据：合成缓存 `nodes-FILEA-10-1.json`（version 100，完整）+ `nodes-FILEB-10-1-d2.json`（version 300，nodeId 10:1）；默认 tokens 的 `staleAgainstDepth:true` + `newerDepthAvailable.source` 指向 FILEB；`--allow-depth` 选 FILEB dN 时 warning 的可用完整缓存指向 FILEA；stderr 原文如上。
-- 状态变更：2026-11-21 待处理
-
 ## 已闭环
+
+
 
 
 
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-21 | stale / depth 提示未按 fileKey 过滤，可能指向别的 Figma 文件 | ✅ 1.3.0：staleDepthReport / fullCachePathsForDepth 按缓存文件名的 fileKey 过滤；JSON newerDepthAvailable 带 fileKey；跨文件不再误报/推荐 |
 | 2026-11-21 | 完整缓存 vs dN 的陈旧判断按 mtime 误报，JSON 也没有对应标记 | ✅ 1.3.0：按 version → lastModified → mtime；JSON staleAgainstDepth / newerDepthAvailable；同 version 不再误报 |
 | 2026-11-21 | spec/tokens 默认仍选中 depth 裁剪缓存（JSON 已可发现，--prefer-full 为 opt-in） | ✅ 1.3.0：默认优先完整树，`--allow-depth` 才读 dN；JSON `depthLimited` / `sourceDepth(s)` 保留 |
 | 2026-11-21 | tokens --out / spec stdout 把含本机绝对路径的 depth 警告写进 markdown | ✅ 1.3.0：depth 警告只写 stderr；`spec` stdout / `tokens --out` 文件不再含本机路径 |
