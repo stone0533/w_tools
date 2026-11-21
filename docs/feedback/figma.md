@@ -2,44 +2,26 @@
 
 ## 待处理
 
-### [待处理] figma: spec/tokens 默认仍选中 depth 裁剪缓存（JSON 已可发现，--prefer-full 为 opt-in）
+### [待处理] figma: 完整缓存 vs dN 的陈旧判断按 mtime 误报，JSON 也没有对应标记
 
 - 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；真实项目缓存（同一 nodeId 同时有完整缓存和更新的 `-d2` 缓存）
-- 命令 / 输入：dart run w_tools_figma:figma tokens 0:1 --json --skip-markdown
-  `dart run w_tools_figma:figma tokens 0:1 --json --skip-markdown`
-  `dart run w_tools_figma:figma tokens 0:1 --file=<完整缓存> --json --skip-markdown`
-  `dart run w_tools_figma:figma spec 0:1 --json`
-  `dart run w_tools_figma:figma frames --all --depth=1`（只剩 dN 缓存时）
-- 期望：spec / tokens 读设计事实时默认应优先完整树（或在 JSON 里明确标出 depthLimited / sourceDepth）；stderr 警告要能直接给出可用于 `--file=` 的完整缓存路径
-- 实际：`resolveNodeCaches` 默认按 mtime 取最新（nodes_index.dart:13 `preferFullDepth = false`；spec_handler.dart:148 / tokens_handler.dart:111 没传该参数）。当 d2 缓存比完整缓存新时，同一页面：
-  `tokens 0:1 --json` → colors 13 / texts 7 / radii 1 / spacings 3
-  `tokens 0:1 --file=<完整缓存>` → colors 156 / texts 151 / radii 12 / spacings 32（约 12 倍差）
-  stderr 只有一行「数据源来自 --depth 裁剪缓存…子节点可能缺失」，JSON 的 `items[].source` / `sources[]` 只有文件路径，没有 `depthLimited` 字段。agents 只读 stdout 时会把截断结果当完整结果。另外：warning 让用户「用 --file= 指定完整缓存」，但不打印完整缓存路径，`frames --verbose` 也只指向 dN 文件；当只剩 dN 缓存时，frames 把被裁剪掉的子节点数报成 0（合成节点 10:7 实际 2 个子节点 → frames 显示 children=0），没有截断标记。
-- 影响：按项目文档「大页面只拉 2 层」后，spec / tokens 会静默给出严重不完整的设计事实；AI 直接拿 JSON 写页面会漏掉大部分 token / 子节点，且很难发现。tokens 的差值不是小幅偏差，而是 12 倍。
-- 建议：spec / tokens 默认 `preferFullDepth: true`（在完整缓存里取最新），只有完全没有完整缓存时才回退 dN，并显式要求 `--allow-depth` 或在 JSON 标 `depthLimited: true` / `sourceDepth: n`；warning 打印完整缓存路径（或提示 `cache stats --files` 的文件名规则）；frames 对被裁剪节点的 children 输出 null 或加 truncated 标记，不要报 0。
-- 复现数据：真实节点 `0:1`；完整缓存 `nodes-…-0-1.json`（129 MB，mtime 14:17）vs `nodes-…-0-1-d2.json`（401 KB，mtime 15:25）；tokens counts 13/156 如上；frames 合成缓存 `10:7`（自動佈局）2→0。
-
-1.3.0 复测：JSON `depthLimited` / `sourceDepth`（tokens 为 `sourceDepths`）、命中裁剪缓存时列出完整缓存路径、`--prefer-full`、`frames --json cacheDepth` 都已加上。但默认仍按 mtime 取最新 `-dN`：普通 `tokens 0:1` 仍只读到 13/156 色，`--prefer-full` 是 opt-in；不看 stderr 的用户/AI 仍可能把截断结果当完整事实。建议默认 `prefer-full`，或至少要求显式 `--allow-depth` 才读 dN。另外非 JSON 输出顶部新加的 depth 警告会被写进 `tokens --out` 文件（见新条目）。
-
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: tokens --out / spec stdout 把含本机绝对路径的 depth 警告写进 markdown
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；同一页面同时有完整缓存和更新的 `-d2` 缓存
-- 命令 / 输入：`dart run w_tools_figma:figma tokens 0:1 --out=/tmp/design-tokens.md`；`dart run w_tools_figma:figma spec 0:1 > /tmp/spec.md`
-- 期望：`--out` 文件和 `spec` stdout 只包含规格 / token 内容；depth 警告保留在 stderr（或至少不要包含本机绝对缓存路径）
-- 实际：`tokens --out` 文件首行变成 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）…`；`spec` stdout 也有同一 blockquote。stderr 同时打印一次。`--prefer-full` 或显式完整 `--file` 时不出现。1.3.0 新增的 markdown 顶部警告直接把 local cache path 写进内容。
-- 影响：项目文档 `docs/design-tokens.md` / 贴到 PR 的 spec 会带上某台机器的 `/Users/...` 或 `/private/tmp/...` 路径，提交后跨机器 diff / 泄露本地目录；任何期望首行是 `# 设计 token 汇总` / `# 画板名` 的工具也会被 blockquote 干扰。
-- 建议：`--out` 文件和 `spec` stdout 不写这条警告（只走 stderr）；或 banner 只用 basename / 相对路径；也可加 `--no-depth-warning` 让脚本关闭。
-- 复现数据：`tokens 0:1 --out=/tmp/design-tokens.md` 文件 head 是 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）`；`spec 0:1` stdout 同样；`--prefer-full` 输出首行是 `# 设计 token 汇总…` / `# mockup…`。
+- 环境：macOS 26.6.2 / Dart 3.12.2；真实项目缓存（完整 `nodes-…-0-1.json` + 更新的 `nodes-…-0-1-d2.json`）
+- 命令 / 输入：`dart run w_tools_figma:figma tokens 0:1 --json --skip-markdown`；`dart run w_tools_figma:figma spec 0:1 --json`
+- 期望：同一缓存 version 的 dN 不应报「完整缓存比 dN 旧」；如果 dN 确实更新，JSON 应提供 `staleAgainstDepth` / `newerDepthAvailable`（含 dN source/depth），让不读 stderr 的 agent 也能判断
+- 实际：默认选完整树后，每次 `tokens` / `spec` 都输出 stderr：
+  `# 完整缓存比 --depth 缓存旧（…/nodes-…-0-1.json → …/nodes-…-0-1-d2.json）；如需最新数据请 fetch --refresh，或加 --allow-depth（可能不完整）`
+  但两份缓存顶层 `version` 都是 `2415310932909825311`，`lastModified` 都是 `2026-10-28T07:39:10Z`；d2 只是文件 mtime 更新。JSON 里 `depthLimited:false`、`sourceDepths` 只有完整树，没有任何 stale / newerDepth 字段。代码比较的是 `depth.lastModifiedSync().isAfter(full.lastModifiedSync())`，不是缓存 version。
+- 影响：默认完整树后每次取数都多一条假警告；用户可能为一条不存在的「更新」消耗 Tier 1 `fetch --refresh`，或改加 `--allow-depth` 拿到不完整树；AI 只读 JSON 时完全看不到这条警告，会把旧完整树当最新事实。
+- 建议：先比较缓存顶层 `version`（缺失时再退 `lastModified` / 文件 mtime），只在 dN version 确实更新时警告；在 specs/1 / tokens/1 增加 `staleAgainstDepth` / `newerDepthAvailable`（含 dN source + depth），让 JSON 消费方可判断。
+- 复现数据：真实 0:1 缓存；full 与 d2 的 `version` / `lastModified` 完全相同；命令的 stderr 原文如上；`tokens` JSON keys 无 stale 字段，`depthLimited:false`。
 - 状态变更：2026-11-21 待处理
 
 ## 已闭环
 
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-21 | spec/tokens 默认仍选中 depth 裁剪缓存（JSON 已可发现，--prefer-full 为 opt-in） | ✅ 1.3.0：默认优先完整树，`--allow-depth` 才读 dN；JSON `depthLimited` / `sourceDepth(s)` 保留 |
+| 2026-11-21 | tokens --out / spec stdout 把含本机绝对路径的 depth 警告写进 markdown | ✅ 1.3.0：depth 警告只写 stderr；`spec` stdout / `tokens --out` 文件不再含本机路径 |
 | 2026-11-21 | 缓存结构异常时未捕获异常，exit 255 | ✅ 1.3.0：individualStrokeWeights 空 key 跳过；run.dart 兜底 Error，坏缓存 exit 1 |
 | 2026-11-21 | init 无法恢复只剩注释的 token 文件 | ✅ 1.3.0：init 按「无有效 token 行」重建；--force 不再误报 |
 | 2026-11-21 | cache clean --file 拒绝同一文件的 /tmp 路径 | ✅ 1.3.0：先解析软链再比较；/tmp 与 /private/tmp 均可，越界软链仍拒 |
