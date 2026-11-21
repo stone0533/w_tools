@@ -20,6 +20,9 @@ Future<void> runGet(List<String> args) async {
     throw FormatException('get 需要 http(s) 图片 URL：$rawUrl');
   }
   final out = File(positional[1]);
+  if (FileSystemEntity.isDirectorySync(out.path)) {
+    throw StateError('输出路径是目录：${out.path}');
+  }
   out.parent.createSync(recursive: true);
 
   final client = HttpClient();

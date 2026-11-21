@@ -91,7 +91,8 @@ void main() {
 
       await expectLater(
         command.nodes(fileKey: 'K', ids: ['1:2']),
-        throwsStateError,
+        throwsA(
+            isA<StateError>().having((e) => e.message, 'message', contains('本次已消耗 1 次 Tier 1'))),
       );
       expect(
         store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2').existsSync(),

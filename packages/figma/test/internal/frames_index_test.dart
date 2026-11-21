@@ -109,6 +109,13 @@ void main() {
     expect(framesOf('${indexed.stdout}'), await direct(<String>[]));
   });
 
+  test('人读 frames 也带 pageId', () async {
+    final result = await run(<String>['frames']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('pageId'));
+    expect('${result.stdout}', contains('c:1'));
+  });
+
   test('索引路径与直接解析一致（--all 含嵌套）', () async {
     final indexed = await run(<String>['frames', '--json', '--all']);
     expect(indexed.exitCode, 0, reason: '${indexed.stderr}');
@@ -116,6 +123,7 @@ void main() {
 
     expect(rows, await direct(<String>['--all']));
     expect(rows.map((r) => r['id']), contains('1:11'));
+    expect(rows.firstWhere((r) => r['id'] == '1:10')['pageId'], 'c:1');
   });
 
   test('--name 默认也搜索嵌套画板', () async {
@@ -203,7 +211,7 @@ void main() {
     final indexFile = File('${cacheDir.path}/_nodes-index.json');
     expect(indexFile.existsSync(), isTrue, reason: 'frames 应该写索引');
     final index = jsonDecode(indexFile.readAsStringSync()) as Map;
-    expect(index['version'], 8);
+    expect(index['version'], 9);
     expect(
       (index['files'] as Map).values.any((entry) => (entry as Map)['frames'] is List),
       isTrue,

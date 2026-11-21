@@ -253,6 +253,47 @@ void main() {
     expect(md, isNot(contains('@0.50@45°')));
   });
 
+  test('渐变描边输出 stop 颜色和角度', () {
+    final root = <String, dynamic>{
+      'id': '1:2',
+      'type': 'FRAME',
+      'name': 'Gradient stroke',
+      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+      'children': [
+        {
+          'id': '1:3',
+          'type': 'ELLIPSE',
+          'name': 'Ring',
+          'absoluteBoundingBox': {'x': 10, 'y': 10, 'width': 80, 'height': 80},
+          'strokes': [
+            {
+              'type': 'GRADIENT_LINEAR',
+              'gradientHandlePositions': [
+                {'x': 0, 'y': 0},
+                {'x': 0, 'y': 1},
+              ],
+              'gradientStops': [
+                {
+                  'position': 0,
+                  'color': {'r': 1, 'g': 0, 'b': 0},
+                },
+                {
+                  'position': 1,
+                  'color': {'r': 0, 'g': 0, 'b': 1},
+                },
+              ],
+            },
+          ],
+          'strokeWeight': 2,
+          'strokeAlign': 'INSIDE',
+          'children': <Object?>[],
+        },
+      ],
+    };
+    final md = const figma.FigmaSpecRenderer().renderMarkdownFromRoot(root, '1:2');
+    expect(md, contains('GRAD(#FF0000→#0000FF)@90° 2px align=INSIDE'));
+  });
+
   test('根节点自身输出圆角 / opacity / mask', () {
     final root = <String, dynamic>{
       'id': '1:2',

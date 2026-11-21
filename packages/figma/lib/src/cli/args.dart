@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 /// 项目根默认值：从当前目录向上找最近的 `.git`（仓库根）或 `pubspec.yaml`；
-/// 都找不到时回退当前目录。这样从 `tool/` 等子目录运行仍复用同一个项目缓存。
+/// 都找不到时回退当前目录。注意：`dart run` 本身必须在含 `pubspec.yaml` 的包根执行，
+/// 该向上查找只影响已启动 CLI 的缓存 projectId，不能让子目录里的 dart run 启动。
 String defaultRoot() {
   final current = Directory.current.absolute;
   final root = _findAncestor(current, 'pubspec.yaml') ?? _findAncestor(current, '.git') ?? current;

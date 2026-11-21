@@ -97,6 +97,18 @@ void main() {
     }
   });
 
+  test('get 输出路径是目录时给出明确错误', () async {
+    final dir = Directory('${root.path}/outdir')..createSync(recursive: true);
+    final result = await run(
+      <String>['get', 'http://127.0.0.1:9/x.png', dir.path],
+      withRoot: false,
+    );
+    expect(result.exitCode, 1, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('输出路径是目录'));
+    expect('${result.stderr}', contains(dir.path));
+    expect('${result.stderr}', isNot(contains('.tmp')));
+  });
+
   test('get 下载图片 URL 到本地文件', () async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {

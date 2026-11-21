@@ -256,6 +256,49 @@ void main() {
     );
   });
 
+  test('渐变描边的 stop 变化在可读 diff 里保留颜色', () {
+    Map<String, dynamic> node(List<Map<String, Object?>> stops) => {
+          'id': '1:2',
+          'type': 'ELLIPSE',
+          'name': 'Ring',
+          'strokes': [
+            {
+              'type': 'GRADIENT_LINEAR',
+              'gradientHandlePositions': [
+                {'x': 0, 'y': 0},
+                {'x': 0, 'y': 1},
+              ],
+              'gradientStops': stops,
+            },
+          ],
+          'strokeWeight': 2,
+        };
+    final before = node([
+      {
+        'position': 0,
+        'color': {'r': 1, 'g': 0, 'b': 0},
+      },
+      {
+        'position': 1,
+        'color': {'r': 0, 'g': 0, 'b': 1},
+      },
+    ]);
+    final after = node([
+      {
+        'position': 0,
+        'color': {'r': 0, 'g': 1, 'b': 0},
+      },
+      {
+        'position': 1,
+        'color': {'r': 0, 'g': 0, 'b': 1},
+      },
+    ]);
+    final changes = const SpecDiff().changes(before, after);
+    final stroke = changes.firstWhere((change) => change.field == 'strokes');
+    expect(stroke.before, contains('GRAD(#FF0000→#0000FF)'));
+    expect(stroke.after, contains('GRAD(#00FF00→#0000FF)'));
+  });
+
   test('整页平移只报父节点位置，不刷子节点', () {
     final before = _tree(label: 'Hi', size: 16);
     final after = jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
