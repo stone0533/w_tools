@@ -20,7 +20,11 @@ Future<void> runGet(List<String> args) async {
     throw FormatException('get 需要 http(s) 图片 URL：$rawUrl');
   }
   final out = File(positional[1]);
-  if (FileSystemEntity.isDirectorySync(out.path)) {
+  // 尾斜杠表示调用方想给一个目录；即使目录还不存在，也不能把它当文件写。
+  final looksLikeDirectory = out.path.endsWith('/') ||
+      out.path.endsWith(Platform.pathSeparator) ||
+      out.path.endsWith('\\');
+  if (looksLikeDirectory || FileSystemEntity.isDirectorySync(out.path)) {
     throw StateError('输出路径是目录：${out.path}');
   }
   out.parent.createSync(recursive: true);

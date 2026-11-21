@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import 'token_collector.dart';
 
 /// 颜色语义映射的 key：去掉 `#`、转大写（CLI 解析 YAML 与渲染共用）。
@@ -8,12 +10,13 @@ String colorKey(String value) => value.split('@').first.replaceAll('#', '').toUp
 /// 只用于人读表格；`tokens --json` 的 `samples` 保留完整 characters。
 String shortenSample(String sample) {
   final start = sample.indexOf('「');
-  final end = sample.indexOf('」', start + 1);
-  if (start < 0 || end < 0) return sample;
+  // 文案内部可能也有「」，最后一个是渲染层加的外层包裹，不能取第一个。
+  final end = sample.lastIndexOf('」');
+  if (start < 0 || end <= start) return sample;
   final text = sample.substring(start + 1, end);
-  final runes = text.runes.toList();
-  if (runes.length <= 12) return sample;
-  final short = String.fromCharCodes(runes.take(12));
+  final characters = text.characters;
+  if (characters.length <= 12) return sample;
+  final short = characters.take(12).toString();
   return '${sample.substring(0, start)}「$short…」${sample.substring(end + 1)}';
 }
 

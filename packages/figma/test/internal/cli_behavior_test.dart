@@ -109,6 +109,18 @@ void main() {
     expect('${result.stderr}', isNot(contains('.tmp')));
   });
 
+  test('get 对不存在的带尾斜杠输出按目录报错', () async {
+    final dir = '${root.path}/not-created/';
+    final result = await run(
+      <String>['get', 'http://127.0.0.1:9/x.png', dir],
+      withRoot: false,
+    );
+    expect(result.exitCode, 1, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('输出路径是目录'));
+    expect('${result.stderr}', contains(dir));
+    expect('${result.stderr}', isNot(contains('.tmp')));
+  });
+
   test('get 下载图片 URL 到本地文件', () async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {
@@ -1023,6 +1035,69 @@ void main() {
     expect(result.exitCode, 0, reason: '${result.stderr}');
     expect('${result.stdout}', contains('0*'));
     expect('${result.stdout}', contains('来自 --depth 裁剪缓存'));
+  });
+
+  test('frames 对 DOCUMENT 根缓存按 CANVAS 拆 page/pageId', () async {
+    final file = File('${root.path}/document_nodes.json')
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '0:0': {
+            'document': {
+              'id': '0:0',
+              'type': 'DOCUMENT',
+              'name': 'Doc',
+              'children': [
+                {
+                  'id': '0:1',
+                  'type': 'CANVAS',
+                  'name': 'Page One',
+                  'children': [
+                    {
+                      'id': '1:2',
+                      'type': 'FRAME',
+                      'name': 'A',
+                      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+                      'children': <Object?>[],
+                    },
+                  ],
+                },
+                {
+                  'id': '0:2',
+                  'type': 'CANVAS',
+                  'name': 'Page Two',
+                  'children': [
+                    {
+                      'id': '1:3',
+                      'type': 'FRAME',
+                      'name': 'B',
+                      'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+                      'children': <Object?>[],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      }));
+
+    final all = await run(<String>[
+      'frames',
+      '--file=${file.path}',
+      '--all',
+      '--json',
+    ]);
+    expect(all.exitCode, 0, reason: '${all.stderr}');
+    final rows = (jsonDecode('${all.stdout}') as Map<String, dynamic>)['frames'] as List;
+    final byId = {for (final row in rows) row['id']: row};
+    expect(byId['1:2']['page'], 'Page One');
+    expect(byId['1:2']['pageId'], '0:1');
+    expect(byId['1:3']['page'], 'Page Two');
+    expect(byId['1:3']['pageId'], '0:2');
+
+    final top = await run(<String>['frames', '--file=${file.path}', '--json']);
+    expect(top.exitCode, 0, reason: '${top.stderr}');
+    expect((jsonDecode('${top.stdout}') as Map<String, dynamic>)['frames'], hasLength(2));
   });
 
   test('frames --page=- 不再提示可能漏掉单节点缓存', () async {
