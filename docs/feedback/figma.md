@@ -2,24 +2,25 @@
 
 ## 待处理
 
-### [待处理] figma: 完整缓存 vs dN 的陈旧判断按 mtime 误报，JSON 也没有对应标记
+### [待处理] figma: stale 检查未按 fileKey 过滤，可能把别的 Figma 文件的 dN 当成当前完整缓存的新版本
 
 - 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；真实项目缓存（完整 `nodes-…-0-1.json` + 更新的 `nodes-…-0-1-d2.json`）
-- 命令 / 输入：`dart run w_tools_figma:figma tokens 0:1 --json --skip-markdown`；`dart run w_tools_figma:figma spec 0:1 --json`
-- 期望：同一缓存 version 的 dN 不应报「完整缓存比 dN 旧」；如果 dN 确实更新，JSON 应提供 `staleAgainstDepth` / `newerDepthAvailable`（含 dN source/depth），让不读 stderr 的 agent 也能判断
-- 实际：默认选完整树后，每次 `tokens` / `spec` 都输出 stderr：
-  `# 完整缓存比 --depth 缓存旧（…/nodes-…-0-1.json → …/nodes-…-0-1-d2.json）；如需最新数据请 fetch --refresh，或加 --allow-depth（可能不完整）`
-  但两份缓存顶层 `version` 都是 `2415310932909825311`，`lastModified` 都是 `2026-10-28T07:39:10Z`；d2 只是文件 mtime 更新。JSON 里 `depthLimited:false`、`sourceDepths` 只有完整树，没有任何 stale / newerDepth 字段。代码比较的是 `depth.lastModifiedSync().isAfter(full.lastModifiedSync())`，不是缓存 version。
-- 影响：默认完整树后每次取数都多一条假警告；用户可能为一条不存在的「更新」消耗 Tier 1 `fetch --refresh`，或改加 `--allow-depth` 拿到不完整树；AI 只读 JSON 时完全看不到这条警告，会把旧完整树当最新事实。
-- 建议：先比较缓存顶层 `version`（缺失时再退 `lastModified` / 文件 mtime），只在 dN version 确实更新时警告；在 specs/1 / tokens/1 增加 `staleAgainstDepth` / `newerDepthAvailable`（含 dN source + depth），让 JSON 消费方可判断。
-- 复现数据：真实 0:1 缓存；full 与 d2 的 `version` / `lastModified` 完全相同；命令的 stderr 原文如上；`tokens` JSON keys 无 stale 字段，`depthLimited:false`。
+- 环境：macOS 26.6.2 / Dart 3.12.2；同一项目里同时缓存 FILEA 完整树与 FILEB 的 `-d2` 树（node id 都是 `10:1`）
+- 命令 / 输入：`dart run w_tools_figma:figma tokens 10:1 --json --skip-markdown`；`dart run w_tools_figma:figma spec 10:1 --json`
+- 期望：stale 检查只比较同一 fileKey 的完整缓存与 dN；同一 nodeId 出现在多个文件时，保留 multiFileKey 警告并让用户用 `--file=` 指定，不要把 FILEB 的 dN 当成 FILEA 完整缓存的新版本
+- 实际：`sources` 是 FILEA 的完整缓存，但 JSON 输出 `staleAgainstDepth:true`、`newerDepthAvailable:[{"nodeId":"10:1","source":"…/nodes-FILEB-10-1-d2.json","depth":2,"version":"300"}]`；stderr 也写「完整缓存可能陈旧：FILEA full → FILEB d2」。`staleDepthReport` 有 `fileKey` 参数，但 spec/tokens 调用时没传，`_nodesCacheFiles` 扫描了所有 fileKey。
+- 影响：主设计稿和组件库/活动页共用 node id（尤其 `0:1`）时，默认完整树会被另一文件的 dN 误标成陈旧；agent 可能按 JSON 的 `newerDepthAvailable.source` 去刷新错的文件，或改用不完整的 dN。multiFileKey 警告只说「可能选错文件」，没有解释 stale 字段来自另一文件。
+- 建议：从选中的完整缓存文件名解析 `nodes-<fileKey>-`，把该 fileKey 传给 staleDepthReport / fullNodesCachePaths；只比较同一 fileKey 的 dN；无法确定时跳过 stale 检查并保留 multiFileKey 警告。
+- 复现数据：合成缓存 `nodes-FILEA-10-1.json`（version 100，完整）+ `nodes-FILEB-10-1-d2.json`（version 300，nodeId 10:1）；tokens JSON 的 `staleAgainstDepth:true` + `newerDepthAvailable.source` 指向 FILEB，stderr 原文如上。
 - 状态变更：2026-11-21 待处理
 
 ## 已闭环
 
+
+
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-21 | 完整缓存 vs dN 的陈旧判断按 mtime 误报，JSON 也没有对应标记 | ✅ 1.3.0：按 version → lastModified → mtime；JSON staleAgainstDepth / newerDepthAvailable；同 version 不再误报 |
 | 2026-11-21 | spec/tokens 默认仍选中 depth 裁剪缓存（JSON 已可发现，--prefer-full 为 opt-in） | ✅ 1.3.0：默认优先完整树，`--allow-depth` 才读 dN；JSON `depthLimited` / `sourceDepth(s)` 保留 |
 | 2026-11-21 | tokens --out / spec stdout 把含本机绝对路径的 depth 警告写进 markdown | ✅ 1.3.0：depth 警告只写 stderr；`spec` stdout / `tokens --out` 文件不再含本机路径 |
 | 2026-11-21 | 缓存结构异常时未捕获异常，exit 255 | ✅ 1.3.0：individualStrokeWeights 空 key 跳过；run.dart 兜底 Error，坏缓存 exit 1 |
