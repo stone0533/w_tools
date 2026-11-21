@@ -20,67 +20,30 @@
 - 建议：spec / tokens 默认 `preferFullDepth: true`（在完整缓存里取最新），只有完全没有完整缓存时才回退 dN，并显式要求 `--allow-depth` 或在 JSON 标 `depthLimited: true` / `sourceDepth: n`；warning 打印完整缓存路径（或提示 `cache stats --files` 的文件名规则）；frames 对被裁剪节点的 children 输出 null 或加 truncated 标记，不要报 0。
 - 复现数据：真实节点 `0:1`；完整缓存 `nodes-…-0-1.json`（129 MB，mtime 14:17）vs `nodes-…-0-1-d2.json`（401 KB，mtime 15:25）；tokens counts 13/156 如上；frames 合成缓存 `10:7`（自動佈局）2→0。
 
-1.3.0 复测：JSON `depthLimited` / `sourceDepth`（tokens 为 `sourceDepths`）、命中裁剪缓存时列出完整缓存路径、`--prefer-full`、`frames --json cacheDepth` 都已加上。但默认仍按 mtime 取最新 `-dN`：普通 `tokens 0:1` 仍只读到 13/156 色，`--prefer-full` 是 opt-in；不看 stderr 的用户/AI 仍可能把截断结果当完整事实。建议默认 `prefer-full`，或至少要求显式 `--allow-depth` 才读 dN。
+1.3.0 复测：JSON `depthLimited` / `sourceDepth`（tokens 为 `sourceDepths`）、命中裁剪缓存时列出完整缓存路径、`--prefer-full`、`frames --json cacheDepth` 都已加上。但默认仍按 mtime 取最新 `-dN`：普通 `tokens 0:1` 仍只读到 13/156 色，`--prefer-full` 是 opt-in；不看 stderr 的用户/AI 仍可能把截断结果当完整事实。建议默认 `prefer-full`，或至少要求显式 `--allow-depth` 才读 dN。另外非 JSON 输出顶部新加的 depth 警告会被写进 `tokens --out` 文件（见新条目）。
 
 - 状态变更：2026-11-21 待处理
 
-### [待处理] figma: 缓存结构异常时未捕获异常，exit 255（不在文档退出码里）
+### [待处理] figma: tokens --out 把 depth 警告（含本机绝对路径）写进 design-tokens.md
 
 - 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；合成缓存文件
-- 命令 / 输入：dart run w_tools_figma:figma spec 1:1 --file=<bad1.json>
-  `dart run w_tools_figma:figma spec 1:1 --file=<bad1.json>`（root 的 `absoluteBoundingBox` 缺 `x`）
-  `dart run w_tools_figma:figma spec 1:1 --file=<bad2.json>`（TEXT 的 `style` 写成字符串）
-- 期望：按 README「缓存损坏默认报错」给一条可读错误，退出码 1（或 2），不打印 Dart 栈
-- 实际：exit 255，stderr 是 `Unhandled exception:` + 栈：`type 'Null' is not a subtype of type 'num' in type cast`（spec_renderer.dart:41）；另一例 `type 'String' is not a subtype of type 'Map<dynamic, dynamic>?' in type cast`（figma_node.dart:143）。run.dart 只 catch FigmaTokenException / StateError / FormatException / FigmaHttpException / Timeout / Http / Socket / FileSystemException，TypeError 直接穿透。
-- 影响：缓存被手改、旧版本结构或部分字段缺失时 CLI 直接崩，退出码不在文档的 0~5 里；脚本会把它当成未知失败，而且看不到是哪份缓存 / 哪个节点的问题。
-- 建议：run.dart 增加兜底 catch（打印「缓存结构异常：…」+ 缓存路径 + 建议 `--refresh` / `cache clean`，exit 1），或在 spec renderer 里对 bbox / style 做防御读取；退出码表补一个「内部错误」或复用 1。
-- 复现数据：`bad1.json` 的 root 为 `{"id":"1:1","type":"FRAME","absoluteBoundingBox":{"y":0,"width":10,"height":10},"children":[]}`；`bad2.json` 的 node 含 `"style":"oops"`；两条命令均 exit 255，栈行如上。
-
-1.3.0 复测：bbox 缺字段 / TEXT `style` 非对象的 `TypeError` 已修（exit 1 + 可读错误）；但 `individualStrokeWeights` 的 key 为空字符串时 `substring(0,1)` 仍抛 `RangeError`，exit 255（figma_node.dart:100）。`run.dart` 目前只 catch `TypeError`，建议兜底 `Error` 或校验 key 长度。新增复现：`{"individualStrokeWeights":{"":2}}`。
-
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: init 无法恢复只剩注释的 token 文件，--force 误报「已有真实 token」
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；临时 HOME
-- 命令 / 输入：`printf '# only comments\n' > ~/.config/w_tools/figma-token`；`dart run w_tools_figma:figma init`；`dart run w_tools_figma:figma init --force`；`dart run w_tools_figma:figma me`
-- 期望：没有有效非注释行就等同空/模板，init 应重建；--force 只在确实有真实 token 时拒绝
-- 实际：init exit 0「已存在」，文件保持 16 字节；me exit 4「还是模板内容」；init --force exit 1「已有真实 token，--force 不会覆盖」（误报）。只有手动删除文件才能恢复。
-- 影响：用户在编辑器里删掉 `figd_REPLACE_ME` 但保留注释后，init 不再是恢复入口；--force 的提示还会让人以为文件里有真 token。
-- 建议：init 用与 readToken 相同的 `_tokenLine` 判断空/模板；没有有效非注释行时重建；--force 只对有效非模板行拒绝。
-- 复现数据：文件内容 `# only comments\n`；init 后 16 字节；me / --force 输出如上。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: cache clean --file 拒绝同一文件的 /tmp 绝对路径（规范化回归）
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2（/tmp 是 /private/tmp 的软链）/ Dart 3.12.2；临时 HOME
-- 命令 / 输入：`dart run w_tools_figma:figma cache clean --file=/tmp/<home>/.cache/w_tools/figma/<project>/nodes-….json --yes`；同一文件换成 `/private/tmp/<home>/…` 再执行
-- 期望：同一文件的不同等价路径都应接受；仍只允许删当前项目缓存目录内的文件
-- 实际：`/tmp/<home>/…` exit 2「--file 只能删当前项目缓存目录下的文件」；`/private/tmp/<home>/…` exit 0。1.3.0 把 store.dir 规范化成了 /private/tmp，但 cleanFile 仍用未规范化的 `candidate.parent.path` 与 canonical root 比较。
-- 影响：macOS 脚本 / 旧输出里的 /tmp 路径无法清理；用户看到同一文件被拒绝，容易误以为权限或缓存损坏。
-- 建议：cleanFile 先对 candidate 做 canonicalDirectory / resolveSymbolicLinks，再比较 parent；保留 symlink 越界防护。
-- 复现数据：`cache stats` 输出 `/private/tmp/<home>/…`；`--file=/tmp/<home>/…` exit 2，`--file=/private/tmp/<home>/…` exit 0。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: spec/tokens --file=<dN> 的 warning 误报「没有其它完整缓存」
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 / Dart 3.12.2；合成缓存（同目录同时有完整树和 `-d1`）
-- 命令 / 输入：`dart run w_tools_figma:figma spec 10:1 --file=<d1.json>`；`dart run w_tools_figma:figma tokens 10:1 --file=<d1.json> --json --skip-markdown`
-- 期望：warning 应列出可用的完整缓存，至少不要声称「没有其它完整缓存」
-- 实际：warning 结尾是「没有其它完整缓存，可重新 fetch nodes」，但同目录有 `nodes-FILEA-10-1.json` 完整缓存。`depthLimitedMessage` 的 `fullPaths` 只在 `options.file == null` 时计算，显式 `--file` 一给就被强制为空。
-- 影响：用户可能因为这条警告重新 fetch，浪费 Tier 1；也误导对缓存状态的判断。
-- 建议：`--file` 场景也调用 fullNodesCachePaths（排除当前文件），或在没有真正检查时删掉「没有其它完整缓存」的断言。
-- 复现数据：`spec 10:1 --file=nodes-FILEA-10-1-d1.json` 的 stderr；完整文件同目录存在。
+- 环境：macOS 26.6.2 / Dart 3.12.2；同一页面同时有完整缓存和更新的 `-d2` 缓存
+- 命令 / 输入：`dart run w_tools_figma:figma tokens 0:1 --out=/tmp/design-tokens.md`
+- 期望：`--out` 写出的文件只包含 token 内容；depth 警告保留在 stderr（或至少不要包含本机绝对缓存路径）
+- 实际：文件首行变成 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）…`，同时 stderr 也有同样警告；`--prefer-full` 或显式完整 `--file` 时不出现。1.3.0 新增的 markdown 顶部警告直接把 local cache path 写进了输出文件。
+- 影响：项目文档里的 `docs/design-tokens.md` 会带上某台机器的 `/Users/...` 或 `/private/tmp/...` 路径，提交后跨机器 diff / 泄露本地目录；任何期望首行是 `# 设计 token 汇总` 的工具也会被 blockquote 干扰。
+- 建议：`--out` 文件不写这条警告（只走 stderr）；或 banner 只用 basename / 相对路径；也可加 `--no-depth-warning` 让脚本关闭。
+- 复现数据：`tokens 0:1 --out=/tmp/design-tokens.md` 文件 head 是 `> ⚠️ 数据源来自 --depth 裁剪缓存（/Users/…）`；stderr 同样一行；`--prefer-full` 输出首行是 `# 设计 token 汇总…`。
 - 状态变更：2026-11-21 待处理
 
 ## 已闭环
 
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-21 | 缓存结构异常时未捕获异常，exit 255 | ✅ 1.3.0：individualStrokeWeights 空 key 跳过；run.dart 兜底 Error，坏缓存 exit 1 |
+| 2026-11-21 | init 无法恢复只剩注释的 token 文件 | ✅ 1.3.0：init 按「无有效 token 行」重建；--force 不再误报 |
+| 2026-11-21 | cache clean --file 拒绝同一文件的 /tmp 路径 | ✅ 1.3.0：先解析软链再比较；/tmp 与 /private/tmp 均可，越界软链仍拒 |
+| 2026-11-21 | spec/tokens --file=<dN> warning 误报没有完整缓存 | ✅ 1.3.0：显式 --file 也检查完整缓存并排除当前文件 |
 | 2026-11-21 | init 生成的 token 模板填完后仍被判非法，首次本地配置必失败 | ✅ 1.3.0：readToken 取第一条非注释行；空文件重建；已存在 token 收紧到 600（仅注释文件另见新条目） |
 | 2026-11-21 | --root 未规范化，等价路径落到不同缓存目录 | ✅ 1.3.0：canonicalDirectory 归一 `.` / `./` / 软链 / 尾斜杠；空/不存在 exit 2；选项前置提示（cache clean --file 回归另见新条目） |
 | 2026-11-21 | spec 的 --skip-hidden / --skip-name-prefix 只过滤 Markdown | ✅ 1.3.0：node 与 markdown 同步剪枝，目标及祖先保留 |
