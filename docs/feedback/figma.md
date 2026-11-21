@@ -2,138 +2,19 @@
 
 ## 待处理
 
-
-
-
-
-
-
-
-
-### [待处理] figma: spec 的渐变描边只输出类型，丢失 stop 颜色/角度
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：`dart run w_tools_figma:figma spec 1:2 --file=/tmp/grad_stroke_nodes.json`（一个 ELLIPSE，2px `GRADIENT_LINEAR` 描边，两个 stop：`#41627A` → `#81AECE`）
-- 期望：描边列像填充一样给出渐变颜色与角度，例如 `GRAD(#41627A→#81AECE)@90° 2.0px align=INSIDE`；即使不展开角度，至少要看得到 stop 颜色。
-- 实际：只输出 `GRADIENT_LINEAR 2.0px align=INSIDE`，没有任何颜色；`spec --json` 的原始 `node.strokes[0].gradientStops` 里有颜色，但人读的 Markdown 丢掉了。项目真实节点 `I2105:41663;221:7812`（Ellipse 12，44×44）也是同样输出。
-- 影响：还原渐变描边时只能回 JSON 翻 `gradientStops`，人读 spec 会误以为描边是单色；Flutter 侧无法按 spec 直接实现渐变边框，容易还原成普通描边。
-- 建议：把 `figmaFills` 的渐变格式化抽成共用函数给 `figmaStrokes` 复用（首/中/尾 stop、`@角度`、paint opacity）；`diff` 的可读输出也同步，避免只剩类型。
-- 复现数据：/tmp/grad_stroke_nodes.json（最小 fixture，内容如下）；`spec` 输出片段：`画板 100×100，背景 -，描边 GRADIENT_LINEAR 2px align=INSIDE，阴影 -`。
-
-```json
-{"nodes":{"1:2":{"document":{"id":"1:2","type":"FRAME","name":"Gradient stroke demo","absoluteBoundingBox":{"x":0,"y":0,"width":100,"height":100},"children":[{"id":"1:3","type":"ELLIPSE","name":"Ring","absoluteBoundingBox":{"x":10,"y":10,"width":80,"height":80},"strokes":[{"type":"GRADIENT_LINEAR","gradientHandlePositions":[{"x":0.5,"y":0},{"x":0.5,"y":1},{"x":0,"y":0}],"gradientStops":[{"color":{"r":0.2549,"g":0.3451,"b":0.4078,"a":1},"position":0},{"color":{"r":0.5049,"g":0.6836,"b":0.8078,"a":1},"position":1}]}],"strokeWeight":2,"strokeAlign":"INSIDE"}]}}}}
-```
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: tokens 样例按 UTF-16 硬截 12 位，emoji 被截成孤立代理项且无省略号
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：fixture 里 TEXT 的 `characters` 为 `😀😀😀😀😀a😀`（7 个字符、13 个 UTF-16 code unit）；`dart run w_tools_figma:figma tokens 1:2 --file=/tmp/emoji_nodes.json --json --skip-markdown`
-- 期望：样例是合法 Unicode；截断时带省略号（如 `「😀😀…😀」`），或者 JSON 保留完整 `characters`，只在 Markdown 里截断。
-- 实际：JSON 的 `samples` 是 `「😀😀😀😀😀a\ud83d」 (1:3)`，含孤立高代理项 `\ud83d`；Markdown 里会显示替换字符/乱码。项目里更常见的截断是 `2025/10/03 20:00 到期` 被显示为 `「2025/10/03 2」`，既没有省略号，也看不出被截断。
-- 影响：样例看起来像完整文案，AI/人会把它当真实内容；含 emoji 的设计稿会产出损坏的 JSON/Markdown 文本（`\ud83d` 不是合法字符）。
-- 建议：按 `runes` / grapheme cluster 截断并补 `…`；JSON 的 `samples` 保留全文（或另加 `text` 字段），只对 Markdown 做视觉截断。
-- 复现数据：/tmp/emoji_nodes.json（最小 fixture，TEXT characters 如上）；实际输出片段：`[["「😀😀😀😀😀a\ud83d」 (1:3)"]]`。
-
-```json
-{"nodes":{"1:2":{"document":{"id":"1:2","type":"FRAME","name":"Emoji","absoluteBoundingBox":{"x":0,"y":0,"width":100,"height":100},"children":[{"id":"1:3","type":"TEXT","name":"T","absoluteBoundingBox":{"x":0,"y":0,"width":10,"height":10},"characters":"😀😀😀😀😀a😀","style":{"fontFamily":"Noto Sans","fontWeight":400,"fontSize":14,"lineHeightPx":20,"letterSpacing":0,"textAlignHorizontal":"LEFT"},"fills":[{"type":"SOLID","color":{"r":0.2,"g":0.2,"b":0.2}}]}]}}}}
-```
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: diff 对不存在的 node 直接请求 Figma，静默消耗 1 次 Tier 1
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；项目按 Figma View seat 的 20 次/月管理额度
-- 命令 / 输入：`dart run w_tools_figma:figma diff <fileKey> 9999:9999 --if-stale`；另一次 `dart run w_tools_figma:figma diff <fileKey> 9999:9999` 也同样消耗
-- 期望：`--if-stale` 在没有本地基线时明确提示「无基线，首次拉取会消耗 1 次 Tier 1」；不存在的 node 至少要在错误里说明额度已被消耗，而不是让用户以为只是本地查找失败。
-- 实际：两条命令各消耗 1 次 Tier 1。测试前 `usage --json` 是 `used:20, limit:20`；执行后变成 `used:22, remaining:-2`，`recent` 里多了两条 `kind:"nodes", cache:"-"`。之后才输出 `Figma 没有返回节点：9999:9999（nodeId 不存在或无权访问）`，exit 1，错误里完全不提额度。
-- 影响：一个 nodeId 笔误消耗 5%–10% 的月度额度；额度用完后才发现，且错误信息看起来像纯本地失败，容易再次重试。
-- 建议：先走 `findNodesCache`/索引；没有基线时在 stderr 打印「本地无缓存，将消耗 1 次 Tier 1」再请求；失败信息补「本次已消耗 1 次 Tier 1」；`--if-stale` 无基线时也明确说「需要首次拉取」。
-- 复现数据：`usage --json` 前后对比（`used:20` → `used:22`，`remaining:-2`）；`recent` 两条 `2026-11-21T17:06:00 / 17:06:03 nodes -`。`9999:9999` 为不存在的 nodeId，可用任意 fileKey 复现。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: frames 只给 page 名不给 page id，fetch nodes <canvasId> 没有发现路径
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：`dart run w_tools_figma:figma frames --json`（项目里已有完整页面缓存和单节点缓存）
-- 期望：`frames` 每行/JSON 带 `pageId`（至少在该行来自完整页面缓存时），这样可以直接 `fetch nodes <fileKey> <pageId>`；或者新增 `pages` 命令列出 `{id,name}`。
-- 实际：`frames --json` 的行只有 `page` 名称，没有 page id；`frames --verbose` 只多给缓存文件路径。项目文档要求 `fetch nodes <fileKey> <canvasId>`，但 CLI 没有任何命令能列出 page id，只能回 Figma 页面复制链接。
-- 影响：想只拉某一页（避免 100 MB+ 的整文件缓存）时，必须手工开 Figma 找该页链接；`--page` 只能按页面名过滤，不能拿到 id 去 fetch。
-- 建议：索引里保存 CANVAS 的 id，`frames` 行增加 `pageId`（未知时 null）；或增加 `figma pages` 子命令输出 `{id,name}`，并让 `fetch nodes` 的 `--depth` 文档直接引用它。
-- 复现数据：`frames --json` 的字段示例：`{"id":"1992:60055","page":"mockup（…）","cacheFile":"…-0-1-d2.json","cacheDepth":2}`，无 `pageId`；而 `spec 0:1` 能证明该页 id 是 `0:1`，说明信息就在缓存里，只是没暴露。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: README 说可从子目录运行，但 dart run 在子目录直接失败
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；Flutter 项目，`pubspec.yaml` 在仓库根
-- 命令 / 输入：`cd lib/app && dart run w_tools_figma:figma frames`
-- 期望：按 README「项目根默认从当前目录向上找 `pubspec.yaml` / `.git`，从子目录运行复用同一缓存」，应正常执行并复用根目录缓存。
-- 实际：Dart 在 CLI 启动前就失败：`Could not find a file named "pubspec.yaml" in ".../lib/app".`，exit 255；在命令后加 `--root=<仓库根>` 也一样，因为 `dart run` 先按 cwd 找 pubspec，CLI 根本没被执行。
-- 影响：文档承诺的子目录用法不可用；在页面目录临时查 `spec` 时只能先 `cd` 回仓库根，或改用其他入口。
-- 建议：README 改成「`dart run` 必须在含 `pubspec.yaml` 的包根执行；`--root` 只用于指向另一个项目根」；如果确实要支持子目录，提供全局可执行入口/包装脚本，而不是 `dart run`。同时建议把 1.1.0 台账里「子目录运行换项目缓存 id」的闭环说明改成这个边界，避免读者以为已可用。
-- 复现数据：上述命令的 stderr 原文；`pwd` 为仓库根下的 `lib/app`，其上一级存在 `pubspec.yaml`。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: get 输出路径是目录时报临时文件 /tmp.tmp，错误不指向用户路径
-
-- 包/版本：w_tools_figma 1.3.0
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：本地起 `python3 -m http.server 8765`（目录里有 `x.png`），再跑 `dart run w_tools_figma:figma get 'http://127.0.0.1:8765/x.png' /tmp`
-- 期望：`get` 发现输出路径是目录时，明确报「输出路径是目录」并给出用户传入的路径；不要暴露内部临时文件名。
-- 实际：`get ... /tmp` 报 `读取失败：Cannot open file（/tmp.tmp）`；换成 `get ... /tmp/getserve` 报 `读取失败：Cannot rename file to '/tmp/getserve'（/tmp/getserve.tmp）`。两条都是实现细节（`.tmp`），且第一条完全没提目标 `/tmp`。
-- 影响：普通用户看到 `/tmp.tmp` 不知道是自己传了目录，也不知道该改成文件路径；两条分支文案还不一致，无法指导修复。
-- 建议：写文件前检查 `File(outfile).exists && isDirectory`，报 `输出路径是目录：<outfile>`；临时文件路径只留在 debug/异常里，不进用户错误；`/tmp` 与 `/tmp/getserve` 两条分支统一文案。
-- 复现数据：本地 server 日志 `/tmp/getserve.log`；`/tmp/getserve/x.png` 14 bytes；上述两条命令的 stderr 原文；传文件路径 `/tmp/getserve/out.png` 时正常输出 `saved:`。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: 1.3.1 的 tokens 样例截断仍会截错：内层 」 被当成结尾，ZWJ emoji 被切开
-
-- 包/版本：w_tools_figma 1.3.1
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：`dart run w_tools_figma:figma tokens 1:2 --file=/tmp/quote_nodes.json`（TEXT characters 为 `1234567890123「引號」後續`）
-- 期望：Markdown 样例只截显示文案，不破坏外层 `「…」` 包裹；文案内部的 `」` 不应被当成结尾；emoji 截断不切开 grapheme cluster，至少不在 ZWJ 序列中间下刀。
-- 实际：输出 `「123456789012…」後續」 (1:3)`：把文案内部的 `」` 当成包裹结尾，丢掉 `「引號` 并多出一个 `」`。另一个 fixture（`👨‍👩‍👧‍👦` 重复 3 次 + `ABCDEF`）输出 `「👨‍👩‍👧‍👦👨‍👩‍👧…」`，第 12 个 rune 落在 ZWJ 序列中间，家庭 emoji 被切开。
-- 影响：中文 UI 文案常用 `「」`，Markdown 样例会显示成错误文本；ZWJ emoji 截断后视觉上不完整，降低 token 表可信度。`tokens --json` 的 `samples` 全文是正确的，问题只在 Markdown 渲染层。
-- 建议：不要在 `shortenSample` 里反解析已经包好的 `「...」`；让 collector 提供原始 characters 和 id，渲染层先截断原文再包引号。截断按 grapheme cluster（可用 `characters` 包）或至少在 ZWJ 序列边界回退；内层 `」` 不参与边界判断。
-- 复现数据：/tmp/quote_nodes.json、/tmp/family_nodes.json；Markdown 输出片段 `「123456789012…」後續」 (1:3)` 与 `「👨‍👩‍👧‍👦👨‍👩‍👧…」 (1:3)`；`--json --skip-markdown` 的 samples 是完整原文。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: frames 对 DOCUMENT 根缓存没有按页拆分，page/pageId 全指向 DOCUMENT
-
-- 包/版本：w_tools_figma 1.3.1
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：`dart run w_tools_figma:figma frames --file=/tmp/document_nodes.json --all --json`（fixture：DOCUMENT `0:0`，两个 CANVAS `0:1` Page One、`0:2` Page Two，各含一个 FRAME）
-- 期望：按页拆分——Frame A 的 `page=Page One`、`pageId=0:1`；Frame B 的 `page=Page Two`、`pageId=0:2`。默认不加 `--all` 时至少能列出各页顶层 FRAME，或明确提示需要用 `--all` 并按页展示。
-- 实际：`--all` 两行都是 `page=Doc`、`pageId=0:0`（DOCUMENT 的 id/name），不是各自的 CANVAS；默认 `frames --file=/tmp/document_nodes.json` 输出 `（没有 FRAME）`，尽管两个页面里都有 FRAME；`--page=Page One` 也筛不到。
-- 影响：用 `fetch nodes <fileKey> 0:0` 拉整份文件后，`frames` 无法按页定位/过滤，新加的 `pageId` 还指错；用户会以为文件没有画板，或所有画板都在同一个叫 Doc 的页。
-- 建议：`collectFrames` 对 `document.type == DOCUMENT` 单独处理：遍历 `children` 的 CANVAS，把每个 CANVAS 的 id/name 作为 pageId/page，再收集其顶层 FRAME；默认无 `--all` 时也至少输出各页顶层 FRAME（或增加 pages 列表）。
-- 复现数据：/tmp/document_nodes.json；`frames --all --json` 输出 `[{id:1:2,page:Doc,pageId:0:0},{id:1:3,page:Doc,pageId:0:0}]`；默认输出 `（没有 FRAME）`。
-- 状态变更：2026-11-21 待处理
-
-### [待处理] figma: get 对不存在的带尾斜杠输出仍报 /.tmp，未按目录意图处理
-
-- 包/版本：w_tools_figma 1.3.1
-- 环境：macOS 26.6.2 (arm64) / Flutter 3.44.9 / Dart 3.12.2；本地 CLI，无设备
-- 命令 / 输入：本地 `python3 -m http.server 8765` 提供 `x.png`，再跑 `dart run w_tools_figma:figma get 'http://127.0.0.1:8765/x.png' /tmp/getnew2/`（目标目录不存在，带尾斜杠）
-- 期望：按目录意图处理：报 `输出路径是目录`，或自动创建目录并写入；至少不要暴露内部 `.tmp` 文件名。
-- 实际：`读取失败：Cannot open file（/tmp/getnew2/.tmp）`，exit 1。用户传的是 `/tmp/getnew2` 这个目录，错误却指向内部的 `/tmp/getnew2/.tmp`；1.3.1 的 `isDirectorySync` 检查对不存在的尾斜杠路径不生效。
-- 影响：用户传一个尚不存在的目录（带尾斜杠）时，错误仍指向 `.tmp`，和上一轮 get 目录问题同类；看不出是要改成文件路径还是先建目录。
-- 建议：`out.path` 以路径分隔符结尾时按目录处理；目录不存在时 `createSync(recursive: true)` 后写入，或明确报「目录不存在且未给文件名」。不要只依赖 `isDirectorySync`。
-- 复现数据：/tmp/getnew2/（不存在）；上述命令的 stderr 原文；同一 server 传 `/tmp/getnew2/x.png` 时正常 `saved:`。
-- 状态变更：2026-11-21 待处理
-
 ## 已闭环
-
-
-
-
 
 | 日期 | 问题 | 结果 |
 | --- | --- | --- |
+| 2026-11-21 | spec 的渐变描边只输出类型，丢失 stop 颜色/角度 | ✅ 1.3.1：fills/strokes 共用渐变格式化，输出 stop / 角度 / paint opacity；diff 同步 |
+| 2026-11-21 | tokens 样例按 UTF-16 硬截 12 位，emoji 被截成孤立代理项 | ✅ 1.3.1：JSON samples 保留完整 characters；Markdown 按 runes 截断并补 `…` |
+| 2026-11-21 | diff 对不存在的 node 静默消耗 1 次 Tier 1 | ✅ 1.3.1：无基线先提示会消耗 1 次；缺节点错误补「本次已消耗 1 次 Tier 1」 |
+| 2026-11-21 | frames 只给 page 名不给 pageId | ✅ 1.3.1：人读 / JSON 增加 pageId，索引升 9；1.3.2 补 DOCUMENT 根缓存的按页拆分 |
+| 2026-11-21 | README 说可从子目录运行，但 dart run 在子目录失败 | ✅ 1.3.1：README / args 明确 `dart run` 必须在包根执行；`--root` 只影响已启动 CLI |
+| 2026-11-21 | get 输出路径是目录时报 `.tmp` | ✅ 1.3.1：下载前检查目录，报 `输出路径是目录：<path>`，不再暴露 `.tmp` |
+| 2026-11-21 | 1.3.1 的 tokens 样例截断仍会截错（内层 `」` / ZWJ emoji） | ✅ 1.3.2：取最后一个 `」`，按 grapheme cluster 截断；内部引号与家庭 emoji 不再损坏 |
+| 2026-11-21 | frames 对 DOCUMENT 根缓存没有按页拆分 | ✅ 1.3.2：DOCUMENT 的 CANVAS 作为 page/pageId，默认也列出各页顶层 FRAME |
+| 2026-11-21 | get 对不存在的尾斜杠输出仍报 `.tmp` | ✅ 1.3.2：尾斜杠按目录处理，报 `输出路径是目录：<path>`，不含 `.tmp` |
 | 2026-11-21 | stale / depth 提示未按 fileKey 过滤，可能指向别的 Figma 文件 | ✅ 1.3.0：staleDepthReport / fullCachePathsForDepth 按缓存文件名的 fileKey 过滤；JSON newerDepthAvailable 带 fileKey；跨文件不再误报/推荐 |
 | 2026-11-21 | 完整缓存 vs dN 的陈旧判断按 mtime 误报，JSON 也没有对应标记 | ✅ 1.3.0：按 version → lastModified → mtime；JSON staleAgainstDepth / newerDepthAvailable；同 version 不再误报 |
 | 2026-11-21 | spec/tokens 默认仍选中 depth 裁剪缓存（JSON 已可发现，--prefer-full 为 opt-in） | ✅ 1.3.0：默认优先完整树，`--allow-depth` 才读 dN；JSON `depthLimited` / `sourceDepth(s)` 保留 |
