@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../cache/cache_store.dart';
+import '../cache/nodes_index.dart';
 import '../client/figma_client.dart';
 import '../commands/fetch_command.dart';
 import 'args.dart';
@@ -9,7 +10,12 @@ import 'token_source.dart';
 import 'cli_io.dart';
 
 /// `fetch --json` 的稳定结构；脚本据此判断部分节点缺失。
-Map<String, Object?> fetchJson(FetchResult result) => {
+Map<String, Object?> fetchJson(
+  FetchResult result, {
+  bool checkedMeta = false,
+  bool versionUnknown = false,
+}) =>
+    {
       'schema': 'w_tools_figma.fetch/1',
       'cacheFile': result.file.path,
       'fromCache': result.fromCache,
@@ -18,6 +24,8 @@ Map<String, Object?> fetchJson(FetchResult result) => {
       'cachedVersion': result.cachedVersion,
       'latestVersion': result.latestVersion,
       'missingNodeIds': result.missingNodeIds,
+      'checkedMeta': checkedMeta,
+      if (versionUnknown) 'versionUnknown': true,
     };
 
 Future<void> runFetch(List<String> args) async {
@@ -33,8 +41,9 @@ Future<void> runFetch(List<String> args) async {
   final kind = positional[0];
   final fileKey = positional[1];
   final idsRaw = positional.length > 2 ? positional[2] : null;
-  final ids =
-      idsRaw == null ? const <String>[] : idsRaw.split(',').where((e) => e.isNotEmpty).toList();
+  final ids = idsRaw == null
+      ? const <String>[]
+      : idsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
   if ((kind == 'nodes' || kind == 'images') && ids.isEmpty) {
     stderr.writeln('$kind 需要 ids，例如：fetch $kind <fileKey> 1862:9222');
     exitCode = 2;
@@ -98,7 +107,15 @@ Future<void> runFetch(List<String> args) async {
       refresh: options.refresh,
       checkStale: options.checkStale,
     );
-    if (result.fromCache) {
+    final depthSatisfiedByFull =
+        options.depth != null && result.fromCache && nodesCacheDepth(result.file.path) == null;
+    final versionUnknown = options.checkStale && result.fromCache && result.cachedVersion == null;
+    if (depthSatisfiedByFull) {
+      final checked = options.checkStale ? '; checked /meta' : '';
+      stderr.writeln(
+        '# cache hit (完整缓存已满足 --depth$checked): ${result.file.path}',
+      );
+    } else if (result.fromCache) {
       stderr.writeln(
         options.checkStale
             ? '# cache hit (checked /meta): ${result.file.path}'
@@ -106,6 +123,11 @@ Future<void> runFetch(List<String> args) async {
       );
     } else {
       stderr.writeln('# fetched: ${result.file.path}');
+    }
+    if (versionUnknown) {
+      stderr.writeln(
+        '# 缓存没有 version，无法判断是否过期；需要时用 --refresh 重新拉取',
+      );
     }
     if (result.stale) {
       stderr.writeln(
@@ -119,7 +141,11 @@ Future<void> runFetch(List<String> args) async {
       );
     }
     if (options.json) {
-      printLine(jsonEncode(fetchJson(result)));
+      printLine(jsonEncode(fetchJson(
+        result,
+        checkedMeta: options.checkStale,
+        versionUnknown: versionUnknown,
+      )));
     }
   } finally {
     client.close();

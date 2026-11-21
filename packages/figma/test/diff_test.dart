@@ -184,6 +184,10 @@ void main() {
     afterChild['clipsContent'] = true;
     beforeChild['style']['textDecoration'] = 'NONE';
     afterChild['style']['textDecoration'] = 'UNDERLINE';
+    beforeChild['style']['textAlignVertical'] = 'TOP';
+    afterChild['style']['textAlignVertical'] = 'CENTER';
+    beforeChild['cornerSmoothing'] = 0;
+    afterChild['cornerSmoothing'] = 0.6;
     (beforeChild['fills'] as List).first['opacity'] = 1;
     (afterChild['fills'] as List).first['opacity'] = 0.5;
 
@@ -197,6 +201,8 @@ void main() {
         'clipsContent',
         'textDecoration',
         'fills',
+        'radius',
+        'text',
       ]),
     );
   });
@@ -268,6 +274,27 @@ void main() {
         .map((change) => change.nodeId)
         .toList();
     expect(positionChanges, <String>['1:2'], reason: '子节点相对父节点没动');
+  });
+
+  test('子节点顺序变化报 order', () {
+    final before = {
+      'id': '1:2',
+      'type': 'FRAME',
+      'children': [
+        {'id': '1:3', 'type': 'RECTANGLE', 'name': 'A'},
+        {'id': '1:4', 'type': 'RECTANGLE', 'name': 'B'},
+      ],
+    };
+    final after = {
+      'id': '1:2',
+      'type': 'FRAME',
+      'children': [
+        {'id': '1:4', 'type': 'RECTANGLE', 'name': 'B'},
+        {'id': '1:3', 'type': 'RECTANGLE', 'name': 'A'},
+      ],
+    };
+    final changes = const SpecDiff().changes(before, after);
+    expect(changes.map((c) => c.field), contains('order'));
   });
 
   test('新增节点报为 +', () async {

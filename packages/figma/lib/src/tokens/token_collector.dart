@@ -33,11 +33,18 @@ class TextStyleUsage {
   final String letterSpacing;
   final String align;
   final String color;
+  String _fontStyle = '';
+  String _textCase = '';
+  String _textDecoration = '';
+
+  /// 字体样式：Regular / Italic / ...
+  String get fontStyle => _fontStyle;
 
   int count = 0;
   final List<String> samples = [];
 
-  String get key => '$family|$size|$weight|$lineHeight|$letterSpacing|$align|$color';
+  String get key =>
+      '$family|$size|$weight|$lineHeight|$letterSpacing|$align|$color|$_fontStyle|$_textCase|$_textDecoration';
 }
 
 /// 数值型统计（圆角 / 间距）。
@@ -63,10 +70,16 @@ class TokenCollector {
   final Map<String, NumberUsage> spacings = {};
 
   /// 统计 [document] 子树（可多次调用，累加）。
-  void collect(Map document) => _walk(document, inheritedVisible: true);
+  void collect(Map document) => _walk(document, inheritedVisible: true, inheritedOpacity: 1);
 
-  void _walk(Map node, {required bool inheritedVisible}) {
-    final visible = inheritedVisible && node['visible'] != false;
+  void _walk(
+    Map node, {
+    required bool inheritedVisible,
+    required double inheritedOpacity,
+  }) {
+    final opacity = (node['opacity'] as num?)?.toDouble() ?? 1;
+    final effectiveOpacity = inheritedOpacity * opacity;
+    final visible = inheritedVisible && node['visible'] != false && effectiveOpacity > 0;
     if (!visible) return;
     _collectFills(node);
     _collectStrokes(node);
@@ -74,7 +87,9 @@ class TokenCollector {
     _collectRadius(node);
     _collectSpacing(node);
     for (final c in (node['children'] as List?) ?? const []) {
-      if (c is Map) _walk(c, inheritedVisible: visible);
+      if (c is Map) {
+        _walk(c, inheritedVisible: visible, inheritedOpacity: effectiveOpacity);
+      }
     }
   }
 
@@ -107,9 +122,54 @@ class TokenCollector {
       align: '${st['textAlignHorizontal'] ?? '?'}',
       color: _firstFillColor(node),
     );
+    usage._fontStyle = '${st['fontStyle'] ?? ''}';
+    usage._textCase = '${st['textCase'] ?? ''}';
+    usage._textDecoration = '${st['textDecoration'] ?? ''}';
     final entry = texts.putIfAbsent(usage.key, () => usage);
     entry.count++;
     if (entry.samples.length < 3) entry.samples.add(_label(node));
+
+    // rich text 的 run 样式也要进 token；颜色之外还要区分斜体 / 字号 / 字重。
+    final overrides = (node['characterStyleOverrides'] as List?) ?? const [];
+    final table = (node['styleOverrideTable'] as Map?) ?? const {};
+    final seenRuns = <String>{};
+    for (final id in overrides) {
+      final style = table['$id'];
+      if (style is! Map) continue;
+      final runFamily = '${style['fontFamily'] ?? st['fontFamily'] ?? ''}';
+      final runSize = _fmtNum(style['fontSize'] ?? st['fontSize']);
+      final runWeight = _numText(style['fontWeight'] ?? st['fontWeight']);
+      final runStyle = '${style['fontStyle'] ?? st['fontStyle'] ?? ''}';
+      final runCase = '${style['textCase'] ?? st['textCase'] ?? ''}';
+      final runDecoration = '${style['textDecoration'] ?? st['textDecoration'] ?? ''}';
+      final runAlign = '${st['textAlignHorizontal'] ?? '?'}';
+      final runColor = _firstFillColor({'fills': style['fills'] ?? node['fills']});
+      final runKey =
+          '$runFamily|$runSize|$runWeight|${_fmtNum(style['lineHeightPx'] ?? st['lineHeightPx'])}|'
+          '${_fmtNum(style['letterSpacing'] ?? st['letterSpacing'])}|$runAlign|$runColor|$runStyle|$runCase|$runDecoration';
+      if (!seenRuns.add(runKey)) continue;
+      final run = TextStyleUsage(
+        family: runFamily,
+        size: runSize,
+        weight: runWeight,
+        lineHeight: _fmtNum(style['lineHeightPx'] ?? st['lineHeightPx']),
+        letterSpacing: _fmtNum(style['letterSpacing'] ?? st['letterSpacing']),
+        align: runAlign,
+        color: runColor,
+      );
+      run._fontStyle = runStyle;
+      run._textCase = runCase;
+      run._textDecoration = runDecoration;
+      final runEntry = texts.putIfAbsent(run.key, () => run);
+      runEntry.count++;
+      if (runEntry.samples.length < 3) runEntry.samples.add('${_label(node)} [run]');
+      final fills = (style['fills'] as List?) ?? const [];
+      for (final fill in fills) {
+        if (fill is! Map || fill['visible'] == false || '${fill['type']}' != 'SOLID') continue;
+        final color = figmaPaintHex(fill);
+        if (color.isNotEmpty) _addColor(color, _label(node));
+      }
+    }
   }
 
   void _collectRadius(Map node) {

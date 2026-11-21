@@ -61,6 +61,11 @@ Future<void> runFrames(List<String> args) async {
     nameFilter: options.nameFilter,
     pageFilter: options.pageFilter,
   );
+  if (options.pageFilter != null && rows.any((row) => '${row['page']}'.isEmpty)) {
+    stderr.writeln(
+      '# 部分单节点缓存的 FRAME 没有 page 信息，--page 可能漏掉它们；请用完整页面缓存或 --file=',
+    );
+  }
   final total = list.length;
   final limited = options.limit == null ? list : list.take(options.limit!).toList();
   final truncated = limited.length < total;
@@ -88,16 +93,19 @@ Future<void> runFrames(List<String> args) async {
   }
   final pageWidth = visible.map((e) => _width('${e['page']}')).reduce(_max);
   final idWidth = visible.map((e) => _width('${e['id']}')).reduce(_max);
+  final typeWidth = visible.map((e) => _width('${e['type'] ?? '-'}')).reduce(_max);
   final nameWidth = visible.map((e) => _width('${e['name']}')).reduce(_max);
   final sizeWidth = visible.map((e) => _width('${e['width']}×${e['height']}')).reduce(_max);
   printLine(
     '${_pad('page', pageWidth)}  ${_pad('id', idWidth)}  '
-    '${_pad('name', nameWidth)}  ${_pad('size', sizeWidth)}  children',
+    '${_pad('type', typeWidth)}  ${_pad('name', nameWidth)}  '
+    '${_pad('size', sizeWidth)}  children',
   );
   for (final frame in visible) {
     final size = '${frame['width']}×${frame['height']}';
     final line = '${_pad(('${frame['page']}'.isEmpty) ? '-' : '${frame['page']}', pageWidth)}  '
         '${_pad('${frame['id']}', idWidth)}  '
+        '${_pad('${frame['type'] ?? '-'}', typeWidth)}  '
         '${_pad('${frame['name']}', nameWidth)}  '
         '${_pad(size, sizeWidth)}  '
         '${frame['children']}';
@@ -155,7 +163,8 @@ List<Map<String, Object?>> filterFrames(
   return rows.where((row) {
     final rowName = '${row['name']}'.toLowerCase();
     final rowPage = '${row['page']}'.toLowerCase();
-    return (name == null || rowName.contains(name)) && (page == null || rowPage.contains(page));
+    final pageMatches = page == null || (page == '-' ? rowPage.isEmpty : rowPage.contains(page));
+    return (name == null || rowName.contains(name)) && pageMatches;
   }).toList()
     ..sort((a, b) {
       final byName = '${a['name']}'.compareTo('${b['name']}');

@@ -1,3 +1,36 @@
+## 1.2.0
+
+### Fixed
+- `fetch` 合并缓存按 fileKey 过滤，避免把其它 Figma 文件的节点写进当前文件；合并命中也会执行 `--check-stale`。
+- 合并缓存严格按 depth 选择：完整目标只接受完整缓存（可回退旧完整缓存）；`--depth=n` 有完整缓存时直接返回完整文件、不生成 `-dN`，多个完整缓存会合并成一份完整结果并保留目标里未请求的节点；仅 `--refresh` 才拉取新 depth 缓存。
+- `tokens --json` 的 `sources` 恢复为可定位路径；markdown 仍用 basename 显示。
+- IMAGE / GRADIENT / 非 SOLID 描边补 paint opacity；`diff` 检测 IMAGE opacity。
+- `spec` 根节点补圆角 / opacity / isMask；scalar `cornerRadius: 0` 显示 0；阴影 alpha 不重复；3+ stop 渐变保留中间色。
+- `diff` 不再把 decoration/case 同时报成 `textDecoration` 和 `text`。
+- 合并缓存补齐 id 后清理 `missingNodeIds`，`FetchResult.json` 与写回缓存保持一致。
+- `--depth=n` 不再用完整缓存冒充 depth 缓存；渐变 opacity 改为 `opacity=0.50`，避免双 `@`。
+- `spec` 描边补非默认 `strokeCap` / `strokeJoin`；文字补 `textAlignVertical`，圆角补 `cornerSmoothing`；diff 同步 cornerSmoothing。
+- `spec` / `tokens` 检测同一 nodeId 出现在多个 fileKey 的缓存并提示 `--file=`。
+- `--depth` 命中完整缓存且使用 `--check-stale` 时，stderr 同时标注 `checked /meta`；`fetch/1` JSON 增加 `checkedMeta`。
+- `--check-stale` / `--if-stale` 优先使用缓存顶层的 `version`，不再只用 fileKey 级 `_meta` 判断旧缓存；缺失缓存版本时不跳过。
+- `spec <TEXT id>` 输出目标自身文字；`opacity=0` 按隐藏处理，tokens 跳过整棵子树；`spec --skip-hidden` 跳过隐藏节点。
+- 文字补 `fontStyle` / `textAutoResize` / `paragraphSpacing`；rich run 补字体 / 字号 / 字距 / case / decoration，tokens 收集 run 颜色。
+- `--with-layout` 的 padding 改为 `l/r/t/b` 标记，并补 layoutSizing / grow / positioning / constraints / wrap / counterAxisSpacing；diff 同步。
+- `individualStrokeWeights` 输出边和宽度（如 `L=2,R=1`），diff 可检测单边宽度变化。
+- `frames` 可发现 SECTION / COMPONENT / COMPONENT_SET；JSON 行增加 `type`。
+- `spec` / `tokens` / `fetch` 的 ids 统一 trim；`url` 只接受 figma.com / 子域且拒绝空 fileKey。
+- fetch 合并/重写完整节点条目，保留 `components` / `componentSets` / `styles` / `schemaVersion` 等 per-node 字段。
+- 合并缓存保留源缓存顶层 `version` / `name` / `lastModified`；空版本回退 `_meta`，避免合并后 `--check-stale` 假报最新。
+- `_nodes-index.json` 升级到 version 7，旧索引重建后可输出 `frames` 的 `type`。
+- tokens 文字样式补 `fontStyle`，rich run 的字号 / 字重 / 字体也进入 `texts`。
+- 非 auto-layout 的 `layoutPositioning` / `constraints` / sizing 不再因 `layoutMode` 缺失而丢弃。
+- `diff` 比较同层级子节点 id 顺序，重排报 `order`。
+- `url` 大小写不敏感，空 `node-id` 输出 `null`。
+- `spec --skip-hidden` 保留隐藏目标及祖先路径，不再误报找不到节点。
+- `TextStyleUsage.fontStyle` 公开 getter；`tokens` JSON / markdown 文字表输出 `fontStyle`，斜体与正常体不再显示成重复行。
+- 无 `version` 的旧缓存不再回退 `_meta` 当缓存版本；`--check-stale` 输出 `versionUnknown` 并提示需要 `--refresh`，避免误报最新。
+- `frames` 人类输出增加 `type` 列；tokens run 去重 key 补 `textCase` / `textDecoration`；合并缓存清理继承的 `missingNodeIds`。
+
 ## 1.1.0
 
 ### Added

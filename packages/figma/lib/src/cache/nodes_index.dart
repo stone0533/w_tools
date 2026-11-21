@@ -9,12 +9,15 @@ Map<String, File> resolveNodeCaches(
   CacheStore store,
   List<String> nodeIds, {
   String? explicitFile,
+  String? fileKey,
+  bool preferFullDepth = false,
+  int? targetDepth,
 }) {
   if (explicitFile != null) {
     final file = File(explicitFile);
     return {for (final id in nodeIds) id: file};
   }
-  final files = _nodesCacheFiles(store);
+  final files = _nodesCacheFiles(store).where((file) => _matchesFileKey(file, fileKey)).toList();
   if (files.isEmpty) {
     throw StateError('${store.dir.path} 里没有 nodes-*.json，先拉一次节点树缓存');
   }
@@ -23,7 +26,13 @@ Map<String, File> resolveNodeCaches(
   final result = <String, File>{};
   for (final id in nodeIds) {
     // spec / tokens 取最新缓存；若最新是 --depth 裁剪版，调用方会打印子节点可能缺失。
-    final file = _pickNodesCache(ordered, index.entries, id, preferFullDepth: false);
+    final file = _pickNodesCache(
+      ordered,
+      index.entries,
+      id,
+      preferFullDepth: preferFullDepth,
+      targetDepth: targetDepth,
+    );
     if (file != null) result[id] = file;
   }
   final missing = nodeIds.where((id) => !result.containsKey(id)).toList();
@@ -31,6 +40,27 @@ Map<String, File> resolveNodeCaches(
     throw StateError(missingNodesMessage(missing, corruptFiles: index.corruptFiles));
   }
   return result;
+}
+
+/// 同一 nodeId 出现在多个 fileKey 的缓存时返回提示；没有冲突返回 null。
+String? multiFileKeyWarning(CacheStore store, List<String> nodeIds) {
+  final files = _nodesCacheFiles(store);
+  if (files.isEmpty) return null;
+  final index = _loadIndex(store, files);
+  for (final id in nodeIds) {
+    final keys = <String>{};
+    for (final file in files) {
+      if (!(index.entries[file.path]?.ids.contains(id) ?? false)) continue;
+      final name = file.uri.pathSegments.last;
+      final match = RegExp(r'^nodes-([^-]+)-').firstMatch(name);
+      if (match != null) keys.add(match.group(1)!);
+    }
+    if (keys.length > 1) {
+      return '# 节点 $id 同时出现在多个 fileKey 的缓存（${keys.join(', ')}）；'
+          '可能选错文件，建议加 --file= 指定缓存';
+    }
+  }
+  return null;
 }
 
 /// 找包含 [nodeId] 的 nodes 缓存文件；找不到返回 null（不抛错）。
@@ -41,8 +71,9 @@ File? findNodesCache(
   CacheStore store,
   String nodeId, {
   bool preferFullDepth = true,
+  String? fileKey,
 }) {
-  final files = _nodesCacheFiles(store);
+  final files = _nodesCacheFiles(store).where((file) => _matchesFileKey(file, fileKey)).toList();
   if (files.isEmpty) return null;
   final index = _loadIndex(store, files);
   return _pickNodesCache(_sortCacheFiles(files), index.entries, nodeId,
@@ -54,15 +85,26 @@ File? _pickNodesCache(
   Map<String, _IndexEntry> index,
   String nodeId, {
   required bool preferFullDepth,
+  int? targetDepth,
 }) {
   File? depthMatch;
   for (final file in ordered) {
     if (!(index[file.path]?.ids.contains(nodeId) ?? false)) continue;
+    final depth = nodesCacheDepth(file.path);
+    if (targetDepth != null) {
+      if (depth == targetDepth) return file;
+      continue;
+    }
     if (!preferFullDepth) return file;
-    if (nodesCacheDepth(file.path) == null) return file;
+    if (depth == null) return file;
     depthMatch ??= file;
   }
-  return depthMatch;
+  return targetDepth != null ? null : depthMatch;
+}
+
+bool _matchesFileKey(File file, String? fileKey) {
+  if (fileKey == null || fileKey.isEmpty) return true;
+  return file.uri.pathSegments.last.startsWith('nodes-$fileKey-');
 }
 
 /// 缓存文件名里的 `--depth` 后缀（`nodes-K-1-2-d2.json` → 2）；没有返回 null。
@@ -98,7 +140,7 @@ void collectFrames(
   required Map<String, Map<String, Object?>> out,
 }) {
   final type = '${document['type']}';
-  if (type == 'FRAME') {
+  if (_isFrameLike(type)) {
     // fetch nodes 只拿到一个 FRAME 时，没有 CANVAS 父节点，不能把画板名当页面名。
     _addFrame(document, cacheFile, out, '', nested: false, depth: 0, fetchedAt: fetchedAt);
     if (all) {
@@ -112,7 +154,7 @@ void collectFrames(
   if (children is! List) return;
   for (final child in children) {
     if (child is! Map) continue;
-    if ('${child['type']}' == 'FRAME') {
+    if (_isFrameLike('${child['type']}')) {
       _addFrame(child, cacheFile, out, page, nested: false, depth: 0, fetchedAt: fetchedAt);
       if (all) {
         _walkChildren(child, cacheFile, out, page,
@@ -137,7 +179,7 @@ void _walkChildren(
   if (maxDepth != null && depth > maxDepth) return;
   for (final child in (node['children'] as List?) ?? const []) {
     if (child is! Map) continue;
-    if ('${child['type']}' == 'FRAME') {
+    if (_isFrameLike('${child['type']}')) {
       _addFrame(child, cacheFile, out, page, nested: depth > 0, depth: depth, fetchedAt: fetchedAt);
     }
     _walkChildren(child, cacheFile, out, page,
@@ -160,6 +202,7 @@ void _addFrame(
   final children = node['children'];
   final next = <String, Object?>{
     'id': id,
+    'type': '${node['type'] ?? ''}',
     'name': '${node['name'] ?? ''}',
     'page': page,
     'width': bb is Map ? bb['width'] : null,
@@ -172,6 +215,9 @@ void _addFrame(
   };
   _mergeFrameRow(out, id, next);
 }
+
+bool _isFrameLike(String type) =>
+    type == 'FRAME' || type == 'COMPONENT' || type == 'COMPONENT_SET' || type == 'SECTION';
 
 /// 同一 id 出现多次时的合并规则：补空 page、留较大 children、顶层身份优先。
 void _mergeFrameRow(Map<String, Map<String, Object?>> out, String id, Map<String, Object?> next) {
@@ -268,7 +314,7 @@ class _IndexEntry {
 }
 
 /// `_nodes-index.json` 的格式版本；不匹配就整份丢弃重建（不做兼容迁移）。
-const int _indexVersion = 6;
+const int _indexVersion = 7;
 
 /// 一次索引读取的结果：条目 + 解析失败的缓存文件 + 是否需要写回。
 class _NodesIndex {

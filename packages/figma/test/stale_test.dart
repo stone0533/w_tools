@@ -36,6 +36,7 @@ void main() {
   late Directory home;
   late CacheStore store;
   const payload = {
+    'version': 'v1',
     'nodes': {
       '1:2': {
         'document': {'id': '1:2', 'type': 'FRAME', 'name': 'demo'}
@@ -77,6 +78,26 @@ void main() {
     expect(result.stale, isFalse);
     expect(client.calls.single.path, endsWith('/meta'));
     expect(store.metaFile('K').existsSync(), isTrue);
+  });
+
+  test('无 version 的旧缓存不回退 meta 当缓存版本', () async {
+    store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2'), {
+      'nodes': {
+        '1:2': {
+          'document': {'id': '1:2', 'type': 'FRAME', 'name': 'legacy'},
+        },
+      },
+    });
+    store.write(store.metaFile('K'), {'version': 'latest'});
+    final client = _RoutedClient(version: 'latest');
+    final result = await FetchCommand(store: store, client: client).nodes(
+      fileKey: 'K',
+      ids: const ['1:2'],
+      checkStale: true,
+    );
+    expect(result.cachedVersion, isNull);
+    expect(result.stale, isFalse);
+    expect(client.calls.single.path, endsWith('/meta'));
   });
 
   test('版本变化时报 stale，且不自动重拉（不消耗 Tier 1）', () async {

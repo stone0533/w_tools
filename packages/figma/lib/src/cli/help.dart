@@ -40,9 +40,9 @@ const _docs = <_CommandDoc>[
   _CommandDoc(
     'spec',
     '从缓存导出节点规格',
-    'dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>] [--skip-name-prefix=<s>] [--with-id] [--with-layout]',
+    'dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>] [--skip-name-prefix=<s>] [--with-id] [--with-layout] [--skip-hidden]',
     '只读缓存，不访问 Figma；默认扫描所有 nodes-*.json，选包含目标 nodeId 的文件。\n'
-        '--json 输出 {schema:"w_tools_figma.specs/1", items:[...]}；--node-only 只与 --json 一起用；--with-id 加 nodeId 列；--with-layout 加布局列。',
+        '--json 输出 {schema:"w_tools_figma.specs/1", items:[...]}；--node-only 只与 --json 一起用；--with-id 加 nodeId 列；--with-layout 加布局列；--skip-hidden 跳过 visible=false / opacity=0 的节点。',
   ),
   _CommandDoc(
     'tokens',

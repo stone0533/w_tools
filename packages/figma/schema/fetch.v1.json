@@ -43,6 +43,12 @@
       "items": {
         "type": "string"
       }
+    },
+    "checkedMeta": {
+      "type": "boolean"
+    },
+    "versionUnknown": {
+      "type": "boolean"
     }
   },
   "additionalProperties": true
