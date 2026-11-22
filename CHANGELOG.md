@@ -1,3 +1,18 @@
+## 21.1.0
+
+### Changed
+- `w_tools_async` 约束抬到 `^8.2.0`，接入 isRetrying / loadMore / scrollableStates。
+
+## 21.0.4
+
+### Changed
+- `w_tools_async` 约束抬到 `^8.1.3`。
+
+## 21.0.3
+
+### Changed
+- `w_tools_async` 约束抬到 `^8.1.2`。
+
 ## 21.0.2
 
 ### Changed

@@ -85,7 +85,7 @@ void main() {
       expect(requested, [1]);
     });
 
-    test('第二页空列表：hasMore=false，state 不变，footer hidden', () async {
+    test('第二页空列表：hasMore=false，state 不变，footer noMore', () async {
       final requested = <int>[];
       final controller = _controller(
         {
@@ -107,7 +107,7 @@ void main() {
       expect(controller.state.value, same(before));
       expect(controller.state.value.data, [1]);
       expect(controller.snapshot.value.hasMore, isFalse);
-      expect(controller.snapshot.value.footerStatus, WAsyncPagedFooterStatus.hidden);
+      expect(controller.snapshot.value.footerStatus, WAsyncPagedFooterStatus.noMore);
       expect(notified, greaterThan(0));
     });
 
@@ -220,6 +220,64 @@ void main() {
       await controller.loadMore();
       expect(requested, [1, 1, 2]);
       expect(controller.state.value.data, [1, 2]);
+    });
+
+    test('到末页后 refresh 失败保留 noMore', () async {
+      var failRefresh = false;
+      final controller = WAsyncPagedController<int>((page, _) async {
+        if (failRefresh) throw StateError('refresh boom');
+        if (page == 1) {
+          return const WAsyncPage<int>(items: [1, 2], hasMore: true);
+        }
+        return const WAsyncPage<int>(items: [3], hasMore: false);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(
+        controller.snapshot.value.footerStatus,
+        WAsyncPagedFooterStatus.noMore,
+      );
+
+      failRefresh = true;
+      await controller.refresh();
+
+      expect(controller.state.value.isFailed, isTrue);
+      expect(controller.state.value.data, [1, 2, 3]);
+      expect(
+        controller.snapshot.value.footerStatus,
+        WAsyncPagedFooterStatus.noMore,
+      );
+    });
+
+    test('到末页后 replaceData 非空完整列表保留 noMore', () async {
+      final controller = WAsyncPagedController<int>((page, _) async {
+        if (page == 1) {
+          return const WAsyncPage<int>(items: [1, 2], hasMore: true);
+        }
+        return const WAsyncPage<int>(items: [3], hasMore: false);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(
+        controller.snapshot.value.footerStatus,
+        WAsyncPagedFooterStatus.noMore,
+      );
+
+      controller.replaceData(const <int>[1, 2], hasMore: false);
+      expect(
+        controller.snapshot.value.footerStatus,
+        WAsyncPagedFooterStatus.noMore,
+      );
+
+      controller.replaceData(const <int>[1, 2]);
+      expect(
+        controller.snapshot.value.footerStatus,
+        WAsyncPagedFooterStatus.noMore,
+      );
     });
 
     test('refresh 在飞时再次 refresh：旧结果不写回', () async {
@@ -636,7 +694,7 @@ void main() {
       expect(controller.snapshot.value.footerStatus, WAsyncPagedFooterStatus.loadMore);
 
       controller.replaceData(const [9], hasMore: false);
-      expect(controller.snapshot.value.footerStatus, WAsyncPagedFooterStatus.hidden);
+      expect(controller.snapshot.value.footerStatus, WAsyncPagedFooterStatus.noMore);
     });
 
     test('取消在飞 refresh，旧结果不覆盖', () async {

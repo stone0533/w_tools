@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.3.0
+
+### Added
+- `WAsyncSection.scrollableStates`：空态 / 失败态可滚动，兼容外层 RefreshIndicator。
+- `WAsyncPagedList.headerSlivers` / `sliverPadding`：标准壳支持自定义滚动头与内容 padding。
+- 默认 footer：failed 显示失败文案 + 重试；`autoLoadThreshold: null` 时显示“加载更多”按钮。
+
+## 2.2.1
+
+### Added
+- `WAsyncPagedList.resetScrollOnReload`：程序化 reload 时回到列表顶部，默认 true。
+
+### Fixed
+- 刷新在飞时再次 reload 也会按 `resetScrollOnReload` 回到顶部。
+- 已到末页后 refresh 失败时保留 noMore，不降级成 hidden。
+
+## 2.2.0
+
+### Added
+- `WAsyncPagedList.resetScrollOnReload`：程序化 reload 时回到列表顶部，默认 true。
+
 ## 2.1.1
 
 ### Fixed

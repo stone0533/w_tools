@@ -15,7 +15,7 @@
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^2.1.1
+  w_tools_async_ui: ^2.3.0
 ```
 
 要求 Flutter 3.38+、`w_tools_async >=8.1.0 <9.0.0`。
@@ -47,7 +47,10 @@ Widget build(BuildContext context) {
 ```
 
 `WAsyncSection` 默认把失败重试接到 `gifts.load`；loading / error 外观走
-`WAsyncTheme`。设计稿口径的区块可以传 per-block builder 和自定义重试：
+`WAsyncTheme`。需要外层 `RefreshIndicator` 时空态 / 失败态也能下拉时，传
+`scrollableStates: true`；只用于有界页面主体，页面已经在外层
+`SingleChildScrollView` / `ListView` 里时不要打开。设计稿口径的区块可以传
+per-block builder 和自定义重试：
 
 ```dart
 WAsyncSection<List<Gift>>(
@@ -106,9 +109,10 @@ Widget build(BuildContext context) {
 
 ```text
 loading  → 转圈
-failed   → “重试”按钮
+failed   → 失败文案 + “重试”按钮
 noMore   → WAsyncTheme.strings.noMore（默认 “No more”）
-hidden / loadMore → 不显示
+loadMore → autoLoadThreshold:null 时显示“加载更多”按钮
+hidden   → 不显示
 ```
 
 标准壳的 loading / error / errorBanner 外观走 `WAsyncTheme`；需要每个列表单独
@@ -132,6 +136,19 @@ reloadRequests.value++;
 `reloadRequests` 会复用 `RefreshIndicator` 的刷新动画；刷新中再次触发时，
 最新请求完成后才收起，不会由旧请求提前收尾。刷新期间自动加载会挂起，
 完成后按新列表状态恢复。业务不需要持有外部刷新控制器。
+
+程序化 reload 默认会回到列表顶部；需要保留当前位置时：
+
+```dart
+WAsyncPagedList<Gift>(
+  controller: gifts,
+  itemBuilder: (context, gift) => GiftTile(gift),
+  reloadRequests: reloadRequests,
+  resetScrollOnReload: false,
+)
+```
+
+`resetScrollOnReload` 只影响 `reloadRequests`，不影响用户下拉刷新。
 
 ### 刷新头样式
 
@@ -181,7 +198,18 @@ WAsyncPagedList<Gift>(
 ### 自定义刷新头 / 上拉壳
 
 `WAsyncPagedList` 只提供标准 `RefreshIndicator` + 自动加载；`autoLoadThreshold`
-不能为负数。需要完全自定义
+不能为负数。需要跟随滚动的头部或内容 padding 时：
+
+```dart
+WAsyncPagedList<Gift>(
+  controller: gifts,
+  itemBuilder: (context, gift) => GiftTile(gift),
+  headerSlivers: [SliverToBoxAdapter(child: AppSearchHeader())],
+  sliverPadding: const EdgeInsets.symmetric(horizontal: 12),
+)
+```
+
+需要完全自定义
 下拉动画或 pull-up 手势时，用 `WAsyncPagedSliver` + 自己的滚动壳：
 
 ```dart

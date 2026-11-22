@@ -33,6 +33,9 @@ class WAsyncPagedList<T> extends StatefulWidget {
     this.autoLoadThreshold = 200,
     this.footerBuilder,
     this.refreshIndicatorStyle,
+    this.resetScrollOnReload = true,
+    this.headerSlivers = const <Widget>[],
+    this.sliverPadding = EdgeInsets.zero,
   }) : assert(
          autoLoadThreshold == null || autoLoadThreshold >= 0,
          'autoLoadThreshold 不能为负数',
@@ -61,6 +64,15 @@ class WAsyncPagedList<T> extends StatefulWidget {
   /// 只支持颜色 / 背景 / 线宽 / 位移 / 触发模式，不支持自定义刷新头动画或
   /// 完成 / 失败文案；这些用 `WAsyncPagedSliver` 自建壳。
   final WAsyncRefreshIndicatorStyle? refreshIndicatorStyle;
+
+  /// 程序化 reload 时是否回到列表顶部；默认 true。
+  final bool resetScrollOnReload;
+
+  /// 列表前面的自定义 sliver，例如跟随滚动的搜索头。
+  final List<Widget> headerSlivers;
+
+  /// 内容 sliver 的 padding；footer / header 不受影响。
+  final EdgeInsets sliverPadding;
 
   @override
   State<WAsyncPagedList<T>> createState() => _WAsyncPagedListState<T>();
@@ -147,6 +159,10 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
     if (state == null) {
       unawaited(widget.controller.refresh());
       return;
+    }
+
+    if (widget.resetScrollOnReload && _scrollController.hasClients) {
+      _scrollController.jumpTo(0);
     }
 
     // RefreshIndicator 在 refreshing / snap 时 show() 会静默忽略；
@@ -237,10 +253,17 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
           ),
         );
       case WAsyncPagedFooterStatus.failed:
-        return Center(
-          child: TextButton(
-            onPressed: widget.controller.loadMore,
-            child: Text(strings.retry),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(strings.errorTitle),
+              TextButton(
+                onPressed: widget.controller.loadMore,
+                child: Text(strings.retry),
+              ),
+            ],
           ),
         );
       case WAsyncPagedFooterStatus.noMore:
@@ -248,8 +271,17 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Center(child: Text(strings.noMore)),
         );
-      case WAsyncPagedFooterStatus.hidden:
       case WAsyncPagedFooterStatus.loadMore:
+        if (widget.autoLoadThreshold != null) {
+          return const SizedBox.shrink();
+        }
+        return Center(
+          child: TextButton(
+            onPressed: widget.controller.loadMore,
+            child: Text(strings.loadMore),
+          ),
+        );
+      case WAsyncPagedFooterStatus.hidden:
         return const SizedBox.shrink();
     }
   }
@@ -297,13 +329,17 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            WAsyncStateSliver<List<T>>(
-              state: widget.controller.state,
-              onRetry: _onRetry,
-              emptyBuilder: widget.emptyBuilder,
-              readySliverBuilder: (context, items) => SliverList.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) => widget.itemBuilder(context, items[index]),
+            ...widget.headerSlivers,
+            SliverPadding(
+              padding: widget.sliverPadding,
+              sliver: WAsyncStateSliver<List<T>>(
+                state: widget.controller.state,
+                onRetry: _onRetry,
+                emptyBuilder: widget.emptyBuilder,
+                readySliverBuilder: (context, items) => SliverList.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) => widget.itemBuilder(context, items[index]),
+                ),
               ),
             ),
             SliverToBoxAdapter(
