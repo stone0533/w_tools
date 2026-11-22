@@ -49,6 +49,7 @@ class WAsyncView<T> extends StatelessWidget {
     this.errorBuilder,
     this.errorBannerBuilder,
     this.refreshingBuilder,
+    this.scrollableStates = false,
   });
 
   final ValueListenable<WAsyncState<T>> state;
@@ -65,6 +66,14 @@ class WAsyncView<T> extends StatelessWidget {
 
   /// refreshing 时的进度指示器；默认 [LinearProgressIndicator]。
   final WidgetBuilder? refreshingBuilder;
+
+  /// 是否把 loading / empty / failed 包成可滚动区域。
+  ///
+  /// 默认 false；需要在 WAsyncSection 外层使用 RefreshIndicator 时传 true。
+  ///
+  /// 只适用于有界页面主体（Scaffold.body / Expanded）。已经在外层
+  /// SingleChildScrollView / ListView 里时不要打开；无界高度下会自动交回外层。
+  final bool scrollableStates;
 
   @override
   Widget build(BuildContext context) {
@@ -99,14 +108,41 @@ class WAsyncView<T> extends StatelessWidget {
         }
 
         return value.when(
-          loading: () => views.loading(context, explicit: loadingBuilder),
-          ready: (data) => _buildContent(context, data: data),
-          empty: () => views.empty(context, explicit: emptyBuilder),
-          failed: (error) => views.error(
+          loading: () => _wrapState(
             context,
-            error,
-            onRetry,
-            explicit: errorBuilder,
+            views.loading(context, explicit: loadingBuilder),
+          ),
+          ready: (data) => _buildContent(context, data: data),
+          empty: () => _wrapState(
+            context,
+            views.empty(context, explicit: emptyBuilder),
+          ),
+          failed: (error) => _wrapState(
+            context,
+            views.error(
+              context,
+              error,
+              onRetry,
+              explicit: errorBuilder,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _wrapState(BuildContext context, Widget child) {
+    if (!scrollableStates) return child;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 无界高度说明已经在外部滚动容器里；不要创建内层 Scrollable，
+        // 否则 AlwaysScrollable 会吞掉外层滚动 / RefreshIndicator 手势。
+        if (!constraints.hasBoundedHeight) return child;
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: child,
           ),
         );
       },

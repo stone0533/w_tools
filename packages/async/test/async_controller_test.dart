@@ -80,6 +80,40 @@ void main() {
       expect(controller.state.value.error, isA<StateError>());
     });
 
+    test('isEmpty 抛错后 isRetrying 复位', () async {
+      final controller = WAsyncController<String>(
+        (_) async => 'x',
+        isEmpty: (_) => throw StateError('bad isEmpty'),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.load();
+      expect(controller.isRetrying, isFalse);
+      await controller.load();
+      expect(controller.state.value.isFailed, isTrue);
+      expect(controller.isRetrying, isFalse);
+    });
+
+    test('失败后重试 loading 标记 isRetrying', () async {
+      var fail = true;
+      final controller = WAsyncController<int>((_) async {
+        if (fail) throw StateError('boom');
+        return 1;
+      });
+      addTearDown(controller.dispose);
+
+      await controller.load();
+      expect(controller.state.value.isFailed, isTrue);
+
+      fail = false;
+      final future = controller.load();
+      expect(controller.state.value.isLoading, isTrue);
+      expect(controller.isRetrying, isTrue);
+      await future;
+      expect(controller.state.value.isReady, isTrue);
+      expect(controller.isRetrying, isFalse);
+    });
+
     test('失败保留旧数据', () async {
       var fail = false;
       final controller = WAsyncController<int>((_) async {

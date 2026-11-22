@@ -24,9 +24,19 @@ class WAsyncExecutor {
   /// 默认 hooks；不会读取任何全局状态。
   final WAsyncHooks hooks;
 
+  WAsyncHooks _hooks(WAsyncHooks? hooks, bool disableOnError) {
+    final base = hooks ?? this.hooks;
+    if (!disableOnError) return base;
+    return WAsyncHooks(
+      onStart: base.onStart,
+      onFinally: base.onFinally,
+    );
+  }
+
   Future<T> run<T>(
     Future<T> Function() task, {
     WAsyncHooks? hooks,
+    bool disableOnError = false,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -34,7 +44,7 @@ class WAsyncExecutor {
   }) {
     return WAsync.run<T>(
       task,
-      hooks: hooks ?? this.hooks,
+      hooks: _hooks(hooks, disableOnError),
       onStart: onStart,
       onError: onError,
       onFinally: onFinally,
@@ -45,6 +55,7 @@ class WAsyncExecutor {
   Future<WAsyncResult<T>> tryRun<T>(
     Future<T> Function() task, {
     WAsyncHooks? hooks,
+    bool disableOnError = false,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -52,7 +63,7 @@ class WAsyncExecutor {
   }) {
     return WAsync.tryRun<T>(
       task,
-      hooks: hooks ?? this.hooks,
+      hooks: _hooks(hooks, disableOnError),
       onStart: onStart,
       onError: onError,
       onFinally: onFinally,
@@ -63,6 +74,7 @@ class WAsyncExecutor {
   Future<T> retry<T>(
     Future<T> Function() task, {
     WAsyncHooks? hooks,
+    bool disableOnError = false,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -75,7 +87,7 @@ class WAsyncExecutor {
   }) {
     return WAsync.retry<T>(
       task,
-      hooks: hooks ?? this.hooks,
+      hooks: _hooks(hooks, disableOnError),
       onStart: onStart,
       onError: onError,
       onFinally: onFinally,
@@ -92,6 +104,7 @@ class WAsyncExecutor {
     Future<T> Function() task,
     Duration timeout, {
     WAsyncHooks? hooks,
+    bool disableOnError = false,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -100,7 +113,7 @@ class WAsyncExecutor {
     return WAsync.timeout<T>(
       task,
       timeout,
-      hooks: hooks ?? this.hooks,
+      hooks: _hooks(hooks, disableOnError),
       onStart: onStart,
       onError: onError,
       onFinally: onFinally,
@@ -111,6 +124,7 @@ class WAsyncExecutor {
   Future<List<WAsyncResult<T>>> tryAll<T>(
     Iterable<Future<T> Function()> tasks, {
     WAsyncHooks? hooks,
+    bool disableOnError = false,
     int concurrency = 4,
     void Function()? onStart,
     void Function(Object error)? onError,
@@ -119,7 +133,7 @@ class WAsyncExecutor {
   }) {
     return WAsync.tryAll<T>(
       tasks,
-      hooks: hooks ?? this.hooks,
+      hooks: _hooks(hooks, disableOnError),
       concurrency: concurrency,
       onStart: onStart,
       onError: onError,
@@ -135,6 +149,7 @@ class WAsyncExecutor {
   Future<List<WAsyncResult<T>>> settle<T>(
     Iterable<Future<T> Function()> tasks, {
     WAsyncHooks? hooks,
+    bool disableOnError = false,
     int concurrency = 4,
     void Function()? onStart,
     void Function(Object error)? onError,
@@ -144,6 +159,7 @@ class WAsyncExecutor {
     return tryAll<T>(
       tasks,
       hooks: hooks,
+      disableOnError: disableOnError,
       concurrency: concurrency,
       onStart: onStart,
       onError: onError,

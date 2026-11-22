@@ -76,12 +76,16 @@ void main() {
     expect(find.text('theme-error'), findsOneWidget);
   });
 
-  test('WAsyncStrings 相等性与 hashCode 都包含 noMore', () {
+  test('WAsyncStrings 相等性与 hashCode 都包含 noMore / loadMore', () {
     const a = WAsyncStrings(noMore: 'A');
     const b = WAsyncStrings(noMore: 'B');
+    const c = WAsyncStrings(loadMore: 'A');
+    const d = WAsyncStrings(loadMore: 'B');
 
     expect(a == b, isFalse);
     expect(a.hashCode, isNot(b.hashCode));
+    expect(c == d, isFalse);
+    expect(c.hashCode, isNot(d.hashCode));
   });
 
   testWidgets('只改 noMore 也会通知 WAsyncTheme 依赖重建', (tester) async {

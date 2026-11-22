@@ -94,8 +94,12 @@ class WAsyncController<T> {
 
   ValueListenable<WAsyncState<T>> get state => _state;
 
+  /// 本次 load 是否是失败后的重试；首屏 load 为 false。
+  bool get isRetrying => _isRetrying;
+
   int _generation = 0;
   bool _disposed = false;
+  bool _isRetrying = false;
   WCancelToken? _token;
 
   /// 重新加载；失败时保留旧数据。
@@ -106,6 +110,7 @@ class WAsyncController<T> {
     final token = _token = WCancelToken();
 
     final previousData = _state.value.data;
+    _isRetrying = _state.value.isFailed;
     final generation = ++_generation;
     _state.value = WAsyncState.loading(previousData: previousData);
 
@@ -116,7 +121,10 @@ class WAsyncController<T> {
       cancelToken: token,
     );
 
-    if (_disposed || generation != _generation || token.isCancelled) return;
+    if (_disposed || generation != _generation || token.isCancelled) {
+      _isRetrying = false;
+      return;
+    }
 
     if (result is WAsyncSuccess<T>) {
       try {
@@ -124,8 +132,10 @@ class WAsyncController<T> {
         _state.value = _isEmpty?.call(value) == true
             ? WAsyncState<T>.empty()
             : WAsyncState<T>.ready(value);
+        _isRetrying = false;
       } catch (error) {
         // isEmpty / normalize 是调用方回调；抛错不能让 load() 的 Future 裸 reject。
+        _isRetrying = false;
         _notifyError(error);
         _state.value = WAsyncState<T>.failed(
           error,
@@ -133,6 +143,7 @@ class WAsyncController<T> {
         );
       }
     } else if (result is WAsyncFailure<T>) {
+      _isRetrying = false;
       _state.value = WAsyncState<T>.failed(
         result.error,
         previousData: previousData,
@@ -149,6 +160,7 @@ class WAsyncController<T> {
     if (_disposed) return;
 
     _generation++;
+    _isRetrying = false;
     _token?.cancel('local data replaced');
     _token = null;
 

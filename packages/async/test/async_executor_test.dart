@@ -64,6 +64,25 @@ void main() {
     expect(events, ['override-start', 'override-finally']);
   });
 
+  test('disableOnError 只关闭 executor 的 onError', () async {
+    final events = <String>[];
+    final executor = WAsyncExecutor(
+      WAsyncHooks(
+        onStart: () => events.add('start'),
+        onError: (_) => events.add('error'),
+        onFinally: () => events.add('finally'),
+      ),
+    );
+
+    final result = await executor.tryRun<int>(
+      () async => throw StateError('boom'),
+      disableOnError: true,
+    );
+
+    expect(result, isA<WAsyncFailure<int>>());
+    expect(events, ['start', 'finally']);
+  });
+
   test('WAsyncExecutor.settle 是 tryAll 的 deprecated alias', () async {
     const executor = WAsyncExecutor(WAsyncHooks.none);
     // ignore: deprecated_member_use_from_same_package
