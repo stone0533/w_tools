@@ -122,7 +122,7 @@ bash scripts/check_feedback.sh
 | [async](async.md) | 9 | 2026-11-23 |
 | [map](map.md) | 0 | 2026-11-04 |
 | [qr](qr.md) | 0 | 2026-11-04 |
-| [async_ui](async_ui.md) | 0 | 2026-11-20 |
+| [async_ui](async_ui.md) | 6 | 2026-11-22 |
 
 新增条目时**同步这张表**（CI 会核对数量）。未列出的包（core/ui/form/toast/app）首次用 `feedback submit --ledger` 建档时自动补索引；
 消费方用默认 issue 入口，不要直接改这张表。
