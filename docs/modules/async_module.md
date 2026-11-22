@@ -78,7 +78,7 @@ Future 返回 `ArgumentError`。
 - 成功结果用返回值 / `WAsyncSuccess`，不提供 `onSuccess`；
 - `onStart` / `onFinally` 自身异常被忽略，不影响任务结果；
 - executor 在 composition root 创建一次；测试创建独立 executor，不依赖全局重置；
-- `WAsyncController` / `WAsyncPagedController` 内部 `load` / `refresh` / `loadMore`
+- `WAsyncController.isRetrying` 区分首屏 loading 与失败后重试；`WAsyncController` / `WAsyncPagedController` 内部 `load` / `refresh` / `loadMore`
   不读取 executor hooks；页面四态由 view 管理；
 - `tryAll` 的 `onError` 按**失败任务个数**通知，不是按批次；
 - 取消是协作式的：`WCancelToken` 在开始、结束、重试等待等边界检查，不中止已经开始的
@@ -149,7 +149,7 @@ footer 用 `AnimatedBuilder(animation: controller.snapshot)` 重建。派生规�
 - refresh 进行中 → `hidden`（`loadMore` 会被忽略）；
 - `loadMoreError` 非空 → `failed`；
 - 正在追加 → `loading`；
-- 没有更多：成功翻过页 → `noMore`，第一页就到底 → `hidden`；
+- 没有更多：成功翻过页或 `replaceData` 非空完整列表 → `noMore`，第一页就到底 → `hidden`；
 - 其余 → `loadMore`。
 
 完整代码与分页壳见 [paged-list 配方](../recipes/paged-list.md)。
@@ -157,6 +157,7 @@ footer 用 `AnimatedBuilder(animation: controller.snapshot)` 重建。派生规�
 ## 4. View
 
 `WAsyncView` 渲染四态，`onRetry` 为 `VoidCallback?`；为 null 时默认错误视图不渲染按钮。
+`scrollableStates: true` 会把 loading / empty / failed 包成可滚动区域；只用于有界主体，无界高度自动交回外层。
 
 | 能力 | 约定 |
 | --- | --- |
@@ -210,5 +211,5 @@ cd packages/async
 flutter test
 ```
 
-当前 8.1.1；迁移见 [async-8.0](../migrations/async-8.0.md) / [async-8.1](../migrations/async-8.1.md)。
+当前 8.2.0；迁移见 [async-8.0](../migrations/async-8.0.md) / [async-8.1](../migrations/async-8.1.md)。
 AI 路由见 [docs/agents/async.md](../agents/async.md)。

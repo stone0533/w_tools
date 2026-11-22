@@ -188,6 +188,7 @@ class WAsyncPagedController<T> {
   bool _isLoadingMore = false;
   Object? _loadMoreError;
   bool _hasMore;
+  bool _hasLoadedMore = false;
 
   int _page;
   bool _disposed = false;
@@ -227,8 +228,10 @@ class WAsyncPagedController<T> {
     final token = _refreshToken = WCancelToken();
 
     final previousData = _state.data;
+    final previousHasLoadedMore = _hasLoadedMore;
     _isLoadingMore = false;
     _loadMoreError = null;
+    _hasLoadedMore = false;
     _state = WAsyncState<List<T>>.loading(previousData: previousData);
     _emit();
 
@@ -252,7 +255,8 @@ class WAsyncPagedController<T> {
       _emit();
     } else if (result is WAsyncFailure<WAsyncPage<T>>) {
       // 失败时保留上一次成功的页号 / hasMore，避免被取代的刷新回滚到
-      // 另一次刷新的临时值。
+      // 另一次刷新的临时值；已到末页时也不能把 noMore 降级成 hidden。
+      _hasLoadedMore = previousData != null && previousHasLoadedMore;
       _state = WAsyncState<List<T>>.failed(
         result.error,
         previousData: previousData,
@@ -297,6 +301,7 @@ class WAsyncPagedController<T> {
     switch (result) {
       case WAsyncSuccess<WAsyncPage<T>>(:final value):
         final items = value.items;
+        _hasLoadedMore = true;
         if (items.isEmpty) {
           _hasMore = false;
           _emit();
@@ -337,6 +342,7 @@ class WAsyncPagedController<T> {
 
     _page = _state.data == null && _page == _initialPage ? _initialPage + 1 : _page;
     _hasMore = hasMore ?? (data.isEmpty ? false : _hasMore);
+    _hasLoadedMore = data.isNotEmpty && !_hasMore;
     _state = data.isEmpty
         ? WAsyncState<List<T>>.empty()
         : WAsyncState<List<T>>.ready(List<T>.unmodifiable(data));
@@ -371,9 +377,7 @@ class WAsyncPagedController<T> {
     if (_loadMoreError != null) return WAsyncPagedFooterStatus.failed;
     if (_isLoadingMore) return WAsyncPagedFooterStatus.loading;
     if (!_hasMore) {
-      return _page > _initialPage + 1
-          ? WAsyncPagedFooterStatus.noMore
-          : WAsyncPagedFooterStatus.hidden;
+      return _hasLoadedMore ? WAsyncPagedFooterStatus.noMore : WAsyncPagedFooterStatus.hidden;
     }
     return WAsyncPagedFooterStatus.loadMore;
   }

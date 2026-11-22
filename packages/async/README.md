@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^8.1.1
+  w_tools_async: ^8.2.0
 ```
 
 要求 Flutter 3.38+。
@@ -73,6 +73,13 @@ ready    → readyBuilder
 单个 `WAsyncView` 还可覆盖 `loadingBuilder` / `emptyBuilder` / `errorBuilder` /
 `errorBannerBuilder` / `refreshingBuilder`；未传时回退到 `WAsyncTheme` 的默认视图。
 
+外层需要 `RefreshIndicator`、且希望空态 / 失败态也能下拉时，传
+`scrollableStates: true`。它只把 loading / empty / failed 包成可滚动区域，不影响
+`readyBuilder` 里的滚动组件。
+
+只用于有界页面主体（`Scaffold.body` / `Expanded`）。如果 `WAsyncView` 已经在
+`SingleChildScrollView` / `ListView` 里，不要打开；无界高度下会直接交回外层滚动容器。
+
 滚动页面把滚动组件放进 `readyBuilder`：
 
 ```dart
@@ -100,11 +107,11 @@ WAsyncView<List<Gift>>(
 | 无 UI 执行，不抛异常 | `WAsync.tryRun` + `WAsyncResult` |
 | 无 UI 执行，失败抛异常 | `WAsync.run` / `retry` / `timeout` |
 | 独立区块并行，保留每个结果 | `WAsync.tryAll` |
-
-> `WAsync.settle` 是旧名，已标记 `@Deprecated`，9.0.0 删除；新代码用 `WAsync.tryAll`。
 | 让 loader 感知取消 | Controller 的 loader 接收 `WCancelToken` |
 | 单区块本地替换 / 乐观更新 | `WAsyncController.replaceData` |
 | 四态快照 | `WAsyncState` / `WAsyncStatus` |
+
+> `WAsync.settle` 是旧名，已标记 `@Deprecated`，9.0.0 删除；新代码用 `WAsync.tryAll`。
 
 ## 执行结果
 
@@ -186,7 +193,12 @@ await appAsync.tryRun(() => api.fetch());
 
 ```dart
 await appAsync.run(task, hooks: WAsyncHooks.none);
+
+// 只关闭 executor 默认的 onError，保留 onStart / onFinally：
+await appAsync.tryRun(task, disableOnError: true);
 ```
+
+`disableOnError` 不影响显式传入的 `onError`；显式参数仍然优先。
 
 解析优先级：
 
@@ -321,6 +333,7 @@ const WAsyncState.failed(error, previousData: old); // 刷新失败，保留旧�
 ```dart
 state.isLoading; state.isReady; state.isEmpty; state.isFailed;
 state.isRefreshing; // loading 且有旧数据
+controller.isRetrying; // 失败后重试的 loading；首屏 loading 为 false
 state.when(loading: ..., ready: ..., empty: ..., failed: ...);
 ```
 
@@ -430,7 +443,7 @@ CustomScrollView(
 
 ```dart
 WAsyncTheme(
-  strings: const WAsyncStrings(empty: '暂无数据', retry: '重试'),
+  strings: const WAsyncStrings(empty: '暂无数据', retry: '重试', loadMore: '加载更多'),
   loadingBuilder: (_) => const AppLoadingView(),
   emptyBuilder: (_) => const AppEmptyView(),
   errorBuilder: (context, error, retry) => AppRetryView(retry),

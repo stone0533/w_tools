@@ -28,7 +28,8 @@
 - 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`hasMore` 默认继承。
 - 单区块本地替换用 `WAsyncController.replaceData`：取消在飞 `load`，旧结果不写回。
 - 列表语义用 `WAsyncController.list`：保留空列表 → empty、`state.data` unmodifiable。
-- `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`。
+- `state.isRefreshing` 只在有旧数据时为 true；`controller.isRetrying` 区分失败后重试；切换筛选直接 `refresh()`。
+- `WAsyncView.scrollableStates: true` 让 loading / empty / failed 可滚动，配合外层 `RefreshIndicator`；只用于有界主体，外层已有滚动容器时不要开。
 - 分页：标准壳用 `WAsyncPagedList`；自定义壳用 `WAsyncPagedSliver` + 自己的
   滚动 / 刷新壳，见 `docs/recipes/paged-list.md`。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常；
@@ -43,7 +44,7 @@
 - `onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
 - `WAsyncHooks` 是回调值对象；`WAsyncExecutor` 携带默认 hooks，在 composition root
-  创建并注入；单次 `hooks` 可覆盖，`WAsyncHooks.none` 关闭默认。
+  创建并注入；单次 `hooks` 可覆盖，`WAsyncHooks.none` 关闭默认；`disableOnError: true` 只关 onError。
 - 没有全局 `defaultHooks`；默认 hooks 由 `WAsyncExecutor` 实例携带。
 - `WAsyncController.load` / `WAsyncPagedController.refresh` / `loadMore` 不读取
   executor hooks；页面 loading 走 `WAsyncSection` / `WAsyncPagedList` 四态。

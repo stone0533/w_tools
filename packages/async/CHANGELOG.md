@@ -1,5 +1,29 @@
 # Changelog
 
+## 8.2.0
+
+### Added
+- `WAsyncController.isRetrying`：区分首屏 loading 与失败后重试 loading。
+- `WAsyncStrings.loadMore`：默认 footer 的“加载更多”文案。
+- `WAsyncView.scrollableStates`：把 loading / empty / failed 包成可滚动区域。
+- `WAsyncExecutor.disableOnError`：单次关闭 executor 默认 onError，保留 onStart / onFinally。
+
+### Fixed
+- `replaceData` 非空完整列表保留 `noMore`，不再回退成 `hidden`。
+- `isEmpty` / `normalize` 抛错后复位 `isRetrying`。
+- `WAsyncView.scrollableStates` 在无界高度（外层滚动容器）下直接交回外层，
+  不再创建会吞手势的内层 `Scrollable`。
+
+## 8.1.3
+
+### Fixed
+- 已到末页后 refresh 失败时保留 `noMore`，不把 footer 降级成 `hidden`。
+
+## 8.1.2
+
+### Fixed
+- 分页追加返回空页时，footer 进入 `noMore` 而不是 `hidden`（首屏空仍为 `hidden`）。
+
 ## 8.1.1
 
 ### Fixed
