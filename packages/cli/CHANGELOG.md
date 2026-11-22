@@ -1,7 +1,12 @@
+## 2.9.1
+
+### Changed
+- `init` 的 async_ui 约束抬到 `^2.3.0`。
+
 ## 2.9.0
 
 ### Changed
-- `init` 的 async / async_ui 约束抬到 `^8.2.0` / `^2.1.1`。
+- `init` 的 async / async_ui 约束抬到 `^8.2.0` / `^2.3.0`。
 
 ## 2.8.6
 

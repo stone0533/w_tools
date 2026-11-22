@@ -23,6 +23,7 @@ class WAsyncSection<T> extends StatelessWidget {
     this.errorBuilder,
     this.errorBannerBuilder,
     this.refreshingBuilder,
+    this.scrollableStates = false,
   });
 
   final WAsyncController<T> controller;
@@ -36,6 +37,11 @@ class WAsyncSection<T> extends StatelessWidget {
   final WAsyncErrorWidgetBuilder? errorBannerBuilder;
   final WidgetBuilder? refreshingBuilder;
 
+  /// 是否把 loading / empty / failed 包成可滚动区域；外层 RefreshIndicator 时使用。
+  ///
+  /// 只用于有界页面主体；已经在外层 SingleChildScrollView / ListView 里时不要打开。
+  final bool scrollableStates;
+
   @override
   Widget build(BuildContext context) {
     return WAsyncView<T>(
@@ -47,6 +53,7 @@ class WAsyncSection<T> extends StatelessWidget {
       errorBuilder: errorBuilder,
       errorBannerBuilder: errorBannerBuilder,
       refreshingBuilder: refreshingBuilder,
+      scrollableStates: scrollableStates,
     );
   }
 }

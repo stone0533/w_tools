@@ -141,7 +141,7 @@
 | `WAsyncTheme` | async | core | App 根部统一默认 loading / empty / error（普通 + sliver 共用） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WRouteObserver` | app_getx | core | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WFormTextFieldData` | form | core | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | 不要在 builder 外构造或缓存；插槽内只读 |
-| `WAsyncStrings` | async | core | 全局默认文案：empty / errorTitle / retry / loading / noMore | 不要用它写业务文案；项目应注入本地化，默认文案是英文 |
+| `WAsyncStrings` | async | core | 全局默认文案：empty / errorTitle / retry / loading / noMore / loadMore | 不要用它写业务文案；项目应注入本地化，默认文案是英文 |
 | `WAsyncErrorWidgetBuilder` | async | core | error / errorBanner builder 的类型 | 不要直接显示 error 原文；不要返回 sliver |
 <!-- catalog:5:end -->
 

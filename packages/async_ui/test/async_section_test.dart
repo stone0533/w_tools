@@ -75,6 +75,87 @@ void main() {
     expect(find.text('custom empty'), findsOneWidget);
   });
 
+  testWidgets('scrollableStates 让空态可下拉刷新', (tester) async {
+    final controller = WAsyncController.list<String>((_) async => const <String>[]);
+    addTearDown(controller.dispose);
+    await controller.load();
+    var refreshes = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: RefreshIndicator(
+            onRefresh: () async {
+              refreshes++;
+              await controller.load();
+            },
+            child: WAsyncSection<List<String>>(
+              controller: controller,
+              scrollableStates: true,
+              builder: (context, data) => ListView(
+                children: [for (final item in data) Text(item)],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('No data'), const Offset(0, 300));
+    await tester.pumpAndSettle();
+
+    expect(refreshes, 1);
+  });
+
+  testWidgets('scrollableStates 在无界外层滚动里不吞手势', (tester) async {
+    final controller = WAsyncController.list<String>((_) async => const <String>[]);
+    addTearDown(controller.dispose);
+    await controller.load();
+    var refreshes = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: RefreshIndicator(
+            onRefresh: () async {
+              refreshes++;
+              await controller.load();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  const SizedBox(height: 100, child: Text('top')),
+                  WAsyncSection<List<String>>(
+                    controller: controller,
+                    scrollableStates: true,
+                    builder: (context, data) => Text(data.join(',')),
+                  ),
+                  const SizedBox(height: 1000, child: Text('bottom')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('No data'), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    final position = tester.state<ScrollableState>(find.byType(Scrollable)).position;
+    expect(position.pixels, greaterThan(0));
+
+    position.jumpTo(0);
+    await tester.pump();
+    await tester.drag(find.text('No data'), const Offset(0, 300));
+    await tester.pumpAndSettle();
+
+    expect(refreshes, 1);
+  });
+
   testWidgets('WAsyncSection 自定义 onRetry 覆盖 controller.load', (tester) async {
     var loadCalls = 0;
     var retryCalls = 0;

@@ -35,11 +35,13 @@ WAsyncSection<List<Gift>>(
 - 默认 footer 读 `controller.snapshot`，展示 loading / 失败重试 / 没有更多；
   文案（含 noMore）走 `WAsyncTheme.strings`；
 - `footerBuilder` 可替换 footer；`reloadRequests` 负责程序化刷新；刷新期间自动加载挂起；
+  `resetScrollOnReload` 控制程序化 reload 是否回顶（默认 true）；
 - `refreshIndicatorStyle` 配置标准 `RefreshIndicator` 的颜色 / 背景 / 线宽 / 位移 /
   触发模式；自定义刷新头仍用 `WAsyncPagedSliver`；
 - 不持有外部刷新控制器；需要完全自定义刷新头 / 上拉壳时用 `WAsyncPagedSliver`；
-- 标准壳的 loading / error / errorBanner 走 `WAsyncTheme`；需要 per-list 定制时用
-  `WAsyncPagedSliver`；
+- 标准壳的 loading / error / errorBanner 走 `WAsyncTheme`；`scrollableStates` 让 Section 空态可滚动（只用于有界主体）；
+  `headerSlivers` / `sliverPadding` 支持头部与内容 padding；默认 footer failed 显示失败文案，
+  `autoLoadThreshold:null` 时显示“加载更多”；
 - 不在组件内自动发起首屏请求。
 
 ## WAsyncPagedSliver

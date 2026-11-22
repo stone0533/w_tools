@@ -280,6 +280,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(calls, 2);
+    expect(find.text('Something went wrong'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
@@ -356,6 +357,91 @@ void main() {
     expect(find.text('No more'), findsNothing);
   });
 
+  testWidgets('autoLoadThreshold:null 时默认 footer 提供手动加载', (tester) async {
+    var calls = 0;
+    final controller = _controller(
+      load: (page) async {
+        calls++;
+        if (page == 1) {
+          return const WAsyncPage<int>(items: <int>[1], hasMore: true);
+        }
+        return const WAsyncPage<int>(items: <int>[2], hasMore: false);
+      },
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          autoLoadThreshold: null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Load more'), findsOneWidget);
+    await tester.tap(find.text('Load more'));
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.text('item 2'), findsOneWidget);
+  });
+
+  testWidgets('默认 footer 的手动加载文案走 WAsyncTheme.strings', (tester) async {
+    final controller = _controller(
+      load: (page) async => WAsyncPage<int>(
+        items: <int>[page],
+        hasMore: page == 1,
+      ),
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      WAsyncTheme(
+        strings: const WAsyncStrings(loadMore: '加载更多'),
+        child: _app(
+          WAsyncPagedList<int>(
+            controller: controller,
+            itemBuilder: (context, item) => Text('item $item'),
+            autoLoadThreshold: null,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('加载更多'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList 支持 headerSlivers / sliverPadding', (tester) async {
+    final controller = _controller(
+      load: (page) async => const WAsyncPage<int>(items: <int>[1], hasMore: false),
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => Text('item $item'),
+          headerSlivers: const [
+            SliverToBoxAdapter(child: Text('header')),
+          ],
+          sliverPadding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('header'), findsOneWidget);
+    expect(find.text('item 1'), findsOneWidget);
+  });
+
   testWidgets('WAsyncPagedList 拒绝负数 autoLoadThreshold', (tester) async {
     final controller = _controller(
       load: (page) async => const WAsyncPage<int>(items: <int>[1], hasMore: false),
@@ -413,6 +499,102 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(completers, hasLength(2));
+  });
+
+  testWidgets('reloadRequests 后列表回到顶部', (tester) async {
+    var filtered = false;
+    final controller = WAsyncPagedController<int>((page, _) async {
+      return WAsyncPage<int>(
+        items: List<int>.generate(filtered ? 20 : 30, (index) => index),
+        hasMore: false,
+      );
+    });
+    addTearDown(controller.dispose);
+    await controller.refresh();
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => SizedBox(
+            height: 40,
+            child: Text('item $item'),
+          ),
+          reloadRequests: reloadRequests,
+          autoLoadThreshold: null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(
+      tester.state<ScrollableState>(find.byType(Scrollable)).position.pixels,
+      greaterThan(0),
+    );
+
+    filtered = true;
+    reloadRequests.value++;
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.state<ScrollableState>(find.byType(Scrollable)).position.pixels,
+      0,
+    );
+  });
+
+  testWidgets('刷新在飞时再次 reload 也会回到顶部', (tester) async {
+    final gate = Completer<void>();
+    var hold = false;
+    final controller = WAsyncPagedController<int>((page, _) async {
+      if (hold) await gate.future;
+      return WAsyncPage<int>(
+        items: List<int>.generate(30, (index) => index),
+        hasMore: false,
+      );
+    });
+    addTearDown(controller.dispose);
+    await controller.refresh();
+    final reloadRequests = ValueNotifier<int>(0);
+    addTearDown(reloadRequests.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        WAsyncPagedList<int>(
+          controller: controller,
+          itemBuilder: (context, item) => SizedBox(
+            height: 40,
+            child: Text('item $item'),
+          ),
+          reloadRequests: reloadRequests,
+          autoLoadThreshold: null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    hold = true;
+    reloadRequests.value++;
+    await tester.pump();
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -800));
+    await tester.pump();
+    expect(
+      tester.state<ScrollableState>(find.byType(Scrollable)).position.pixels,
+      greaterThan(0),
+    );
+
+    reloadRequests.value++;
+    await tester.pump();
+    expect(
+      tester.state<ScrollableState>(find.byType(Scrollable)).position.pixels,
+      0,
+    );
+
+    gate.complete();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('WAsyncPagedList footerBuilder 自定义 footer', (tester) async {
