@@ -199,10 +199,12 @@ InitReport runInit(
   final oldDeviceDoc = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
   if (oldDeviceDoc.existsSync()) {
     final text = oldDeviceDoc.readAsStringSync();
-    if (text.contains('--device-test') || text.contains('dart run tool/device_smoke.dart')) {
+    if (text.contains('--device-test')) {
       final hint = device ? 'init --force-starters' : 'init --device --force-starters';
       report.warnings.add(
-        'docs/agents/device-testing.md 仍包含旧 device 内容；运行 $hint 更新',
+        'docs/agents/device-testing.md 仍包含旧 --device-test 内容；'
+        '若是 CLI 生成的通用文档，运行 $hint 覆盖（会先备份 .bak）；'
+        '若该文件是项目自维护，可忽略本提示。',
       );
     }
   }
@@ -569,7 +571,7 @@ String _snippet(
 
   final pkgs = <String>[
     'w_tools_core',
-    if (features.app) 'w_tools_app',
+    // w_tools_app_getx 已依赖并重导出 w_tools_app 的公开类型，不重复建议。
     if (features.app) 'w_tools_app_getx',
     if (features.form) 'w_tools_form',
     if (features.ui) 'w_tools_ui',

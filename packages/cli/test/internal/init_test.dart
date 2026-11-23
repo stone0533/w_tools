@@ -422,13 +422,31 @@ void main() {
       expect(file.existsSync(), isTrue);
     });
 
-    test('旧 device 文档含 --device-test 时提示 force-starters', () async {
+    test('旧 device 文档含 --device-test 时提示 force-starters、覆盖与备份', () async {
       final root = makeProject();
       final file = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
       file.parent.createSync(recursive: true);
       file.writeAsStringSync('run init --device-test\n');
       final report = runInit(root);
-      expect(report.warnings.any((w) => w.contains('force-starters')), isTrue);
+      final warning = report.warnings.firstWhere((w) => w.contains('旧 --device-test 内容'));
+      expect(warning, contains('force-starters'));
+      expect(warning, contains('覆盖'));
+      expect(warning, contains('.bak'));
+      expect(warning, contains('项目自维护'));
+    });
+
+    test('项目文档使用仍然有效的 device_smoke 命令时不提示旧内容', () async {
+      final root = makeProject();
+      final file = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(
+        '# 本项目设备验证\n\n'
+        '```bash\n'
+        'dart run tool/device_smoke.dart\n'
+        '```\n',
+      );
+      final report = runInit(root);
+      expect(report.warnings.any((w) => w.contains('旧 --device-test 内容')), isFalse);
     });
 
     test('--device 文档替换项目名，且保留 starter 语义', () async {
@@ -670,6 +688,13 @@ void main() {
         },
       );
       expect(runInit(root).pubspecSnippet, contains('依赖已齐全'));
+    });
+
+    test('app_getx 已覆盖 app 依赖，片段不再建议 w_tools_app', () async {
+      final root = makeProject();
+      final snippet = runInit(root).pubspecSnippet;
+      expect(snippet, contains('w_tools_app_getx:'));
+      expect(snippet, isNot(contains('w_tools_app:')));
     });
 
     test('pubspec 片段只列缺失的包', () async {
@@ -981,12 +1006,19 @@ void main() {
           '^$version',
           reason: '${entry.key} 的 init 约束必须等于当前版本 $version',
         );
+        // w_tools_app 由 w_tools_app_getx 传递依赖并重导出，不再单独建议。
+        if (entry.key == 'w_tools_app') continue;
         expect(
           snippet,
           contains('${entry.key}: ${entry.value}'),
           reason: 'init 片段缺少 ${entry.key}: ${entry.value}',
         );
       }
+      expect(
+        snippet,
+        isNot(contains('w_tools_app: ${subpackageConstraints['w_tools_app']}')),
+        reason: 'w_tools_app_getx 已覆盖 app 依赖，片段不应重复建议 w_tools_app',
+      );
 
       final devicePubspec =
           loadYaml(

@@ -1,3 +1,11 @@
+## 2.9.6
+
+### Fixed
+- `init` 的 device 文档过期判定不再把仍然有效的 `dart run tool/device_smoke.dart` 当成旧内容；
+  提示语说明项目自维护可忽略、`--force-starters` 会覆盖并先写 `.bak` 备份。
+- `init` 的 pubspec 片段不再在 `w_tools_app_getx` 之外重复建议 `w_tools_app`
+  （app_getx 已传递依赖并重导出 app 的公开类型）。
+
 ## 2.9.5
 
 ### Changed
