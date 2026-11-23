@@ -1,3 +1,11 @@
+## 2.9.5
+
+### Changed
+- catalog `entrypoints.yaml` 补齐 `WTextStyles` / `WActionRow` / `WSelectableRow` /
+  `WFormFieldStyleScope`。
+- zh / en AGENTS 模板同步以上入口；英文模板压缩冗余措辞，`en/full` 字符余量保持在
+  108（预算上限未抬）。
+
 ## 2.9.4
 
 ### Changed
