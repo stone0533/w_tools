@@ -1,3 +1,41 @@
+## 8.2.0
+
+### Added
+- `WFormFieldStyle.copyWith`：复制并按字段覆盖，可从页面样式派生完整的单字段样式。
+- `WFormFieldStyleScope.mergeWithParent`：`true` 时与当前生效的外层字段样式逐字段合并
+  （未设置的字段沿用外层）；默认 `false` 仍是整体替换。合并后的样式会跟随页面
+  `fieldStyle` 运行期变化。
+
+> 只改某个字段的一部分时优先 `mergeWithParent: true`；它的 `null` 表示沿用，
+> 不能用来清空单项。
+- `WFormMultiDropdown` 转发弹层 / 选项参数：`itemPadding` / `itemTitlePadding` /
+  `popUpLayerPadding` / `popUpLayerElevation` / `popUpLayerShadowColor` / `decoration`。
+- `WFormDatePicker.clearable`：有值时显示清除图标，点击把字段值清空为 `null`。
+
+### Changed
+- `WFormTextField` / `WFormDropdown` 的 `WFormFieldStyle.height` 改为**最小高度**：
+  内联校验文案、`maxLength` 计数器、多行文本更高时字段长高，不再压住输入或画到框外。
+- `WFormMultiDropdown` 弹层选项默认内边距改为 `EdgeInsets.symmetric(vertical: 12)`，
+  选项行高 48（此前 24）；需要紧凑仍可显式传 `itemPadding: EdgeInsets.zero`。
+- 只读与禁用分开：文本字段的 `readOnly` 不再落到 `TextField.enabled: false`，只读时仍可
+  聚焦 / 选中 / 复制（与 Flutter `TextField.readOnly` 一致）；下拉 / 日期 / 多选 / 复选 / 单选
+  的只读仍为不可交互的只读态。真正禁用请用字段 `enabled: false`。
+- `WForm` 未传 `fieldStyle` 时不再插入空作用域：外层 `WFormFieldStyleScope` 会正常生效。
+
+### Fixed
+- `WFormFieldShell` 的焦点观察器加 `skipTraversal`：Tab / `TextInputAction.next`
+  一步进入下一个字段，不再先落到不可输入的字段壳上导致键盘收起。
+- 空日期字段打开后直接点 OK 会写入「今天」（clamp 到 `firstDate` / `lastDate`），
+  不再出现弹窗关闭但值仍为空。
+- `WFormController.setValue` 在 `WForm` 挂载前调用会断言失败（此前静默丢值）；
+  `WFormTextField.initialValue` 变更不再让清除按钮与字段真实值分叉。
+- `WFormTextField` / `WFormDropdown` 固定高度时的错误文案 / 计数器越界（回归测试带 rect 断言）。
+- 日期 `clearable` 的清除图标改用 `WFormIcons` / `WFormTheme`，不再硬编码 `Icons.clear`。
+- 文本 / 日期清除按钮的热区统一到 40×40（图标视觉尺寸不变）。
+- `firstDate` 晚于 `lastDate` 时在构造期断言，避免 `showDatePicker` 报出指向 `initialDate` 的误导断言。
+- `WFormFieldStyle.hintStyle` / `WFormBorderStyle.hintStyle` 的公开字段补 `@Deprecated`
+  （此前只有构造参数带弃用标记，读取字段拿不到警告）。
+
 ## 8.1.0
 
 ### Changed

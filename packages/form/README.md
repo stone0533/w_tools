@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^8.1.0
+  w_tools_form: ^8.2.0
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` 依赖约束）。
@@ -99,8 +99,30 @@ class _LoginFormState extends State<LoginForm> {
 
 普通页面优先用直接字段参数；跨字段默认值放 `WForm.fieldStyle`。
 可变 `WForm*Config` / `Config.build` 已在 form 5.0 移除。
-`WForm.fieldStyle.height` 只对单行字段生效；单选组、多行文本由内容撑高。
-多行字段（`maxLines > 1`）要同步提高高度：`WFormFieldStyleScope(style: WFormFieldStyle(height: 72), ...)`。
+`WForm.fieldStyle.height` 对文本 / 下拉是**最小高度**：内联校验文案、`maxLength`
+计数器、`maxLines > 1` 的内容更高时字段会跟着长高，不会再压住输入或画到框外；
+单选组等由内容决定高度的字段忽略它。
+
+单个字段要不同高度时用 `WFormFieldStyleScope`。它默认**整体替换**页面样式；
+只改某一项时传 `mergeWithParent: true`，未设置的字段沿用页面：
+
+```dart
+// 只覆盖高度，其余（padding / 文字 / 占位样式）沿用 WForm.fieldStyle
+WFormFieldStyleScope(
+  style: const WFormFieldStyle(height: 72),
+  mergeWithParent: true,
+  child: const WFormTextField(name: 'bio', maxLines: 3),
+);
+
+// 需要清空某一项、或想让依赖关系显式可见时，从页面样式派生完整样式
+WFormFieldStyleScope(
+  style: pageStyle.copyWith(height: 72),
+  child: const WFormTextField(name: 'bio', maxLines: 3),
+);
+```
+
+合并规则是「null = 沿用」，所以 `mergeWithParent` 不能把某一项改回空；
+要清空 / 完全接管用默认的整体替换。
 
 ```dart
 WFormTextField(
@@ -114,8 +136,18 @@ WFormTextField(
 
 ```dart
 WFormDropdown<String>(name: 'city', items: const {'sh': '上海'}, initialValue: 'sh');
-WFormMultiDropdown(name: 'tags', items: const {'a': 'A'}, disabledKeys: const {'b'});
-WFormDatePicker(name: 'birthday', hintText: '生日', displayFormat: 'yyyy-MM-dd');
+WFormMultiDropdown(
+  name: 'tags',
+  items: const {'a': 'A'},
+  disabledKeys: const {'b'},
+  itemPadding: const EdgeInsets.symmetric(vertical: 12), // 默认行高 48
+);
+WFormDatePicker(
+  name: 'birthday',
+  hintText: '生日',
+  displayFormat: 'yyyy-MM-dd',
+  clearable: true, // 有值时显示清除图标
+);
 WFormCheckbox(
   name: 'agree',
   title: Text('同意'),
@@ -149,12 +181,12 @@ WFormFieldButton<int>(
 ## 只读与字段级样式
 
 ```dart
+// 只读：文本字段仍可聚焦 / 选中 / 复制，只是不能编辑（不弹键盘）；
+// 下拉 / 日期 / 多选 / 复选 / 单选为不可交互的只读态（0.5 透明，不参与焦点）
 WForm(controller: form, readOnly: true, child: ...);
 
-WFormFieldStyleScope(
-  style: const WFormFieldStyle(height: 72),
-  child: WFormTextField(name: 'bio', maxLines: 3),
-);
+// 真正禁用：不参与焦点、不可选中
+WFormTextField(name: 'email', hintText: '邮箱', enabled: false);
 ```
 
 ## 弹层
@@ -182,10 +214,21 @@ form.validators(items: [WFormValidatorItem.field('email')]).validate();
 form.validators().validate(); // 不传 items：校验全部已挂载字段
 form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 
+// 原生自动校验：错误走 InputDecoration（文本 / 下拉）或边框兜底，与 form.validate() 的
+// 边框错误通道分开；固定高度字段会按最小高度撑开。
+WForm(
+  controller: form,
+  autovalidateMode: AutovalidateMode.onUserInteraction,
+  child: ...,
+);
+
 form.value; form.savedValue;
-form.save(); // 需要 savedValue / onSaved 时显式调用
-form.setValue('email', 'a@b.com'); // 程序化改值；不要在字段自己的 onChanged 里回写同字段
+form.save(); // 刷新 savedValue；字段级 onSaved 需自定义 FormBuilderField
+form.setValue('email', 'a@b.com'); // 程序化改值；需在 WForm 挂载后调用
 form.reset();
+
+// 异步回填：initialValue 只在首次挂载生效；数据晚到时用 setValue
+form.setValue('email', loaded.email);
 
 // 整表变化（任一字段变化后回调当前值）
 WForm(

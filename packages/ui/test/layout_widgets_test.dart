@@ -733,6 +733,28 @@ void main() {
     expect(tester.getBottomLeft(find.text('body')).dy, 580);
   });
 
+  testWidgets('WScaffold — includeBottomSafeArea: false 时 body 不补底部安全区', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 20),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            includeBottomSafeArea: false,
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: Text('body'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getBottomLeft(find.text('body')).dy, 600);
+  });
+
   testWidgets('WScaffold — 有 bottomNavigationBar 时 body 不重复加底部安全区', (tester) async {
     final data = MediaQueryData.fromView(tester.view).copyWith(
       padding: const EdgeInsets.only(bottom: 20),
@@ -809,9 +831,9 @@ void main() {
     );
 
     // WNavBar 自带 safeArea: true，WScaffold 默认 bottomNavigationBarSafeArea: false。
-    // 只应扣一次 34，而不是 68。
+    // 只应扣一次 34，而不是 68。点击项撑满 minItemHeight，用它量内容底边。
     expect(
-      tester.getRect(find.byKey(const Key('nav-item-0'))).bottom,
+      tester.getRect(find.byType(WPressable).first).bottom,
       closeTo(566, 0.1),
     );
   });

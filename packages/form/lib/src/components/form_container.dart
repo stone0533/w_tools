@@ -65,6 +65,12 @@ class WForm extends StatefulWidget {
   final WFormFieldStyle? fieldStyle;
   final WFormValidatorSettings? validatorSettings;
   final bool readOnly;
+
+  /// 原生自动校验模式，透传给内部 `FormBuilder`。
+  ///
+  /// 开启后字段校验错误走 `InputDecoration`（文本 / 下拉）或边框兜底，
+  /// 与 `WFormController.validate()` 的边框错误通道是两条路径；不要同时用
+  /// `formKey.currentState!.validate()` 再触发一次。
   final AutovalidateMode? autovalidateMode;
 
   /// 任一字段值变化后回调，参数为当前整表值。
@@ -196,21 +202,25 @@ class _WFormState extends State<WForm> {
 
     // 未显式传的图标继承外层 WFormTheme，实现「App 统一图标」。
     final inheritedTheme = WFormThemeData.of(context);
+    // 未传 fieldStyle 时不要插一层空 scope：否则会把外层 WFormFieldStyleScope
+    // （设计系统 / 页面壳）静默清空。
+    final fieldStyle = widget.fieldStyle;
+    Widget content = WFormScope(
+      formData: widget.controller,
+      autovalidateMode: widget.autovalidateMode,
+      onChanged: widget.onChanged,
+      child: WFormReadOnlyScope(
+        readOnly: widget.readOnly,
+        child: widget.child,
+      ),
+    );
+    if (fieldStyle != null) {
+      content = WFormFieldStyleScope(style: fieldStyle, child: content);
+    }
     return WFormTheme(
       icons: widget.icons ?? inheritedTheme?.icons,
       borderStyle: _resolveBorderStyle(context),
-      child: WFormFieldStyleScope(
-        style: widget.fieldStyle,
-        child: WFormScope(
-          formData: widget.controller,
-          autovalidateMode: widget.autovalidateMode,
-          onChanged: widget.onChanged,
-          child: WFormReadOnlyScope(
-            readOnly: widget.readOnly,
-            child: widget.child,
-          ),
-        ),
-      ),
+      child: content,
     );
   }
 }

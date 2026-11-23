@@ -2,7 +2,30 @@
 
 ## 待处理
 
-（暂无）
+### [待处理] cli: w_tools list 不传查询条件时内部错误（Cannot modify an unmodifiable list），退出 3
+
+- 包/版本：w_tools_cli 2.9.2（本地 main 6e5423d；消费方 pubspec 约束 ^2.8.4，dependency_overrides 指本地）
+- 环境：macOS / Flutter 3.44.9 / Dart 3.12.2；在 ureward 与 w_tools 仓库内都能复现
+- 命令 / 输入：dart run w_tools_cli:w_tools list --format=prompt（无 query）
+
+```bash
+dart run w_tools_cli:w_tools list --format=prompt
+# 不传 query；`list` 裸命令、`--format=text/json` 同样
+```
+
+- 期望：列出全部组件（catalog）。
+- 实际：打印 `内部错误：Unsupported operation: Cannot modify an unmodifiable list`，退出码 3，没有任何组件输出。
+- 影响：新项目 / agent 想一次浏览全部组件（而不是逐个关键词搜索）时直接失败；`context --format=prompt` 和其它查询都正常，很容易被误判为环境问题。
+- 建议：`searchComponents('')` 现在直接 `return catalogEntries`（不可变列表），`list_command.dart` 随后 `results.sort(...)`；改成 `return List.of(catalogEntries)`（或 sort 前 `toList()`）。补一个「无 query 的 list 不抛异常」的 CLI 测试。
+- 复现数据：内部错误：Cannot modify an unmodifiable list；exit=3
+
+```text
+$ dart run w_tools_cli:w_tools list --format=prompt
+内部错误：Unsupported operation: Cannot modify an unmodifiable list
+exit=3
+```
+源码位置：`packages/cli/lib/src/catalog/catalog.dart:28`（`if (q.isEmpty) return catalogEntries;`）与 `packages/cli/lib/src/catalog/list_command.dart:48`（`results.sort(...)`）。
+- 状态变更：2026-11-23 待处理
 
 ## 已闭环
 

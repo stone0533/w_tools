@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+String _iso(DateTime value) =>
+    '${value.year.toString().padLeft(4, '0')}-'
+    '${value.month.toString().padLeft(2, '0')}-'
+    '${value.day.toString().padLeft(2, '0')}';
+
 void main() {
   testWidgets('onChanged 覆盖复选框与 reset', (tester) async {
     final form = WFormController();
@@ -149,7 +154,29 @@ void main() {
     expect(find.byIcon(Icons.check_box), findsNothing);
   });
 
-  testWidgets('日期字段 firstDate 在未来时也能打开选择器', (tester) async {
+  testWidgets('空日期字段：打开后直接点 OK 写入今天', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormDatePicker(name: 'birthday', hintText: '生日'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(WFormDatePicker));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(form.value['birthday'], _iso(DateTime.now()));
+  });
+
+  testWidgets('日期字段 firstDate 在未来：点 OK 写入 firstDate', (tester) async {
     final form = WFormController();
     await tester.pumpWidget(
       MaterialApp(
@@ -167,12 +194,41 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('未来'));
+    await tester.tap(find.byType(WFormDatePicker));
     await tester.pumpAndSettle();
     expect(find.byType(DatePickerDialog), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
+    expect(form.value['future'], _iso(DateTime(2030)));
+  });
+
+  testWidgets('日期字段 clearable：有值时点清除图标清空，不打开弹窗', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormDatePicker(
+              name: 'birthday',
+              hintText: '生日',
+              initialValue: '1998-06-18',
+              clearable: true,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.clear), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.clear));
+    await tester.pump();
+
+    expect(form.value['birthday'], isNull);
+    expect(find.byIcon(Icons.clear), findsNothing);
+    expect(find.byType(DatePickerDialog), findsNothing);
   });
 }

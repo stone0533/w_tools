@@ -33,8 +33,13 @@ void main() {
     );
 
     final textField = tester.widget<TextField>(find.byType(TextField));
-    expect(textField.enabled, isFalse);
+    // 只读 ≠ 禁用：readOnly 字段仍可聚焦 / 选中 / 复制，只是不能编辑。
+    expect(textField.enabled, isTrue);
     expect(textField.readOnly, isTrue);
+
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    expect(textField.focusNode!.hasFocus, isTrue);
 
     await tester.tap(find.text('同意'));
     await tester.pump();
@@ -61,6 +66,97 @@ void main() {
 
     final textField = tester.widget<TextField>(find.byType(TextField));
     expect(textField.enabled, isTrue);
+  });
+
+  testWidgets('字段 readOnly: true 同样保持 enabled，可聚焦', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormTextField(
+              name: 'email',
+              hintText: '邮箱',
+              initialValue: 'a@b.com',
+              readOnly: true,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final textField = tester.widget<TextField>(find.byType(TextField));
+    expect(textField.enabled, isTrue);
+    expect(textField.readOnly, isTrue);
+
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    expect(textField.focusNode!.hasFocus, isTrue);
+  });
+
+  testWidgets('enabled: false 才是禁用：不可聚焦、不可选中', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormTextField(
+              name: 'email',
+              hintText: '邮箱',
+              initialValue: 'a@b.com',
+              enabled: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final textField = tester.widget<TextField>(find.byType(TextField));
+    expect(textField.enabled, isFalse);
+
+    await tester.tap(find.byType(TextField), warnIfMissed: false);
+    await tester.pump();
+    expect(textField.focusNode!.hasFocus, isFalse);
+    expect(textField.controller?.selection.baseOffset, -1);
+  });
+
+  testWidgets('非文本字段只读 = 禁用态：不可点击、0.5 透明', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            readOnly: true,
+            child: const Column(
+              children: [
+                WFormCheckbox(name: 'agree', title: Text('同意'), initialValue: true),
+                WFormDropdown<String>(
+                  name: 'country',
+                  hintText: '国家',
+                  items: {'CN': '中国'},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('同意'));
+    await tester.pump();
+    expect(form.value['agree'], isTrue);
+
+    final opacity = tester.widget<Opacity>(
+      find.descendant(of: find.byType(WFormCheckbox), matching: find.byType(Opacity)).first,
+    );
+    expect(opacity.opacity, 0.5);
+
+    final dropdown = tester.widget<DropdownButton<String>>(
+      find.byType(DropdownButton<String>),
+    );
+    expect(dropdown.onChanged, isNull);
   });
 
   testWidgets('WForm(readOnly: true) 覆盖下拉 / 多选 / 日期 / 单选', (tester) async {

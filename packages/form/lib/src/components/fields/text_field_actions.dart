@@ -83,7 +83,11 @@ class WFormTextFieldAction extends StatelessWidget {
               onTap: activate,
               behavior: HitTestBehavior.opaque,
               excludeFromSemantics: true,
-              child: icon,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(child: icon),
+              ),
             ),
           ),
         );
@@ -148,8 +152,8 @@ class WFormTextFieldClearButton extends StatelessWidget {
 
   /// 自定义图标，默认取 [WFormIcons.defaults.clear]
   ///
-  /// 点击热区与图标的渲染尺寸一致；需要更大热区请传入更大的图标，
-  /// 或用 SizedBox 包裹图标来扩大点击区域。
+  /// 点击热区固定 40×40（图标保持自身视觉尺寸）；需要更大热区请在字段外
+  /// 自行包一层，不要靠放大图标来扩大热区。
   final Widget? icon;
 
   /// 读屏使用的按钮标签；null 时回退到本地化的 `clearButtonTooltip`

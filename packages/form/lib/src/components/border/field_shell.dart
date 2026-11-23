@@ -135,7 +135,15 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
     Widget child = widget.child;
     if (widget.enableFocusBorder) {
-      child = Focus(onFocusChange: _onFocusChange, child: child);
+      // 这里的 Focus 只用来观察后代（输入控件）的焦点，绘制聚焦边框。
+      // 不加 skipTraversal 会多出一个可 Tab 的焦点站：Tab / next 先落到字段壳上
+      // （壳不可输入，键盘随之收起），而不是直接进下一个字段。
+      // onFocusChange 依赖 hasFocus（含后代），skipTraversal 不影响它。
+      child = Focus(
+        skipTraversal: true,
+        onFocusChange: _onFocusChange,
+        child: child,
+      );
     }
     // 始终插入作用域（值驱动），避免只读开关切换时重建整棵子树、丢失输入状态
     child = WFormReadOnlyScope(readOnly: isReadOnly, child: child);

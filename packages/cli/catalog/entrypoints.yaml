@@ -33,12 +33,18 @@ w_tools_ui:
   - WKeepAliveWrapper
   - WNotificationListener
   - WGradientCircularProgressIndicator
+  - WScreen
 w_tools_form:
   - WForm
   - WFormTextField
   - WFormDropdown
+  - WFormMultiDropdown
+  - WFormDatePicker
   - WFormCheckbox
+  - WFormRadioGroup
   - WFormButton
+  - WFormController
+  - WFormValidator
 w_tools_api:
   - WApiSettings
   - DioRegistry

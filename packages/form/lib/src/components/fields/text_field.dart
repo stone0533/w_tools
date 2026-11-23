@@ -97,16 +97,24 @@ class WFormTextFieldCore extends StatefulWidget {
   /// 编辑完成回调
   final VoidCallback? onEditingComplete;
 
-  /// 初始值
+  /// 初始值（只在首次挂载时读取，之后变更不会改写字段值）
+  ///
+  /// 异步回填（首帧为空、数据到达后 rebuild）请用
+  /// `WFormController.setValue(name, value)`。
   final String? initialValue;
 
   /// 提示文本
   final String? hintText;
 
   /// 是否只读
+  ///
+  /// 只读字段仍可聚焦 / 选中 / 复制，只是不能编辑（与 Flutter `TextField.readOnly`
+  /// 一致）；需要完全禁用时用 [enabled]。
   final bool readOnly;
 
-  /// 是否启用（只读作用域仍会覆盖）
+  /// 是否启用
+  ///
+  /// `false` 是真正的禁用（不可聚焦 / 不可选中）；只读请用 [readOnly]。
   final bool enabled;
 
   /// 校验器
@@ -199,9 +207,6 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
       }
       _focusNode = widget.focusNode ?? FocusNode();
     }
-    if (widget.initialValue != oldWidget.initialValue) {
-      _valueNotifier.value = widget.initialValue;
-    }
   }
 
   @override
@@ -237,11 +242,14 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
       widget.onChanged?.call(value);
     }
 
-    // 合并自身 enabled / enabled / 外层只读作用域
+    // 只读与禁用分开：
+    // - readOnly：可聚焦、可选中、可复制，只是不能编辑（不弹键盘）；
+    // - enabled: false：真正的禁用，不可聚焦、不可选中。
+    // WForm(readOnly: true) / 字段 readOnly: true 只进入前者，不再落到 enabled: false。
     final inheritedReadOnly = WFormReadOnly.of(context);
-    final isEnabled = widget.enabled && !inheritedReadOnly;
-    _effectiveReadOnly = !isEnabled || widget.readOnly || inheritedReadOnly;
-    final readOnly = _effectiveReadOnly;
+    final isEnabled = widget.enabled;
+    final readOnly = widget.readOnly || inheritedReadOnly;
+    _effectiveReadOnly = !isEnabled || readOnly;
 
     final customDecoration = widget.decoration;
     final hintText = widget.hintText ?? customDecoration?.hintText;
@@ -249,9 +257,10 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
     return WFormTextFieldScope._(
       state: this,
       isPasswordVisible: _isPasswordVisible,
-      readOnly: readOnly,
+      readOnly: _effectiveReadOnly,
       child: WFormFieldFrame(
         height: widget.height,
+        heightIsMinimum: true,
         width: widget.width,
         decoration: widget.containerDecoration,
         margin: widget.containerMargin,

@@ -236,31 +236,61 @@ class WButton extends StatelessWidget {
       ),
     };
 
-    if (onLongPress != null) {
-      button = GestureDetector(
-        onLongPress: interactive ? onLongPress : null,
-        child: button,
-      );
-    }
-
     if (isSelected != null) {
       button = Semantics(selected: isSelected, child: button);
     }
 
     final semanticText = semanticLabel;
     if (semanticText != null || semanticHint != null) {
+      // 有 semanticLabel / hint 时内层会被 excludeSemantics 丢弃，loading 的
+      // liveRegion 也一起消失。这里把 loading 文案并入 label，并让该节点
+      // 自己成为 liveRegion，读屏才能听到「保存，加载中」。
+      final loadingText = loading ? _resolvedLoadingLabel(context, loadingLabel) : null;
+      final label = <String>[
+        if (semanticText != null) semanticText,
+        if (loadingText != null) loadingText,
+      ].join(_semanticSeparator(context));
       button = Semantics(
         button: true,
         enabled: interactive,
-        label: semanticText,
+        label: label.isEmpty ? null : label,
         hint: semanticHint,
+        liveRegion: loading,
         excludeSemantics: true,
         child: button,
       );
     }
 
     final tip = tooltip;
-    return tip == null ? button : Tooltip(message: tip, excludeFromSemantics: true, child: button);
+    if (tip == null) {
+      return onLongPress == null
+          ? button
+          : GestureDetector(
+              onLongPress: interactive ? onLongPress : null,
+              child: button,
+            );
+    }
+
+    // Tooltip 在外层，它的长按识别器会被内层 GestureDetector 抢走；长按回调里
+    // 手动 ensureTooltipVisible，保证 tooltip 与 onLongPress 能同时生效。
+    return Tooltip(
+      message: tip,
+      excludeFromSemantics: true,
+      child: Builder(
+        builder: (tooltipContext) {
+          if (onLongPress == null) return button;
+          return GestureDetector(
+            onLongPress: interactive
+                ? () {
+                    onLongPress!();
+                    tooltipContext.findAncestorStateOfType<TooltipState>()?.ensureTooltipVisible();
+                  }
+                : null,
+            child: button,
+          );
+        },
+      ),
+    );
   }
 
   static void _noop() {}
@@ -289,6 +319,14 @@ class WButton extends StatelessWidget {
   }
 }
 
+/// 语义文案连接符：中文用全角逗号，其他语言用英文逗号。
+String _semanticSeparator(BuildContext context) =>
+    Localizations.maybeLocaleOf(context)?.languageCode == 'zh' ? '，' : ', ';
+
+/// loading 的读屏文案：空字符串走内置本地化文案。
+String _resolvedLoadingLabel(BuildContext context, String loadingLabel) =>
+    loadingLabel.isEmpty ? WUiStrings.of(context).loadingLabel : loadingLabel;
+
 /// 加载中占位（spinner 跟随按钮前景色，保持原内容占位避免尺寸跳动）。
 Widget _buildButtonLoading(
   BuildContext context,
@@ -297,7 +335,7 @@ Widget _buildButtonLoading(
 ) {
   // 默认 spinner 取 colorScheme.primary；在主色填充按钮上会与背景同色。
   final indicatorColor = DefaultTextStyle.of(context).style.color;
-  final label = loadingLabel.isEmpty ? WUiStrings.of(context).loadingLabel : loadingLabel;
+  final label = _resolvedLoadingLabel(context, loadingLabel);
   return Stack(
     alignment: Alignment.center,
     children: [

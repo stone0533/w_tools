@@ -1,3 +1,19 @@
+## 2.9.4
+
+### Changed
+- catalog `entrypoints.yaml` 补齐零文档成本的核心入口：`WScreen`；
+  `WFormController` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormRadioGroup` /
+  `WFormValidator`。
+- catalog 修正 `WFormValidatorSettings` usage 为可编译写法；补 `WFormDatePicker`
+  空值默认今天、`WFormDropdown` 与多选弹层参数差异、`WForm.autovalidateMode` 说明。
+
+## 2.9.3
+
+### Changed
+- `init` 的 `w_tools_form` / `w_tools_ui` 约束抬到 `^8.2.0` / `^14.1.0`。
+- catalog 同步 form / ui：只读与禁用、字段壳焦点、`WFormFieldStyleScope` 合并、
+  多选弹层行高与参数、日期清除、`WNavBar.minItemHeight`、按钮 loading / tooltip。
+
 ## 2.9.2
 
 ### Changed

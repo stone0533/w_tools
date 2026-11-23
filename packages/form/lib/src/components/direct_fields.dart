@@ -144,6 +144,11 @@ class WFormTextField extends _WFormDirectField {
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
+
+  /// 初始值（只在首次挂载时读取，之后变更不会改写字段值）
+  ///
+  /// 异步回填（首帧为空、数据到达后 rebuild）请用
+  /// `WFormController.setValue(name, value)`；挂载前调用会被断言拦下。
   final String? initialValue;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String?>? onChanged;
@@ -327,6 +332,12 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
     this.itemStyle,
     this.itemCheckedStyle,
     this.itemDisabledStyle,
+    this.itemPadding,
+    this.itemTitlePadding,
+    this.popUpLayerPadding,
+    this.popUpLayerElevation,
+    this.popUpLayerShadowColor,
+    this.decoration,
     super.leading,
     super.actions,
     this.focusNode,
@@ -356,6 +367,27 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
   final TextStyle? itemStyle;
   final TextStyle? itemCheckedStyle;
   final TextStyle? itemDisabledStyle;
+
+  /// 弹层选项内边距；`null` 用默认 `EdgeInsets.symmetric(vertical: 12)`（行高 48）。
+  ///
+  /// 传 `EdgeInsets.zero` 可回到紧凑的 24 行高（低于最小点击区域，谨慎使用）。
+  final EdgeInsetsGeometry? itemPadding;
+
+  /// 选项标题内边距；`null` 用默认左侧 8。
+  final EdgeInsets? itemTitlePadding;
+
+  /// 弹层内边距
+  final EdgeInsets? popUpLayerPadding;
+
+  /// 弹层阴影高度
+  final double? popUpLayerElevation;
+
+  /// 弹层阴影颜色
+  final Color? popUpLayerShadowColor;
+
+  /// 字段内容装饰（hint / border / fill 等），传给内部 `InputDecorator`；
+  /// 不是外层容器装饰（外层装饰仍由边框接管）。
+  final InputDecoration? decoration;
 
   final FocusNode? focusNode;
 
@@ -389,6 +421,12 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
       itemCheckedStyle: itemCheckedStyle,
       focusNode: focusNode,
       itemDisabledStyle: itemDisabledStyle,
+      itemPadding: itemPadding,
+      itemTitlePadding: itemTitlePadding,
+      popUpLayerPadding: popUpLayerPadding,
+      popUpLayerElevation: popUpLayerElevation,
+      popUpLayerShadowColor: popUpLayerShadowColor,
+      decoration: decoration,
     );
   }
 }
@@ -410,6 +448,7 @@ class WFormDatePicker extends _WFormDirectField {
     this.firstDate,
     this.lastDate,
     this.displayFormat,
+    this.clearable = false,
     this.icon,
     this.iconSize,
     this.validator,
@@ -438,6 +477,9 @@ class WFormDatePicker extends _WFormDirectField {
 
   /// 日期格式，默认 `yMMMMd`。
   final String? displayFormat;
+
+  /// 有值时在字段右侧显示清除图标，点击把值清空为 `null`（可选日期字段）。
+  final bool clearable;
   final Widget? icon;
   final double? iconSize;
   final FormFieldValidator<String>? validator;
@@ -468,6 +510,7 @@ class WFormDatePicker extends _WFormDirectField {
       onChanged: onChanged,
       enabled: effectiveEnabled,
       displayFormat: displayFormat ?? 'yMMMMd',
+      clearable: clearable,
       icon: icon,
       iconSize: iconSize,
       style: style ?? fieldStyle?.textStyle,

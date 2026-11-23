@@ -32,14 +32,9 @@ class WFormBorderLayoutData {
 
 /// 边框与消息的布局策略：返回「边框 + 消息」的组装结果。
 ///
-/// 默认用 [columnBorderLayout]（边框在上、消息在下）；自定义直接传函数，
-/// 不需要建类：
-///
-/// ```dart
-/// WFormBorderStyle(
-///   layout: (context, data) => Column(children: [data.child, data.message]),
-/// )
-/// ```
+/// 8.0 起布局固定为 [columnBorderLayout]（边框在上、消息在下）：
+/// `WFormBorderStyle.layout` 参数与 `WFormBorder` 公开入口已移除，
+/// 这里只保留内部组装用的类型与函数。
 typedef WFormBorderLayout = Widget Function(BuildContext context, WFormBorderLayoutData data);
 
 /// 默认布局：边框在上、消息在下。

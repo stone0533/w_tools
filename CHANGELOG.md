@@ -1,3 +1,9 @@
+## 21.1.2
+
+### Changed
+- `w_tools_form` 约束抬到 `^8.2.0`，接入只读语义、焦点顺序、固定高度与多选行高修复。
+- `w_tools_ui` 约束抬到 `^14.1.0`，接入 `WNavBar.minItemHeight` 与按钮无障碍修复。
+
 ## 21.1.1
 
 ### Changed

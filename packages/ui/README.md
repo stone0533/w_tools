@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^14.0.0
+  w_tools_ui: ^14.1.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -302,7 +302,8 @@ WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 全站换色装 `WButtonTheme`，单按钮传 `style: ButtonStyle(...)`。
 任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
 图标按钮用 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）；
-纯图标按钮必须给 `semanticLabel`。
+纯图标按钮必须给 `semanticLabel`。`tooltip` 与 `onLongPress` 可以同时传：长按会触发
+回调并显示提示；`semanticLabel` + `loading` 时读屏会听到「保存，加载中」。
 
 ## 页面骨架与布局
 
@@ -322,6 +323,7 @@ WScaffold(
 WScaffold(appBar: const WAppBar(title: '详情'), body: ...);
 
 // 底栏不是 WNavBar 时：WScaffold(bottomNavigationBarSafeArea: true, ...)
+// 无 appBar / 无底栏时：includeTopSafeArea / includeBottomSafeArea 控制 body 安全区
 
 WStep(labels: const ['下单', '付款', '完成'], current: 2);
 ```
@@ -389,6 +391,7 @@ class _NavDemoState extends State<NavDemo> {
 `WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
 `safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）。
 默认 item 可传 `destinations: [WNavDestination(...)]`；完全自定义用 `itemBuilder`。
+每项点击区域默认至少 `minItemHeight: 48`；要更矮 / 更高时显式传（例如 56）。
 外层装饰 / 内边距直接传 `decoration` / `padding`（12.0 删除了 `WNavBarStyle`）。
 
 顶部 tab：
@@ -434,7 +437,7 @@ const SizedBox(height: 16);
 // 数字格式化（toThousandsSeparated / toCurrency / toPercent）在 w_tools_core 的
 // WNumFormatExtension（ui 12.0 移出）。
 card.withStartPadding(8).withEndPadding(4); // 跟随 Directionality
-2.borderSideOf(context);      // 跟随 ColorScheme.outline（borderSide 已弃用）
+2.borderSideOf(context);      // 跟随 ColorScheme.outline（borderSide 10.0 已删除）
 
 const BoxDecoration()
     .withBackground(color: Colors.white)   // color / gradient 二选一

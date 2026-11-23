@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/material.dart';
 
@@ -319,6 +320,8 @@ class WFormBorderStyle {
   final TextStyle? helperStyle;
 
   /// 历史名；用 [helperStyle]。构造参数已弃用（remove-in: 9.0.0）。
+  // remove-in: 9.0.0
+  @Deprecated('Use helperStyle instead. remove-in: 9.0.0')
   final TextStyle? hintStyle;
 
   final TextStyle? errorStyle;

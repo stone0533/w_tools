@@ -1,3 +1,18 @@
+## 14.1.0
+
+### Added
+- `WNavBar.minItemHeight`：每个导航项的最小点击高度，默认 48（此前默认项 42）。
+
+### Changed
+- `WNavBar` 默认项点击区域由 42 提到 48；自定义 `itemBuilder` 内容更高时按内容高度。
+
+### Fixed
+- `WButton` 同时传 `semanticLabel` / `semanticHint` 与 `loading` 时，loading 文案并入
+  无障碍 label 并保留 `liveRegion`，读屏能听到「保存，加载中」；分隔符按 locale
+  （中文 `，` / 其他 `, `）选择，英文不再出现全角逗号。
+- `WButton` 同时传 `tooltip` 与 `onLongPress` 时长按会同时触发回调并显示提示
+  （此前 tooltip 的长按识别器被按钮抢走，提示永远不出现）。
+
 ## 14.0.0
 
 ### Breaking

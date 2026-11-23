@@ -19,4 +19,24 @@ void main() {
     // FORM-014：默认 lastDate 不能是「今天」，否则预约 / 到期日这类场景默认不可选。
     expect(dialog.lastDate.year, 2100);
   });
+
+  testWidgets('firstDate 晚于 lastDate 时构造期断言', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormDatePicker(
+              name: 'bad',
+              hintText: '非法区间',
+              firstDate: DateTime(2100),
+              lastDate: DateTime(2000),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isAssertionError);
+  });
 }

@@ -44,9 +44,9 @@ WForm(
 5. 字段级差异用直接参数，例如：
    - 文本：`hintText` / `message` / `validator` / `obscureText` / `actions`（`label` 已弃用，用 `hintText`）
    - 下拉：`items` / `initialValue` / `icon` / `contentPadding`
-   - 多选：`disabledKeys` / `itemStyle` / `itemCheckedStyle`
+   - 多选：`disabledKeys` / `itemStyle` / `itemCheckedStyle` / `itemPadding`（默认行高 48）
    - 复选 / 单选：`message`（有边框时交给 hint / error builder；无边框时渲染在字段下方）/ `title` / `items`
-   - 日期：`firstDate` / `lastDate` / `displayFormat`
+   - 日期：`firstDate` / `lastDate` / `displayFormat` / `clearable`
    - 按钮：`label` / `message` / `hintWidget` / `selectedWidgetBuilder`（`WFormButton` 是
      `WFormFieldButton<String>` 的 typedef，两者是同一类型；enum / int 用 `WFormFieldButton<T>`）
 6. 边框 / 校验 / 只读由 `WForm` 统一提供，不要在页面里堆
@@ -63,15 +63,22 @@ if (!form.validate()) return;
 9. 只读与字段级样式：
 
 ```dart
+// 只读：文本可聚焦 / 复制；非文本字段为不可交互的只读态；真正禁用用 enabled: false
 WForm(controller: form, readOnly: true, child: ...);
 
+// 只改高度、其余沿用页面样式
 WFormFieldStyleScope(
   style: const WFormFieldStyle(height: 72),
+  mergeWithParent: true,
   child: WFormTextField(name: 'bio', maxLines: 3),
 );
 ```
 
-`WFormFieldStyle.height` 只对单行字段生效；单选组、多行文本由内容撑高。
+`WFormFieldStyleScope` 默认**整体替换**页面样式（只传 height 会丢 padding / 文字 / 占位样式）；
+只改部分字段用 `mergeWithParent: true`（null = 沿用外层），要清空 / 完全接管才用默认替换；
+`pageStyle.copyWith(...)` 适合显式派生完整样式；
+`WFormFieldStyle.height` 对文本 / 下拉是最小高度（错误文案 / 计数器 / 多行会撑高），
+单选组等由内容决定高度。
 
 10. 其他字段与弹层：
 
@@ -101,6 +108,9 @@ form.validators(items: [WFormValidatorItem.field('email')]).validate();
 `WFormCustomValidator` 已在 8.0 删除（只是函数包装），不要再去引用。
 form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 form.reset();
+
+// 回填：initialValue 只在首次挂载生效；异步数据用 setValue（需已挂载，挂载前会断言）
+form.setValue('email', loaded.email);
 ```
 
 完整说明：[form_module.md](../modules/form_module.md)  

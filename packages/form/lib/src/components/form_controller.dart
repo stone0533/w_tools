@@ -52,7 +52,10 @@ class WFormController {
   /// 上次显式 [save] 时的快照（旧 `value` 语义）
   Map<String, dynamic> get savedValue => formKey.currentState?.value ?? const <String, dynamic>{};
 
-  /// 保存当前值（触发字段 `onSaved`）；`validate()` 不再隐式调用。
+  /// 保存当前值（触发字段的 `onSaved`，如果字段声明了）；`validate()` 不再隐式调用。
+  ///
+  /// 直接字段（`WFormTextField` 等）没有 `onSaved` 参数；字段级 onSaved 需要
+  /// 自定义 `FormBuilderField`。`savedValue` 始终会刷新。
   void save() {
     formKey.currentState?.save();
   }
@@ -62,7 +65,16 @@ class WFormController {
   /// 只用于程序化改值；不要在字段自己的 `onChanged` 里回写同一字段。
   /// 字段值已由 FormBuilder 更新；同值回写会 no-op，避免
   /// didChange → onChanged → setValue 的递归。
+  ///
+  /// 必须在 [WForm] 挂载后调用：挂载前没有字段可写，`setValue` 会在 debug
+  /// 断言失败（release 下静默无效）。挂载前请把数据传给字段 `initialValue`，
+  /// 或等首帧后再回填。
   void setValue<T>(String name, T value) {
+    assert(
+      formKey.currentState != null,
+      'WFormController.setValue 需要在 WForm 挂载后调用：'
+      '挂载前用字段 initialValue，或等首帧后再回填。',
+    );
     _assertFieldExists(name);
     clearError(name);
     final field = formKey.currentState?.fields[name];

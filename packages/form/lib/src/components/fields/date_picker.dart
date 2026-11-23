@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_controller.dart';
+import '../form_icons.dart';
+import '../form_theme.dart';
 
 /// 表单日期选择器组件
 ///
@@ -39,6 +41,9 @@ class WFormDatePickerCore extends FormBuilderField<String> {
 
   /// 显示格式（字段值始终按 ISO yyyy-MM-dd 存储）
   final String displayFormat;
+
+  /// 是否显示清除图标（有值时），点击把字段值清空为 null
+  final bool clearable;
 
   /// 外框高度
   final double? height;
@@ -91,6 +96,7 @@ class WFormDatePickerCore extends FormBuilderField<String> {
     this.iconEnabledColor,
     this.style,
     this.displayFormat = 'yMMMMd',
+    this.clearable = false,
     this.height,
     this.width,
     this.yOffset,
@@ -99,27 +105,32 @@ class WFormDatePickerCore extends FormBuilderField<String> {
     this.containerDecoration,
     this.containerMargin,
     this.containerPadding,
-  }) : super(
+  }) : assert(
+         !firstDate.isAfter(lastDate),
+         'firstDate 不能晚于 lastDate',
+       ),
+       super(
          builder: (FormFieldState<String?> field) {
            final state = field as _WFormDatePickerState;
            final locale = Localizations.localeOf(state.context).toString();
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnly.of(state.context);
+           final theme = WFormThemeData.of(state.context);
 
            // 显示文本
            final date = _tryParse(state.value);
            final title = date == null ? '' : _formatDisplay(date, displayFormat, locale);
 
            void openPicker() {
-             // 解析初始日期并 clamp 到 [firstDate, lastDate]
-             DateTime? initDate = _tryParse(state.value);
-             if (initDate != null) {
-               if (initDate.isBefore(firstDate)) {
-                 initDate = firstDate;
-               } else if (initDate.isAfter(lastDate)) {
-                 initDate = lastDate;
-               }
+             // 解析初始日期并 clamp 到 [firstDate, lastDate]；
+             // 空字段默认选中「今天」（clamp 后）：DatePickerDialog 在 initialDate
+             // 为 null 时点 OK 会直接 pop(null)，弹窗关闭但什么都没写。
+             DateTime? initDate = _tryParse(state.value) ?? _today();
+             if (initDate.isBefore(firstDate)) {
+               initDate = firstDate;
+             } else if (initDate.isAfter(lastDate)) {
+               initDate = lastDate;
              }
 
              showDatePicker(
@@ -174,6 +185,29 @@ class WFormDatePickerCore extends FormBuilderField<String> {
                              style: style,
                            ),
                          ),
+                         if (clearable && date != null && isEnabled)
+                           Semantics(
+                             button: true,
+                             label: MaterialLocalizations.of(state.context).clearButtonTooltip,
+                             child: GestureDetector(
+                               onTap: () => state.didChange(null),
+                               behavior: HitTestBehavior.opaque,
+                               excludeFromSemantics: true,
+                               child: SizedBox(
+                                 key: const ValueKey('w-form-date-clear'),
+                                 width: 40,
+                                 height: 40,
+                                 child: Center(
+                                   child: IconTheme(
+                                     data: IconThemeData(color: iconEnabledColor, size: 18),
+                                     child:
+                                         theme?.effectiveClearButtonIcon ??
+                                         WFormIcons.defaults.clear,
+                                   ),
+                                 ),
+                               ),
+                             ),
+                           ),
                          icon ??
                              Icon(
                                Icons.arrow_drop_down,
@@ -201,6 +235,12 @@ class WFormDatePickerCore extends FormBuilderField<String> {
            );
          },
        );
+
+  /// 今天（按自然日，时分秒归零）。
+  static DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
 
   /// 按显示格式渲染日期；locale 数据未初始化（未装 flutter_localizations）
   /// 时回退到内置的 en_US，避免在 build 期抛 LocaleDataException。
