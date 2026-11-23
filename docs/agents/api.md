@@ -36,6 +36,7 @@ final response = await dio.get('/gifts');
 - `DioRegistry.maxCachedInstances` / `cacheTtl`：已弃用（7.0 删除），新代码用 `dispose` / `replace`；
 - `WTokenInterceptor.shouldRefresh`：登录 / 刷新 / 公开接口自己处理 401；
 - `WApiClient.send` / `page` 的 `envelope`：单条请求覆盖信封；
+- `WApiClient` 各方法的 `options:`：单条请求的 dio 配置（关重试 / `validateStatus` / `responseType`）；
 - `downloadResponse` / `readTotalFromResponse`：下载元数据 / 页头 total；
 - `WRetryInterceptor.shouldRetry` / `disableRetryExtraKey`：自定义重试边界 / 单请求关闭；
 - `WMetricsInterceptor`：请求指标。
@@ -105,7 +106,7 @@ await client.upload<void>(
 
 ## 不要用
 
-- 用裸 `Dio()` 绕过 `DioRegistry`；必须裸用时构造传 `dio:`，否则 401 后无法重试；
+- 用裸 `Dio()` 绕过 `DioRegistry`；必须裸用时给 token / retry 拦截器构造传 `dio:`，否则 401 刷新与重试都无法重放；
 - 同一 `baseUrl` 第二次传不同 `options` / `interceptors`（会抛 `ArgumentError`）；
   需要换配置用 `replace: true` 或先 `dispose`；
 - 依赖日志拦截器做业务错误处理；日志只输出技术信息，UI 文案按 `WApiException.kind` 映射；
@@ -120,12 +121,14 @@ await client.upload<void>(
 - `WTokenInterceptor` 只注入 token，不负责存储（存储用 `WToken`）；
 - 登录 / 刷新 / 公开接口需要自己处理 401 时，用 `WTokenInterceptor.shouldRefresh` 跳过自动刷新；
 - 默认不打印 request / response body；需要时显式加 `parts`，并用 `kDebugMode` 控制；
-- `validateStatus` 按引用比较：自定义闭包会被视为“不同配置”；
-- 裸 `Dio()` 必须构造传 `dio: dio`，否则 401 后无法重试（会报错，不再隐式注册）；推荐用 `DioRegistry`；
-- `WRetryInterceptor` 默认不重试 POST / PATCH / 401 / `unknown`；`maxRetries` 不含首次请求；
+- `validateStatus` / `requestEncoder` / `responseDecoder` 按**函数实例引用**比较：自定义闭包即使语义相同也会被视为“不同配置”，复用同一实例或传 `replace: true`；
+- 裸 `Dio()` 必须构造传 `dio: dio`，否则 401 刷新与 retry 都无法重放（只在错误时放弃，默认无日志输出）；推荐用 `DioRegistry`；
+- `WRetryInterceptor` 默认不重试 POST / PATCH / 401 / `unknown`；状态码只覆盖 408 / 429 / 500 / 502 / 503 / 504，其他 5xx 用 `retryOnStatusCodes` 显式放行；`maxRetries` 不含首次请求；
   需要放行 `unknown` 用 `shouldRetry`；单条请求可用
-  `Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})` 关闭重试；
+  `client.get(..., options: Options(extra: {WRetryInterceptor.disableRetryExtraKey: true}))`
+  关闭重试；
 - 显式传 `headers: {'Authorization': ...}` 时 token 拦截器不再覆盖（登录 / 公开接口用得上）；
+  这类请求的 401 也不会被自动清理 / 刷新 / 重试，由调用方处理；
 - 开了业务信封后，204 / 空 body 默认跳过信封（`skipEmptyBody: true`），不会调用 `readCode(null)`；
   需要旧行为时显式传 `skipEmptyBody: false`；
 - `DioRegistry.maxCachedInstances` / `cacheTtl` 已弃用（7.0 删除）：新代码用 `dispose` / `replace`。

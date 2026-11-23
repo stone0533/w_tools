@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 
 import '../client/dio_registry.dart';
+import 'extra_keys.dart';
 import 'log_support.dart' as log_support;
 
 /// 可选的幂等请求重试拦截器。
@@ -13,11 +14,17 @@ import 'log_support.dart' as log_support;
 /// 安全边界：
 /// - 只重试幂等方法：`GET` / `HEAD` / `PUT` / `DELETE` / `OPTIONS`；
 ///   `POST` / `PATCH` 默认不重试（避免重复提交）；
-/// - 只重试网络错误和 `408` / `429` / `5xx`（可用 [retryOnStatusCodes] 覆盖）；
+/// - 只重试网络错误和 `408` / `429` / `500` / `502` / `503` / `504`
+///   （可用 [retryOnStatusCodes] 覆盖；`501` / `505` / `506` / `507` / `508` /
+///   `510` / `511` 默认不重试，重试通常无收益）；
 /// - 不重试 `401`（交给 `WTokenInterceptor`）、其他 4xx、`unknown` 和已取消的请求；
 ///   需要放行 `unknown` 时用 [shouldRetry] 自定义；
 /// - 可用 `Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})`
 ///   对单条请求关闭重试。
+///
+/// 重放必须知道「当前 Dio」：经 [DioRegistry.forBaseUrl] 创建的实例会自动绑定；
+/// 自行 `Dio()` 创建并手动 `interceptors.add` 时请构造传 `dio: dio`，否则只会
+/// 在错误时放弃重试（不会隐式创建新实例，也不会自动注册）。
 ///
 /// `POST` / `PATCH` 默认不在 [retryOnMethods] 里；显式覆盖该集合后，幂等性由
 /// 调用方自己保证。
@@ -38,6 +45,8 @@ class WRetryInterceptor extends Interceptor {
   /// 创建重试拦截器。
   ///
   /// [maxRetries] 是重试次数，不含首次请求；0 表示不重试。
+  /// [dio] 是重放请求所用的 Dio：`DioRegistry.forBaseUrl(interceptors: [...])`
+  /// 会自动绑定，裸 `Dio()` 手动添加拦截器时必须显式传入，否则无法重试。
   WRetryInterceptor({
     this.maxRetries = 2,
     this.baseDelay = const Duration(milliseconds: 300),
@@ -86,8 +95,6 @@ class WRetryInterceptor extends Interceptor {
 
   /// 完全自定义是否重试；返回 true 仍需满足方法 / 401 / 取消等安全边界
   final bool Function(DioException error)? shouldRetry;
-
-  static const String _retryCountKey = '_w_tools_network_retry_count';
 
   /// 单条请求关闭重试的 `RequestOptions.extra` 键。
   ///
@@ -140,7 +147,7 @@ class WRetryInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    final attempt = (err.requestOptions.extra[_retryCountKey] as int?) ?? 0;
+    final attempt = (err.requestOptions.extra[networkRetryCountExtraKey] as int?) ?? 0;
     if (!_shouldRetry(err, attempt)) {
       super.onError(err, handler);
       return;
@@ -184,7 +191,7 @@ class WRetryInterceptor extends Interceptor {
       return;
     }
 
-    err.requestOptions.extra[_retryCountKey] = attempt + 1;
+    err.requestOptions.extra[networkRetryCountExtraKey] = attempt + 1;
     // FormData 只能 finalize 一次；Stream 已被消费，无法重放。
     final requestData = err.requestOptions.data;
     if (requestData is FormData) {

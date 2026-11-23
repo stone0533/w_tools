@@ -32,12 +32,18 @@ class WApiBody {
        contentType = null;
 
   /// 原始字节 body。
+  ///
+  /// 省略 [contentType] 时该字段为 null；经 `WApiClient` 发送时，
+  /// `Uint8List` body（含本构造器）会兜底成 `application/octet-stream`。
+  /// 直接用 dio 发本实例时没有兜底，请显式传入；需要精确类型（图片 /
+  /// protobuf / 文件）时也显式传入，或用 `headers: {'Content-Type': ...}` 覆盖。
   WApiBody.bytes(List<int> bytes, {this.contentType}) : data = Uint8List.fromList(bytes);
 
   /// 直接传给 dio 的 `data`
   final Object? data;
 
-  /// `Content-Type`；multipart 时为 null，由 dio 生成 boundary
+  /// `Content-Type`；multipart / bytes 省略时为 null（multipart 由 dio 生成
+  /// boundary，bytes 由 `WApiClient` 兜底成 `application/octet-stream`）。
   final String? contentType;
 
   static Map<String, Object?> _withoutNulls(Map<String, Object?> fields) => {

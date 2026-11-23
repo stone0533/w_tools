@@ -3,10 +3,14 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../client/dio_registry.dart';
+import 'extra_keys.dart';
 import 'log_support.dart' as log_support;
 
 /// 标记「当前异步链是 tokenRefresher 发起的刷新请求」
 final Object _refreshZoneKey = Object();
+
+/// 请求上的 `Authorization` 来源；只用于区分「本拦截器注入」与「调用方显式设置」。
+enum _AuthorizationSource { injected, explicit, none }
 
 /// Token 拦截器，用于处理 token 的添加与 401 刷新。
 ///
@@ -22,6 +26,11 @@ final Object _refreshZoneKey = Object();
 /// - 刷新契约：[tokenRefresher] 取得新 token 后应自行持久化，使 [tokenGetter] 随后返回新 token；
 ///   若提供 [tokenClearer]，须保证清除后 [tokenGetter] 不再返回旧 token（返回 null 亦可，
 ///   此时重试会使用本拦截器显式写入的新 token）。任一处仍返回旧 token，都会导致重试再次 401。
+/// - 空白值一律按「没有 token」处理：[tokenRefresher] 返回 `null` / 空串 / 纯空白都算刷新失败
+///   （清 token + [onAuthFailure]，不重试）；[tokenGetter] 返回空串 / 纯空白时不注入
+///   `Authorization`。token 在写入请求头前会 trim，避免 `Bearer ` 这类必然 401 的请求。
+/// - 显式 `Authorization`（调用方自己设置的头）不参与 401 自动处理：不清理、不刷新、
+///   不重试，直接把 401 交给调用方；需要自动刷新时让本拦截器注入 token，或自行处理。
 /// - 重试必须知道「当前 Dio」：经 [DioRegistry.forBaseUrl] 创建的实例会自动绑定；
 ///   自行 `Dio()` 创建时请构造传 `dio: dio`，否则 401 刷新后无法重试（不会隐式注册新实例）。
 /// - `DioRegistry.dispose` 后不要复用同一个拦截器实例：它仍持有已关闭的 Dio，
@@ -35,7 +44,7 @@ class WTokenInterceptor extends Interceptor {
   /// Token 清除回调（提供时须保证清除后 [tokenGetter] 不再返回旧 token）
   final Future<void> Function()? tokenClearer;
 
-  /// 刷新 token 回调：返回新 token（返回 null 表示刷新失败）。
+  /// 刷新 token 回调：返回新 token；`null` / 空串 / 纯空白都表示刷新失败。
   /// 建议在此持久化新 token，使 [tokenGetter] 之后返回最新值
   final Future<String?> Function()? tokenRefresher;
 
@@ -59,8 +68,8 @@ class WTokenInterceptor extends Interceptor {
   /// 进行中的刷新任务：并发 401 共享同一次刷新，避免重复请求
   Future<String?>? _refreshFuture;
 
-  /// 请求级认证重试计数键；带命名空间，避免覆盖业务自己的 extra
-  static const String _retryCountKey = '_w_tools_auth_retry_count';
+  /// 请求级 Authorization 来源（explicit / injected / none），用于 401 时判断是否接管
+  static const String _sourceKey = '_w_tools_token_source';
 
   /// 所属 Dio（registry 创建时自动绑定；裸 Dio 请构造时传 `dio:`）
   Dio? _dio;
@@ -69,7 +78,7 @@ class WTokenInterceptor extends Interceptor {
   ///
   /// @param tokenGetter Token 获取回调（不依赖外部存储库，由调用方决定 token 存在哪）
   /// @param tokenClearer Token 清除回调
-  /// @param tokenRefresher 刷新 token 回调，返回新 token（返回 null 表示刷新失败）
+  /// @param tokenRefresher 刷新 token 回调，返回新 token（null / 空串 / 纯空白均表示刷新失败）
   /// @param onAuthFailure 认证无法恢复时的回调
   /// @param unauthorizedStatusCode 未授权错误状态码，默认为 401
   /// @param dio 所属 Dio（裸 Dio 创建时传入；registry 会自动绑定）
@@ -132,6 +141,15 @@ class WTokenInterceptor extends Interceptor {
         super.onError(err, handler);
         return;
       }
+      // 调用方自己设置的 Authorization：401 由调用方处理，不清理 session token、
+      // 不刷新、也不改用 session token 重试（两者可能不是同一套凭证）。
+      if (err.requestOptions.extra[_sourceKey] == _AuthorizationSource.explicit) {
+        log_support.logDebug(
+          'Unauthorized with caller-managed Authorization; skip auto-refresh',
+        );
+        super.onError(err, handler);
+        return;
+      }
       await _handleUnauthorizedError(err, handler);
       return;
     }
@@ -141,6 +159,13 @@ class WTokenInterceptor extends Interceptor {
 
   /// 添加 token 到请求头；已显式设置的 Authorization 不覆盖。
   void _addTokenToRequest(RequestOptions options) {
+    // 来源只在首次 onRequest 时记录：重放时 header 已存在，不能误标成 explicit。
+    if (!options.extra.containsKey(_sourceKey)) {
+      options.extra[_sourceKey] = _hasHeader(options.headers, 'Authorization')
+          ? _AuthorizationSource.explicit
+          : _AuthorizationSource.none;
+    }
+
     if (_hasHeader(options.headers, 'Authorization')) {
       log_support.logDebug(
         'Authorization already set, skipping token injection',
@@ -148,9 +173,10 @@ class WTokenInterceptor extends Interceptor {
       return;
     }
 
-    final token = tokenGetter?.call();
+    final token = tokenGetter?.call()?.trim();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
+      options.extra[_sourceKey] = _AuthorizationSource.injected;
       // 不输出 token 的任何片段；只记录“已注入”。
       log_support.logDebug('Added token to request: ***');
     } else {
@@ -183,13 +209,12 @@ class WTokenInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     // 获取请求级别的重试计数（使用带命名空间的键）
-    final retryCount = (err.requestOptions.extra[_retryCountKey] as int?) ?? 0;
+    final retryCount = (err.requestOptions.extra[authRetryCountExtraKey] as int?) ?? 0;
 
     // 本次请求带出去的是哪个 token：晚到的 401 可能发生在别的请求已经刷新之后。
     final usedToken = _bearerTokenOf(err.requestOptions);
-    final currentToken = tokenGetter?.call();
-    final refreshedByOthers =
-        currentToken != null && currentToken.isNotEmpty && currentToken != usedToken;
+    final currentToken = _nonBlank(tokenGetter?.call());
+    final refreshedByOthers = currentToken != null && currentToken != usedToken;
 
     if (!refreshedByOthers) {
       // 清除失效 token；即使不重试，也不应把旧 token 留在存储里。
@@ -231,16 +256,23 @@ class WTokenInterceptor extends Interceptor {
     await _callAuthErrorCallback(err, handler, retryCount);
   }
 
-  /// 取请求头里的 bearer token（没有则返回 null）
+  /// 取请求头里的 bearer token（没有 / 空白则返回 null）
   static String? _bearerTokenOf(RequestOptions options) {
     for (final entry in options.headers.entries) {
       if (entry.key.toLowerCase() != 'authorization') continue;
       final header = entry.value;
       if (header is! String) return null;
       const prefix = 'Bearer ';
-      return header.startsWith(prefix) ? header.substring(prefix.length) : null;
+      if (!header.startsWith(prefix)) return null;
+      return _nonBlank(header.substring(prefix.length));
     }
     return null;
+  }
+
+  /// trim 后为空（null / 空串 / 纯空白）一律视为「没有 token」。
+  static String? _nonBlank(String? value) {
+    final trimmed = value?.trim();
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
 
   /// 调用认证错误处理回调
@@ -270,14 +302,20 @@ class WTokenInterceptor extends Interceptor {
       return;
     }
 
-    if (newToken == null) {
+    // 空串 / 纯空白同样算刷新失败：拿不到可用 token 时重试只会再发一次必然 401 的请求。
+    final refreshedToken = _nonBlank(newToken);
+    if (refreshedToken == null) {
+      log_support.logError(
+        'Token refresh returned no usable token: '
+        '${newToken == null ? 'null' : 'blank'}',
+      );
       _notifyAuthFailure(err);
       super.onError(err, handler);
       return;
     }
 
     try {
-      await _retryRequestWithNewToken(err, handler, newToken, retryCount);
+      await _retryRequestWithNewToken(err, handler, refreshedToken, retryCount);
     } on DioException catch (retryError) {
       // 刷新成功、重试失败：保留重试的真实错误（例如 500），并把它交给调用方。
       // 不能在这里调用 onAuthFailure —— 认证本身已经恢复。
@@ -353,7 +391,7 @@ class WTokenInterceptor extends Interceptor {
       return;
     }
     requestOptions.headers['Authorization'] = 'Bearer $newToken';
-    requestOptions.extra[_retryCountKey] = retryCount + 1;
+    requestOptions.extra[authRetryCountExtraKey] = retryCount + 1;
     final responseNew = await dio.fetch(requestOptions);
     handler.resolve(responseNew);
   }

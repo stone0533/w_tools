@@ -65,6 +65,14 @@ void main() {
     expect(response.headers.value('x-request-id'), 'req-1');
   });
 
+  test('options 可把 409 当作业务结果', () async {
+    final response = await api.updateAcceptingConflict(id: 7, name: 'Ada');
+
+    expect(response.statusCode, 409);
+    expect(response.data.name, 'Ada');
+    expect(adapter.last!.method, 'PATCH');
+  });
+
   test('send 可按请求覆盖信封', () async {
     final user = await api.meWithEnvelope(id: 7);
 
@@ -119,6 +127,10 @@ class _DemoAdapter implements HttpClientAdapter {
       });
     }
 
+    if (options.method == 'PATCH' && options.path == '/users/7') {
+      return _json({'id': 7, 'name': 'Ada'}, status: 409);
+    }
+
     if (options.method == 'GET' && options.path == '/users') {
       return _json(
         {
@@ -145,10 +157,11 @@ class _DemoAdapter implements HttpClientAdapter {
 
   ResponseBody _json(
     Object? body, {
+    int status = 200,
     Map<String, List<String>>? headers,
   }) => ResponseBody.fromString(
     jsonEncode(body),
-    200,
+    status,
     headers: {
       Headers.contentTypeHeader: ['application/json'],
       ...?headers,

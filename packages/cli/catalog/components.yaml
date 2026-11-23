@@ -1479,6 +1479,7 @@ components:
     usage: "final r = DioRegistry.forBaseUrl('https://api.example.com'); await r.dio.get('/users');"
     pitfalls:
       - "同一 baseUrl 只能初始化一次；换配置用 `replace: true` 或先 dispose"
+      - "`validateStatus` / `requestEncoder` / `responseDecoder` 按函数实例引用比较：语义相同的新闭包也算冲突，复用同一实例或传 `replace: true`"
       - "`replace` 会 close(force: true)；LRU / TTL 淘汰用 close(force: false)，不强制中断在途请求"
       - "`maxCachedInstances` / `cacheTtl` 已弃用（7.0 删除）；改用 dispose / replace"
     related: ["`WApiSettings`", "`WLogInterceptor`", "`WTokenInterceptor`"]
@@ -1497,6 +1498,9 @@ components:
       );
     pitfalls:
       - "tokenRefresher 必须自己持久化新 token，否则 tokenGetter 仍返回旧值"
+      - "tokenRefresher 返回 null / 空串 / 纯空白都算刷新失败：清 token、调 onAuthFailure、不重试"
+      - "tokenGetter 的空串 / 纯空白不会注入 Authorization；token 写入请求头前会 trim"
+      - "显式 Authorization（自己设置的头）的 401 不清理 / 不刷新 / 不重试；需要自动刷新就让拦截器注入 token"
       - "裸 Dio 需构造传 `dio:`；推荐走 `DioRegistry` 自动绑定"
       - "`DioRegistry.dispose` 后不要复用同一拦截器实例"
       - "登录 / 刷新 / 公开接口用 `shouldRefresh` 跳过自动刷新"
@@ -1511,6 +1515,7 @@ components:
     usage: "final log = WLogInterceptor(parts: {WLogPart.request, WLogPart.error});"
     pitfalls:
       - "默认不打印 request / response body；需要时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制"
+      - "想记录注入后的 Authorization，要放在 `WTokenInterceptor` 之后；默认 `requestHeader` 是开的"
       - "`requestBody` / `responseBody` 会按 `sensitiveBodyKeys` 递归脱敏（Map / List / JSON 字符串 / FormData fields）；任意对象的 toString 不保证脱敏"
       - "只做日志，不做业务错误处理"
       - "`sensitiveBodyKeys` / `sensitiveQueryKeys` / `redactedHeaders` 会与内置集合合并"
@@ -1566,6 +1571,7 @@ components:
       - "decode 为空时返回原始 JSON，不会自动推断类型"
       - "head / options 只用于探测，不解析响应体；upload 的 method 只支持 POST / PUT / PATCH"
       - "需要 status / headers 用 send（返回 WApiResponse）；get / post 只返回 data"
+      - "单条请求的 dio 配置用 `options:`（关重试 / validateStatus / responseType）；headers 参数优先于 options.headers"
       - "下载要 headers / 文件名用 downloadResponse；分页 total 在响应头用 readTotalFromResponse"
       - "单条请求临时覆盖信封用 `send(..., envelope: ...)`；`page` 已弃用"
       - "`download` 已弃用（7.0 删除）；用 `downloadResponse` 取 bytes + headers"
@@ -1586,6 +1592,7 @@ components:
     pitfalls:
       - "multipart 的 files 是 Map：key 是字段名，value 是 MultipartFile"
       - "Web 上不要用 MultipartFile.fromFile，改用 fromBytes"
+      - "`bytes` 省略 `contentType` 时由 `WApiClient` 兜底 `application/octet-stream`；直接用 dio 发要自己传"
     related: ["`WApiClient`"]
 
   - name: '`WApiException`'
@@ -1601,6 +1608,7 @@ components:
       }
     pitfalls:
       - "message 是技术描述，不是用户文案；UI 用 kind 决策"
+      - "kind 取值：timeout / network / unauthorized / forbidden / notFound / client / server / canceled / decode / unknown / business"
       - "payload 保留原始响应体，便于业务读取错误码"
     related: ["`WApiClient`"]
 
@@ -1678,8 +1686,10 @@ components:
       );
     pitfalls:
       - "默认不重试 401 / 4xx / 取消；401 交给 WTokenInterceptor"
+      - "状态码只重试 408 / 429 / 500 / 502 / 503 / 504；其他 5xx 用 retryOnStatusCodes 放行"
       - "`unknown` 默认不重试；需要放行时用 `shouldRetry`"
-      - "单条请求关闭重试：`Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})`"
+      - "裸 Dio 必须构造传 `dio:`，否则只会在错误时静默放弃重试"
+      - "单条请求关闭重试：`client.get(..., options: Options(extra: {WRetryInterceptor.disableRetryExtraKey: true}))`"
       - "maxRetries 是重试次数，不含首次请求；maxRetries: 2 表示最多 3 次请求"
       - "HTTP 缓存 / 离线不在本包范围，用 dio_cache_interceptor 等外部方案"
     related: ["`DioRegistry`", "`WTokenInterceptor`"]
@@ -1703,6 +1713,7 @@ components:
       - "401 刷新 / 重试每次尝试都会产生一条指标；WMetric.attempt 从 1 递增"
       - "是否每次尝试都出 metric 取决于拦截器顺序；严格场景把 metrics 放在重试 / token 之前"
       - "WMetric.uri 可能带 query，上报前用 path 或自行过滤敏感参数"
+      - "WMetric 字段：method / uri / path / duration / statusCode / failed / error / attempt；failed 按 4xx / 5xx 判定，2xx / 3xx 不算"
     related: ["`DioRegistry`", "`WMetric`"]
 
   - name: '`WLanguage`'

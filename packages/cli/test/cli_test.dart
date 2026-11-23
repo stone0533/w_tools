@@ -540,6 +540,26 @@ banned:
     expect(payload['found'], isTrue);
   });
 
+  test('explain 未精确命中时提示近似匹配，JSON 标出 exact', () async {
+    final prompt = await _run('explain.dart', ['WMetric', '--format=prompt']);
+    expect(prompt.exitCode, 0);
+    expect('${prompt.stdout}', contains('未精确命中'));
+    expect('${prompt.stdout}', contains('WMetricsInterceptor'));
+
+    final text = await _run('explain.dart', ['WMetric']);
+    expect(text.exitCode, 0);
+    expect('${text.stdout}', contains('关键词近似匹配'));
+
+    final json = await _run('explain.dart', ['WMetric', '--format=json']);
+    final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;
+    expect(payload['found'], isTrue);
+    expect(payload['exact'], isFalse);
+
+    final exact = await _run('explain.dart', ['WApiClient', '--format=json']);
+    final exactPayload = jsonDecode('${exact.stdout}') as Map<String, Object?>;
+    expect(exactPayload['exact'], isTrue);
+  });
+
   test('CLI-007 explain 多匹配返回 1 且 JSON 标记 ambiguous', () async {
     final prompt = await _run('explain.dart', ['W', '--format=prompt']);
     expect(prompt.exitCode, 1);

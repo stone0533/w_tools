@@ -1,5 +1,41 @@
 # Changelog
 
+## 6.4.0
+
+### Added
+- `WApiClient` 各请求方法（`send` / `get` / `head` / `options` / `post` / `put` /
+  `patch` / `delete` / `upload` / `downloadResponse`）新增可选 `Options? options`：
+  单条请求可传 `extra`（如 `WRetryInterceptor.disableRetryExtraKey` 关闭重试）、
+  `validateStatus`（接受 304 / 409）、`responseType` 等。`method` 永远由调用的
+  方法决定；`headers` 参数优先于 `options.headers`；显式 `Content-Type` 头优先于
+  `options.contentType`，都缺省时才用 `WApiBody` 的默认类型。
+
+### Changed
+- `WTokenInterceptor`：`tokenRefresher` 返回空串 / 纯空白现在按刷新失败处理
+  （清 token + `onAuthFailure`，不再多发一次必然 401 的请求）；`tokenGetter` 的
+  空白值不再注入 `Authorization`，token 写入请求头前会 trim。
+- `WApiClient` 对 `Uint8List` body（含 `WApiBody.bytes`）在未指定 `Content-Type`
+  时兜底 `application/octet-stream`，不再发出没有 `Content-Type` 的二进制请求
+  （`WApiBody.bytes` 的签名与字段不变）。
+- `DioRegistry.forBaseUrl` 的冲突错误信息说明 `validateStatus` / `requestEncoder` /
+  `responseDecoder` 按函数实例引用比较，并提示复用同一实例或 `replace: true`。
+- `WApiClient` 合并 `headers` 参数与 `options.headers` 时按大小写不敏感去重，
+  `headers` 参数始终优先（修复 `options.headers` 的 content-type 覆盖调用方 header）。
+- `WMetric.failed` 只对网络错误 / 4xx / 5xx 为 `true`：2xx / 3xx（含 `validateStatus`
+  接受的 304）不再计为失败。
+- `WTokenInterceptor`：显式 `Authorization`（调用方自己设置的头）的 401 不再被接管：
+  不清理 / 不刷新 / 不重试，直接把 401 交给调用方，避免用 session token 覆盖
+  API Key / 第三方凭证。
+
+### Docs
+- 修正「默认重试 5xx」的口径：实际只重试 408 / 429 / 500 / 502 / 503 / 504，
+  其他 5xx 需要 `retryOnStatusCodes` 显式放行。
+- 补「拦截器顺序与绑定」：`WLogInterceptor` 放在 `WTokenInterceptor` 之后才能记录
+  注入后的 `Authorization`；Dio 的请求 / 响应 / 错误方向都是 FIFO；裸 `Dio()` 必须给
+  token / retry 拦截器传 `dio:`。
+- 同步 `DioRegistry` 配置比较规则、`WTokenInterceptor` 空白 token 行为、
+  `WRetryInterceptor` 默认状态码口径；修正 `page` 弃用与 `WApiClient.options` 的文档。
+
 ## 6.3.0
 
 ### Deprecated

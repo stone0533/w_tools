@@ -60,6 +60,38 @@ class _MockAdapter implements HttpClientAdapter {
   String? _lastContentType;
 }
 
+/// 只有带着预期 token 才放行的 adapter：记录每次请求的 Authorization
+class _TokenAwareAdapter implements HttpClientAdapter {
+  _TokenAwareAdapter(this.expectedAuthorization, {this.unauthorizedStatus = 401});
+
+  final String expectedAuthorization;
+  final int unauthorizedStatus;
+  int calls = 0;
+  final List<Object?> authorizations = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    calls++;
+    final authorization = options.headers['Authorization'];
+    authorizations.add(authorization);
+    final authorized = authorization == expectedAuthorization;
+    return ResponseBody.fromString(
+      authorized ? '{"ok":true}' : '{"error":"unauthorized"}',
+      authorized ? 200 : unauthorizedStatus,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
   tearDown(DioRegistry.clearCache);
 
@@ -350,6 +382,189 @@ void main() {
       );
 
       expect(logs.join(), contains('cannot be replayed'));
+    });
+
+    test('tokenGetter 返回纯空白时不注入 Authorization', () async {
+      final adapter = _MockAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(dio: dio, tokenGetter: () => '   '),
+      );
+
+      await dio.get('https://example.com/api');
+
+      expect(adapter._lastRequestHeaders!['Authorization'], isNull);
+    });
+
+    test('token 写入请求头前会 trim', () async {
+      final adapter = _MockAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(dio: dio, tokenGetter: () => '  token-with-space  '),
+      );
+
+      await dio.get('https://example.com/api');
+
+      expect(
+        adapter._lastRequestHeaders!['Authorization'],
+        'Bearer token-with-space',
+      );
+    });
+
+    for (final blank in const ['', '   ']) {
+      test('tokenRefresher 返回空白 ${jsonEncode(blank)} 时按刷新失败处理，不重试', () async {
+        final adapter = _TokenAwareAdapter('Bearer fresh');
+        var refreshes = 0;
+        var clears = 0;
+        var authFailures = 0;
+        final dio = Dio(BaseOptions(baseUrl: 'https://blank-refresh.example.com'))
+          ..httpClientAdapter = adapter;
+        dio.interceptors.add(
+          WTokenInterceptor(
+            dio: dio,
+            tokenGetter: () => 'expired',
+            tokenClearer: () async => clears++,
+            tokenRefresher: () async {
+              refreshes++;
+              return blank;
+            },
+            onAuthFailure: (_) => authFailures++,
+          ),
+        );
+
+        await expectLater(
+          dio.get('/secure'),
+          throwsA(
+            isA<DioException>().having(
+              (error) => error.response?.statusCode,
+              'statusCode',
+              401,
+            ),
+          ),
+        );
+
+        expect(adapter.calls, 1, reason: '拿不到可用 token 时不应再发一次必然 401 的请求');
+        expect(adapter.authorizations, ['Bearer expired']);
+        expect(refreshes, 1);
+        expect(clears, 1);
+        expect(authFailures, 1);
+      });
+    }
+
+    for (final header in const ['Basic abc', 'Bearer third-party']) {
+      test('显式 Authorization（$header）的 401 不清理、不刷新、不重试', () async {
+        var clears = 0;
+        var refreshes = 0;
+        var authFailures = 0;
+        final adapter = _TokenAwareAdapter('Bearer fresh');
+        final dio = Dio(
+          BaseOptions(baseUrl: 'https://explicit-auth.example.com'),
+        )..httpClientAdapter = adapter;
+        dio.interceptors.add(
+          WTokenInterceptor(
+            dio: dio,
+            tokenGetter: () => 'session-token',
+            tokenClearer: () async => clears++,
+            tokenRefresher: () async {
+              refreshes++;
+              return 'new';
+            },
+            onAuthFailure: (_) => authFailures++,
+          ),
+        );
+
+        await expectLater(
+          dio.get(
+            '/secure',
+            options: Options(headers: {'Authorization': header}),
+          ),
+          throwsA(
+            isA<DioException>().having(
+              (error) => error.response?.statusCode,
+              'statusCode',
+              401,
+            ),
+          ),
+        );
+
+        expect(adapter.calls, 1, reason: '不应改建会话 token 重试');
+        expect(adapter.authorizations, [header]);
+        expect(clears, 0, reason: '显式 Authorization 的 401 不应清 session token');
+        expect(refreshes, 0);
+        expect(authFailures, 0);
+      });
+    }
+
+    test('显式 Authorization 且没有 session token 时也不触发刷新', () async {
+      var refreshes = 0;
+      final adapter = _TokenAwareAdapter('Bearer fresh');
+      final dio = Dio(
+        BaseOptions(baseUrl: 'https://explicit-auth-no-session.example.com'),
+      )..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(
+          dio: dio,
+          tokenGetter: () => null,
+          tokenRefresher: () async {
+            refreshes++;
+            return 'new';
+          },
+        ),
+      );
+
+      await expectLater(
+        dio.get(
+          '/secure',
+          options: Options(headers: {'Authorization': 'Basic abc'}),
+        ),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(adapter.calls, 1);
+      expect(refreshes, 0);
+    });
+
+    test('unauthorizedStatusCode 可自定义为 403', () async {
+      final adapter = _TokenAwareAdapter(
+        'Bearer fresh',
+        unauthorizedStatus: 403,
+      );
+      final dio = Dio(
+        BaseOptions(baseUrl: 'https://custom-unauth.example.com'),
+      )..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(
+          dio: dio,
+          tokenGetter: () => 'expired',
+          tokenRefresher: () async => 'fresh',
+          unauthorizedStatusCode: 403,
+        ),
+      );
+
+      final response = await dio.get('/secure');
+
+      expect(response.statusCode, 200);
+      expect(adapter.calls, 2);
+      expect(adapter.authorizations, ['Bearer expired', 'Bearer fresh']);
+    });
+
+    test('tokenRefresher 返回带空白的 token 时 trim 后再重试', () async {
+      final adapter = _TokenAwareAdapter('Bearer fresh');
+      final dio = Dio(BaseOptions(baseUrl: 'https://trim-refresh.example.com'))
+        ..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(
+          dio: dio,
+          tokenGetter: () => 'expired',
+          tokenRefresher: () async => '  fresh  ',
+        ),
+      );
+
+      final response = await dio.get('/secure');
+
+      expect(response.statusCode, 200);
+      expect(adapter.calls, 2);
+      expect(adapter.authorizations, ['Bearer expired', 'Bearer fresh']);
     });
   });
   group('WTokenInterceptor 边界', () {

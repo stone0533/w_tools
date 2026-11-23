@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 
+import 'extra_keys.dart';
+
 /// 一次请求的指标快照。
 ///
 /// 只描述这次请求，不包含用户 / 业务信息；[uri] 可能带 query，
@@ -30,7 +32,8 @@ class WMetric {
   /// HTTP 状态码；网络错误时为 null
   final int? statusCode;
 
-  /// 是否失败（网络错误或 4xx / 5xx）
+  /// 是否失败（网络错误或 4xx / 5xx；2xx / 3xx 不算失败，即使被
+  /// `validateStatus` 接受）
   final bool failed;
 
   /// 原始错误（失败时）
@@ -67,9 +70,9 @@ class WMetric {
 ///
 /// 注意：
 /// - 401 刷新 / 重试会重新走请求链路，每次尝试都会产生一条指标；
-///   该结论依赖拦截器顺序：如果重试 / token 拦截器先 `resolve`，更早的
-///   `onError` 可能不会执行；需要严格每次尝试都上报时，把 metrics 放在
-///   重试 / token 拦截器之前（错误方向先执行）。
+///   该结论依赖拦截器顺序：如果重试 / token 拦截器先 `resolve`，**更晚**的
+///   `onError` 不会执行；需要严格每次尝试都上报时，把 metrics 放在
+///   重试 / token 拦截器之前（错误方向也是 FIFO，放前面先执行）。
 /// - [onMetric] 抛出的异常会被吞掉，不影响请求；
 /// - [WMetric.uri] 可能带 query，上报前请过滤敏感参数。
 class WMetricsInterceptor extends Interceptor {
@@ -92,8 +95,6 @@ class WMetricsInterceptor extends Interceptor {
 
   static const String _startKey = '_w_tools_metrics_start';
   static const String _sampledKey = '_w_tools_metrics_sampled';
-  static const String _networkRetryKey = '_w_tools_network_retry_count';
-  static const String _authRetryKey = '_w_tools_auth_retry_count';
 
   final Random _random = Random();
 
@@ -144,8 +145,8 @@ class WMetricsInterceptor extends Interceptor {
     final duration = started is Stopwatch ? started.elapsed : Duration.zero;
     final attempt =
         1 +
-        ((options.extra[_networkRetryKey] as int?) ?? 0) +
-        ((options.extra[_authRetryKey] as int?) ?? 0);
+        ((options.extra[networkRetryCountExtraKey] as int?) ?? 0) +
+        ((options.extra[authRetryCountExtraKey] as int?) ?? 0);
 
     try {
       onMetric(
@@ -164,5 +165,5 @@ class WMetricsInterceptor extends Interceptor {
     }
   }
 
-  static bool _isFailedStatus(int? status) => status != null && (status < 200 || status >= 300);
+  static bool _isFailedStatus(int? status) => status != null && status >= 400;
 }

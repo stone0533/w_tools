@@ -12,7 +12,8 @@ import 'token_store.dart';
 ///
 /// 关键点：
 /// - 配置在第一次 [DioRegistry.forBaseUrl] **之前**写入 [WApiSettings]；
-/// - 同一 baseUrl 的 options / interceptors 只能确定一次，换配置先 [dispose]；
+/// - 同一 baseUrl 的 options / interceptors 只能确定一次，换配置用
+///   `DioRegistry.forBaseUrl(..., replace: true)` 或先 [dispose]；
 /// - token 存储通过 [TokenStore] 注入，生产用 [WTokenStore]，测试用
 ///   [MemoryTokenStore]；
 /// - 401 → 清 access token → `tokenRefresher` → 自动重试，全部由
@@ -35,7 +36,7 @@ class AppApi {
   /// 初始化并注册 Dio。
   ///
   /// 必须且只能调用一次；重复调用同一 baseUrl 会因配置不同抛
-  /// [ArgumentError]，需要换配置请先 [dispose]。
+  /// [ArgumentError]，需要换配置用 `replace: true` 或先 [dispose]。
   ///
   /// [adapter] 只用于测试 / 预览时注入 MockAdapter，生产不传。
   static Future<AppApi> init({
