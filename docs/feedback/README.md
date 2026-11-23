@@ -118,7 +118,7 @@ bash scripts/check_feedback.sh
 | [cli](cli.md) | 0 | 2026-11-03 |
 | [device](device.md) | 0 | 2026-11-03 |
 | [e2e](e2e.md) | 0 | 2026-11-04 |
-| [api](api.md) | 6 | 2026-11-23 |
+| [api](api.md) | 0 | 2026-11-23 |
 | [async](async.md) | 0 | 2026-11-23 |
 | [map](map.md) | 0 | 2026-11-04 |
 | [qr](qr.md) | 0 | 2026-11-04 |
