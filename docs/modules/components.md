@@ -129,14 +129,14 @@
 | `WFormController` | form | core | 表单数据 / 字段值 / 校验入口 | 两个 WForm 不能同时挂载同一个 controller（会显示重复挂载提示） |
 | `WFormTextField` | form | core | 直接文本 / 密码字段（hintText / message / validator / textAlign / maxLength） | 不要默认写 `WFormTextFieldConfig().build(...)` |
 | `WFormDropdown` | form | core | 直接下拉字段（items / 初始值 / icon / iconSize / style / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 Flutter `MenuAnchor` / `showMenu` |
-| `WFormMultiDropdown` | form | core | 直接多选字段（items / disabledKeys / 选项样式；T 由 items 推断） | 单选用 `WFormDropdown` |
-| `WFormDatePicker` | form | core | 直接日期字段（initialValue / displayFormat / firstDate / lastDate） | 时间选择不在本组件范围；自定义弹层用 Flutter `MenuAnchor` / `showMenu` |
+| `WFormMultiDropdown` | form | core | 直接多选字段（items / disabledKeys / 选项样式 / itemPadding；T 由 items 推断） | 单选用 `WFormDropdown` |
+| `WFormDatePicker` | form | core | 直接日期字段（initialValue / displayFormat / firstDate / lastDate / clearable） | 时间选择不在本组件范围；自定义弹层用 Flutter `MenuAnchor` / `showMenu` |
 | `WFormCheckbox` | form | core | 直接复选字段（title 必填，默认 bordered: true） | 多选用 `WFormMultiDropdown` |
 | `WFormRadioGroup` | form | core | 直接单选字段（items / titleBuilder / lineSpacing，默认 bordered: true） | 多选用 `WFormMultiDropdown` |
 | `WFormButton` | form | core | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
 | `WFormFieldButton` | form | core | 泛型字段值选择器：enum / int 等非 String 值 | String 值优先用 `WFormButton`；普通业务按钮用 `WButton` |
 | `WFormFieldStyle` | form | core | 页面级单行字段默认高度 / 内边距 / 文字 / 占位符样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
-| `WFormFieldStyleScope` | form | core | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / 占位符） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
+| `WFormFieldStyleScope` | form | core | 单个字段覆盖 `WForm.fieldStyle`（默认整体替换；`mergeWithParent: true` 只覆盖写了值的字段） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
 | `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | core | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldData.of` |
 | `WAsyncTheme` | async | core | App 根部统一默认 loading / empty / error（普通 + sliver 共用） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WRouteObserver` | app_getx | core | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
@@ -158,7 +158,7 @@
 <!-- catalog:7:start -->
 | 组件 | 子包 | 层级 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- | --- |
-| `WFormValidatorSettings` | form | core | 校验行为：边框错误、短路 / 全量、回调 | 不要用它承载单字段规则；单字段用字段 validators，settings 只放校验行为 |
+| `WFormValidatorSettings` | form | core | 校验行为：边框错误、短路 / 全量、回调 | 不要用它承载单字段规则；单字段规则用字段 `validator:`，settings 只放校验行为 |
 | `WFormValidator` | form | core | 统一校验入口：短路 / 全量、边框错误、错误汇总 | 不要同时用 `formKey.validate()`，会形成两套错误通道 |
 | `WFormValidatorItem` | form | core | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
 | `WToast` | toast | core | 轻提示；带遮罩的提示用 `WToast.showModal`（点遮罩关、不穿透、超时兜底） | 提示不要直接用 `WToast.showCustomDialog`（BotToast 直通口：默认关不掉且点击穿透）；确认框用 Flutter `showDialog` |

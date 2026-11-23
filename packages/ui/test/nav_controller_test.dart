@@ -252,7 +252,8 @@ void main() {
       ),
     );
 
-    final item = tester.getRect(find.byKey(const Key('nav-item-0')));
+    // 断言点击项（撑满 minItemHeight）的底边：默认项不再由 10x10 内容决定。
+    final item = tester.getRect(find.byType(WPressable).first);
     expect(item.bottom, closeTo(566, 0.1));
   });
 
@@ -286,7 +287,7 @@ void main() {
       ),
     );
 
-    final item = tester.getRect(find.byKey(const Key('nav-item-0')));
+    final item = tester.getRect(find.byType(WPressable).first);
     expect(item.bottom, closeTo(600, 0.1));
   });
 
@@ -312,5 +313,58 @@ void main() {
     );
     expect(container.decoration, const BoxDecoration(color: Colors.white));
     expect(container.padding, const EdgeInsets.all(4));
+  });
+
+  testWidgets('WNavBar 默认每项点击区域 >= 48', (tester) async {
+    final controller = WNavController(length: 3);
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            controller: controller,
+            destinations: const [
+              WNavDestination(icon: Icons.home, label: '首页'),
+              WNavDestination(icon: Icons.person, label: '我的'),
+              WNavDestination(icon: Icons.settings, label: '设置'),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(WNavBar)).height, greaterThanOrEqualTo(48));
+    for (var i = 0; i < controller.length; i++) {
+      expect(
+        tester.getSize(find.byType(WPressable).at(i)).height,
+        greaterThanOrEqualTo(48),
+        reason: '第 $i 项点击区域应 >= 48',
+      );
+    }
+  });
+
+  testWidgets('WNavBar minItemHeight 可覆盖默认高度', (tester) async {
+    final controller = WNavController(length: 2);
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            controller: controller,
+            minItemHeight: 56,
+            destinations: const [
+              WNavDestination(icon: Icons.home, label: '首页'),
+              WNavDestination(icon: Icons.person, label: '我的'),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    for (var i = 0; i < controller.length; i++) {
+      expect(tester.getSize(find.byType(WPressable).at(i)).height, 56);
+    }
   });
 }

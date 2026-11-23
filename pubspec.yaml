@@ -1,6 +1,6 @@
 name: w_tools
 description: "聚合 6 个基础子包的 Flutter 工具库：涵盖 UI 组件、表单、网络、Toast、异步与核心工具，帮助开发者快速构建高质量的 Flutter 应用。"
-version: 21.1.1
+version: 21.1.2
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools
 issue_tracker: https://github.com/stone0533/w_tools/issues
@@ -38,8 +38,8 @@ dependencies:
     sdk: flutter
 
   w_tools_core: ^3.2.0
-  w_tools_form: ^8.1.0
-  w_tools_ui: ^14.0.0
+  w_tools_form: ^8.2.0
+  w_tools_ui: ^14.1.0
   w_tools_api: ^6.4.0
   w_tools_toast: ^2.1.1
   w_tools_async: ^8.2.0

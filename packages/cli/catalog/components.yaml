@@ -105,6 +105,7 @@ components:
       - 'onBeforeTap 返回 false 可以阻止切换；同步 / 异步都支持'
       - '默认 safeArea: true，会避开 home indicator；放进已包 SafeArea 的容器时传 safeArea: false'
       - 'itemBuilder 与 destinations 必须且只能提供一个；destinations 数量必须等于 controller.length'
+      - '每项点击区域默认 >= 48（minItemHeight）；要更矮 / 更高时显式传 minItemHeight'
     related: ['`WNavDestination`']
     teach: false
   - name: '`WNavDestination`'
@@ -321,6 +322,8 @@ components:
       - 'loading 时按钮自动不可点；不必再传 enabled: false'
       - 'content 与 label/icon 不能同时传；icon-only 要提供 semanticLabel'
       - 'toggle 按钮用 isSelected；纯图标按钮仍需 tooltip / semanticLabel'
+      - 'tooltip 与 onLongPress 可以同时传：长按会触发回调并显示提示'
+      - 'semanticLabel / semanticHint 与 loading 同时用：loading 文案会并入 label 与 liveRegion'
     related: ['`WPressable`', '`WButtonTheme`', '`WButtonSize`']
     teach: true
   - name: '`WButtonTheme`'
@@ -459,8 +462,9 @@ components:
       - '一个 WForm 对应一个 WFormController；两个 WForm 不能同时挂载同一个 controller'
       - '表单字段用直接参数，不要从 Config.build 开始'
       - 'borderStyle / validatorSettings / readOnly / icons 都有默认值，无特殊需求不要显式传'
-      - '整页只读用 WForm(readOnly: true)；单字段锁定用字段的 readOnly'
+      - '整页只读用 WForm(readOnly: true)；单字段锁定用字段的 readOnly（只读仍可聚焦复制，禁用用 enabled: false）'
       - '整表变化用 WForm(onChanged:)；不要逐字段拼回调'
+      - 'autovalidateMode 走原生校验（文本/下拉内联错误），与 form.validate() 的边框通道分开，不要同时触发'
     related: ['`WFormController`', '`WFormTextField`']
     teach: true
   - name: '`WFormController`'
@@ -474,7 +478,7 @@ components:
       WForm(controller: form, child: ...);
       form.value; form.savedValue;
       form.setValue('email', 'a@b.com');
-      form.save(); // 需要 savedValue / onSaved 时显式调用
+      form.save(); // 刷新 savedValue；字段级 onSaved 需自定义 FormBuilderField
       form.reset();
       if (!form.validate()) return;
       WFormController.of(context); // 字段子树里取 controller
@@ -483,6 +487,7 @@ components:
       - 'controller 由页面持有，不需要每帧重建'
       - 'setValue 会同时清该字段边框错误；只清错误用 clearError'
       - 'setValue 只用于程序化改值；不要在字段自己的 onChanged 里回写同字段（同值 7.0.1 起 no-op）'
+      - 'setValue 必须在 WForm 挂载后调用（挂载前断言失败）；initialValue 只在首次挂载生效，异步回填用 setValue'
     related: ['`WForm`']
     teach: true
   - name: '`WFormTextField`'
@@ -503,7 +508,9 @@ components:
       - '不要再传 config（字段 Config 已删除，只有直接参数）'
       - '密码字段：obscureText: true + actions: [WFormTextFieldPasswordToggle()]，两者要一起传'
       - 'message 与 hintTextList 二选一，同时传会断言'
-      - 'maxLines > 1 时同步提高 WFormFieldStyle.height（或用 WFormFieldStyleScope），否则内容会被裁'
+      - 'height 是最小高度：maxLines / 错误文案 / maxLength 计数器更高时字段会撑高，不再被裁'
+      - 'initialValue 只在首次挂载生效；异步回填用 WFormController.setValue（需已挂载）'
+      - 'readOnly: true 仍可聚焦 / 选中 / 复制，只是不能编辑；真正禁用用 enabled: false'
       - '插槽里读 WFormTextFieldData.of(context).hasText 不会随输入重建；要跟随值变化请用 ListenableBuilder(data.valueListenable) 或预置的 WFormTextFieldAction'
       - 'validator 的 value 可能是 null（空输入通常以 null 传入）；自定义规则直接写闭包并自己判空，8.0 已删除 WFormCustomValidator'
     related: ['`WForm`', '`WFormFieldStyle`']
@@ -525,13 +532,14 @@ components:
     pitfalls:
       - '初始值与回填值应存在于 items；不在 items 时界面不显示该值，但表单仍保留原值'
       - 'label 已弃用（remove-in: 9.0.0）；占位符用 hintText'
+      - '弹层是 Material menu：选项用 dropdownColor，字段内边距用 contentPadding；行高 / 弹层阴影等只在 WFormMultiDropdown 提供'
     related: ['`WFormTextField`', '`WFormMultiDropdown`']
     teach: true
   - name: '`WFormMultiDropdown`'
     package: 'w_tools_form'
     docsAnchor: '53-wformmultidropdownt'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '直接多选字段（items / disabledKeys / 选项样式；T 由 items 推断）'
+    useFor: '直接多选字段（items / disabledKeys / 选项样式 / itemPadding；T 由 items 推断）'
     dontUseFor: '单选用 `WFormDropdown`'
     usage: |
       WFormMultiDropdown(
@@ -539,17 +547,20 @@ components:
         items: const {'a': 'A', 'b': 'B'},
         initialValue: const {'a'},
         disabledKeys: const {'b'},
+        itemPadding: const EdgeInsets.symmetric(vertical: 12), // 默认行高 48
       )
     pitfalls:
       - '字段值是 Set<T>；已选中且被 disabled 的项显示选中态但不可取消'
       - '未配置 hintText 时不显示占位（与 WFormDropdown 一致）；建议总是传业务文案'
+      - '弹层选项默认行高 48（itemPadding 默认 vertical 12）；要紧凑显式传 EdgeInsets.zero'
+      - '弹层外观用 popUpLayerPadding / popUpLayerElevation / popUpLayerShadowColor；选项间距用 itemTitlePadding'
     related: ['`WFormDropdown`', '`WFormMultiDropdown`']
     teach: true
   - name: '`WFormDatePicker`'
     package: 'w_tools_form'
     docsAnchor: '56-wformdatepicker'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '直接日期字段（initialValue / displayFormat / firstDate / lastDate）'
+    useFor: '直接日期字段（initialValue / displayFormat / firstDate / lastDate / clearable）'
     dontUseFor: '时间选择不在本组件范围；自定义弹层用 Flutter `MenuAnchor` / `showMenu`'
     usage: |
       WFormDatePicker(
@@ -557,11 +568,13 @@ components:
         hintText: '生日',
         initialValue: '1998-06-18',
         displayFormat: 'yyyy-MM-dd',
+        clearable: true, // 有值时显示清除图标
         firstDate: DateTime(1900),
         lastDate: DateTime(2100),
       )
     pitfalls:
       - 'firstDate / lastDate 默认 1900 到 2100；需要更窄的区间（例如只能选过去）请显式传 lastDate'
+      - '空值打开时默认选中今天（clamp 到 firstDate / lastDate），点 OK 会写入；要允许清空传 clearable: true'
       - '初值只接受 ISO `yyyy-MM-dd` 字符串；DateTime 请先格式化'
       - 'label 已弃用（remove-in: 9.0.0）；占位符用 hintText'
     related: ['`WFormTextField`', '`WFormFieldStyle`']
@@ -659,12 +672,15 @@ components:
     docsAnchor: 'wformvalidatorsettings默认值'
     section: '7. 校验系统'
     useFor: '校验行为：边框错误、短路 / 全量、回调'
-    dontUseFor: '不要用它承载单字段规则；单字段用字段 validators，settings 只放校验行为'
+    dontUseFor: '不要用它承载单字段规则；单字段规则用字段 `validator:`，settings 只放校验行为'
     usage: |
       final settings = WFormValidatorSettings(
         showBorderError: true,
         continueOnError: true,
-        ..itemValidationCallback = (name, ok, error) { ... };
+        itemValidationCallback: (name, ok, error) {
+          // ...
+        },
+      );
       form.validate(settings: settings);
     related: ['`WFormValidator`']
     teach: false
@@ -701,13 +717,21 @@ components:
     package: 'w_tools_form'
     docsAnchor: '36-直接字段与-wform'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / 占位符）'
+    useFor: '单个字段覆盖 `WForm.fieldStyle`（默认整体替换；`mergeWithParent: true` 只覆盖写了值的字段）'
     dontUseFor: '整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层'
     usage: |
+      // 只改高度，其余沿用页面 fieldStyle
       WFormFieldStyleScope(
         style: const WFormFieldStyle(height: 72),
-        child: WFormTextField(name: 'bio', maxLines: 3),
-      )
+        mergeWithParent: true,
+        child: const WFormTextField(name: 'bio', maxLines: 3),
+      );
+      // 清空 / 完全接管样式：默认的整体替换
+      WFormFieldStyleScope(style: null, child: ...);
+    pitfalls:
+      - '默认整体替换：只传 height 会丢掉 containerPadding / textStyle / placeholderStyle'
+      - 'mergeWithParent 的 null = 沿用外层，不能用来把某一项改回空；要清空用整体替换'
+      - '中间层是整体替换时，内层 mergeWithParent 只合并到这一层'
     related: ['`WFormFieldStyle`']
     teach: false
   - name: '`WFormValidator`'
@@ -2046,7 +2070,7 @@ components:
       const WButtonSize(name: 'hero', minHeight: 56, fontSize: 17, fontWeight: FontWeight.w700);
       WButton.filled(size: WButtonSize.large, label: '保存', onTap: save);
     pitfalls:
-      - '视觉尺寸可以更小，tapTargetSize 默认 48 保证点击区域'
+      - '视觉尺寸可以更小；tapTargetSize >= 48 走 padded（48 下限），< 48 走 shrinkWrap（不保证热区）'
     related: ['`WButton`']
     teach: false
   - name: '`WPressEffect`'

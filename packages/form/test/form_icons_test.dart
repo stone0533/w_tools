@@ -28,6 +28,48 @@ void main() {
       expect(theme.effectiveCheckboxSelectedIcon, WFormIcons.defaults.checkboxSelected);
     });
 
+    testWidgets('WForm(icons: clear) 同时作用于文本与日期清除', (tester) async {
+      const close = Icon(Icons.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WForm(
+              controller: WFormController(),
+              icons: const WFormIcons(clear: close),
+              child: const Column(
+                children: [
+                  WFormTextField(
+                    name: 'text',
+                    hintText: '文本',
+                    initialValue: 'x',
+                    actions: [WFormTextFieldClearButton()],
+                  ),
+                  WFormDatePicker(
+                    name: 'date',
+                    hintText: '日期',
+                    initialValue: '2024-01-01',
+                    clearable: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.close), findsNWidgets(2));
+
+      // 清除是次级操作，但热区统一到 40×40（字段默认 40 高可完整容纳）。
+      expect(
+        tester.getSize(find.byType(WFormTextFieldClearButton)),
+        const Size(40, 40),
+      );
+      expect(
+        tester.getSize(find.byKey(const ValueKey('w-form-date-clear'))),
+        const Size(40, 40),
+      );
+    });
+
     testWidgets('WForm(icons:) 传给字段', (tester) async {
       const star = Icon(Icons.star);
       await tester.pumpWidget(

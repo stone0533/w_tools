@@ -401,4 +401,87 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('WButton 无障碍与 tooltip', () {
+    testWidgets('semanticLabel + loading：label 并入 loading 且保留 liveRegion', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton.filled(
+            icon: Icons.save,
+            semanticLabel: '保存',
+            loading: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.liveRegion == true &&
+              widget.properties.label == '保存, Loading',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('semanticLabel + 自定义 loadingLabel', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton.filled(
+            icon: Icons.save,
+            semanticLabel: '保存',
+            loading: true,
+            loadingLabel: '正在提交',
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.liveRegion == true &&
+              widget.properties.label == '保存, 正在提交',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tooltip 与 onLongPress 同时生效', (tester) async {
+      var longs = 0;
+      var taps = 0;
+      await tester.pumpWidget(
+        _wrap(
+          WButton.filled(
+            label: '保存',
+            tooltip: '保存草稿',
+            onLongPress: () => longs++,
+            onTap: () => taps++,
+          ),
+        ),
+      );
+
+      await tester.longPress(find.byType(WButton));
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(longs, 1);
+      expect(taps, 0);
+      expect(find.text('保存草稿'), findsOneWidget);
+    });
+
+    testWidgets('只有 onLongPress 时长按仍触发（不包 Tooltip）', (tester) async {
+      var longs = 0;
+      await tester.pumpWidget(
+        _wrap(WButton.filled(label: '保存', onLongPress: () => longs++, onTap: () {})),
+      );
+      expect(find.byType(Tooltip), findsNothing);
+
+      await tester.longPress(find.byType(WButton));
+      await tester.pump();
+      expect(longs, 1);
+    });
+  });
 }

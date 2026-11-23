@@ -60,6 +60,9 @@ class WFormValidator {
   /// 未显式传 [settings]、且 controller 也没有注入时，按 `showBorderError = true` 解析。
   /// 表单未挂载时：纯自定义校验项（`validatorBuilder`）仍可运行；包含字段项
   /// 或没有任何校验项时返回 false（与 `WFormController.validate()` 一致）。
+  ///
+  /// 校验开始会先收起当前焦点（`unfocus`），因此提交场景会关闭键盘；
+  /// 若在输入过程中做实时校验，需要自行恢复焦点。
   bool validate() {
     FocusManager.instance.primaryFocus?.unfocus();
     final formKey = formData.formKey;

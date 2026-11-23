@@ -69,13 +69,15 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - `WButton.filled(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
   `Row + Icon + Text` 补偏移。
 - 图标按钮可传 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
+  `tooltip` 与 `onLongPress` 可以同时传：长按会触发回调并显示提示。
 - 纯图标按钮必须提供 `semanticLabel`；loading 文案用 `loadingLabel`。
+  传了 `semanticLabel` / `semanticHint` 时 loading 文案并入 label 与 `liveRegion`。
 
 ### WButtonSize
 
 `WButtonSize` 只表达尺寸（minWidth / minHeight / padding / 字号 / iconSize / gap），
 映射到 `ButtonStyle` 的 `minimumSize` / `padding` / `textStyle`；默认
-`WButtonSize.medium`。点击区域由 Material 的 padded tap target 保证。
+`WButtonSize.medium`。默认 `tapTargetSize: 48` 走 Material `padded`（48 的点击下限）；自定义 `< 48` 会 `shrinkWrap`，点击区可能不足 48。
 
 ### 13.0 删除
 
@@ -205,6 +207,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
   底层 `Scaffold`，不需要为此改用原生 `Scaffold`。
 - 有 `bottomNavigationBar` 时 body 不再加底部安全区；底栏不是 `WNavBar`（已默认
   `safeArea: true`）时传 `bottomNavigationBarSafeArea: true`，由 `WScaffold` 包 `SafeArea`。
+- body 自身的安全区开关：`includeTopSafeArea`（无 appBar 时补状态栏高度）与
+  `includeBottomSafeArea`（无 bottomNavigationBar 时补 home indicator 高度）。
 
 ## 8. 其他组件速览
 
@@ -229,6 +233,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 底部 home indicator；已在外层包 `SafeArea` 时传 `safeArea: false`。
 切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）。
 默认 item 用 `destinations: [WNavDestination(...)]`；需要完全自定义时用 `itemBuilder`，两者互斥。
+每项点击区域默认至少 48（`minItemHeight`），要更矮 / 更高时显式传。
 
 ### WActionRow / WSelectableRow
 

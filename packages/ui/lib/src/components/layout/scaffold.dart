@@ -24,7 +24,15 @@ class WScaffold extends StatelessWidget {
   final bool extendBody;
   final Color? backgroundColor;
   final SystemUiOverlayStyle? systemStatusBarStyle;
+
+  /// 没有 [appBar] 时，是否给 body 顶部补状态栏高度（`MediaQuery.padding.top`）。
+  ///
+  /// 默认 `false`：有 appBar 时不重复加；没有 appBar 又需要避开状态栏时显式传 `true`。
   final bool includeTopSafeArea;
+
+  /// 没有 [bottomNavigationBar] 时，是否给 body 底部补 home indicator 高度。
+  ///
+  /// 默认 `true`；底栏存在时由底栏自己处理底部 inset。
   final bool includeBottomSafeArea;
 
   /// 给 [bottomNavigationBar] 包一层 `SafeArea(top: false)`。

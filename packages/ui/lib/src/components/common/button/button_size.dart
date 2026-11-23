@@ -31,7 +31,9 @@ class WButtonSize {
   final double? iconSize;
   final double? gap;
 
-  /// 实际 hit area 下限；视觉尺寸可以更小。
+  /// Material tap target 阈值：`>= 48` 用 `padded`（保证 48 的 hit area），
+  /// `< 48` 用 `shrinkWrap`（不再额外扩大）。它不是精确热区尺寸；
+  /// 需要更大的点击区请在外层包 `SizedBox` / `Padding`。
   final double tapTargetSize;
 
   static const small = WButtonSize(

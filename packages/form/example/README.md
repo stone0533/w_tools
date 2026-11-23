@@ -3,9 +3,11 @@
 真实场景示例，覆盖：
 
 - 登录表单：`WForm` 容器、直接字段构造、字段 validator、`WFormValidatorSettings`
-- 会员资料：输入格式化、下拉、日期配置、多选配置、单选、复选、自定义 `WFormButton`
+- 会员资料：输入格式化、下拉、日期配置（含 `clearable`）、多选配置（含 `itemPadding`）、
+  单选、复选、自定义 `WFormButton`
 - 只读预览：`WForm(readOnly: true)`
-- 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取
+- 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取 /
+  服务端错误（`setError`）/ `save` 后读取 `savedValue`
 - 自定义边框：`WFormBorderStyle` 的聚焦 / 错误装饰、hint / error builder、itemValidationCallback
 - 统一边框 / 图标：`WFormBorderStyle` + `WForm` 的 icon 配置
 

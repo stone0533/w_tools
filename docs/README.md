@@ -78,6 +78,7 @@
 - [2026-11-18 WButton 改用 named constructors：决策记录与执行清单](analysis/2026-11-18-wbutton-named-constructors.md)
 - [2026-11-18 AppButtons 配对契约与回归测试（L 任务）](analysis/2026-11-18-appbuttons-pairing-contract.md)
 - [2026-11-18 WImage.source 改为无名构造器：决策记录与执行清单](analysis/2026-11-18-wimage-unnamed-constructor.md)
+- [2026-11-23 字段样式作用域：9.0 结构清理（待执行）](analysis/2026-11-23-form-field-style-scope-9.0.md)
 
 改完 `docs/` 后跑：
 

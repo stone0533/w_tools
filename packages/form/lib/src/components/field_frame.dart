@@ -22,6 +22,7 @@ class WFormFieldFrame extends StatelessWidget {
     super.key,
     required this.child,
     this.height,
+    this.heightIsMinimum = false,
     this.width,
     this.decoration,
     this.margin,
@@ -34,8 +35,15 @@ class WFormFieldFrame extends StatelessWidget {
   /// 字段内部控件（输入框 / 下拉 / 复选框内容等）
   final Widget child;
 
-  /// 外框高度
+  /// 外框高度（[heightIsMinimum] 为 true 时是**最小高度**）
   final double? height;
+
+  /// 把 [height] 当作最小高度：内容（校验文案 / maxLength 计数器 / 多行文本）
+  /// 更高时外框跟着长高，而不是把内容裁掉或让它画到框外。
+  ///
+  /// 文本 / 下拉这类用 `InputDecoration` 渲染内联错误的字段必须为 true；
+  /// 其余字段（日期 / 复选 / 单选 / 多选 / 按钮）高度由内容决定，固定高度即可。
+  final bool heightIsMinimum;
 
   /// 外框宽度
   final double? width;
@@ -61,7 +69,8 @@ class WFormFieldFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
+      height: heightIsMinimum ? null : height,
+      constraints: heightIsMinimum && height != null ? BoxConstraints(minHeight: height!) : null,
       width: width,
       alignment: Alignment.center,
       decoration: decoration,

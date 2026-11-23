@@ -6,6 +6,8 @@
 
 普通业务按钮用 `WButton`，任意 child 点击用 `WPressable`，表单里的值选择用 `WFormButton`；
 什么时候用哪个见 [Button 选择](button.md)。
+`WButton` 的 `tooltip` 与 `onLongPress` 可同时传（长按回调 + 提示都会生效）；
+`semanticLabel` + `loading` 时 loading 文案会并入无障碍 label。
 
 ## 图片
 
@@ -28,7 +30,7 @@ App 级默认用 `WImageTheme(slots: WImageSlots(...))`；预加载用 `WImageSo
 hex 颜色 → WColorExtension.fromHex（AARRGGBB）/ fromCssHex（RRGGBBAA）
 EdgeInsets → num.allPadding
 RTL 侧边距 → withStartPadding / withEndPadding
-BorderSide → num.borderSideOf(context)（borderSide 已弃用，9.0 删除）
+BorderSide → num.borderSideOf(context)（borderSide 10.0 已删除）
 BoxDecoration → withBackground（color / gradient 二选一）/ circle
 ```
 
@@ -53,7 +55,8 @@ WScreen 无 `WScreenScope` 时返回原始值；需要 ScreenUtil 时用 `WScree
 ```text
 普通页面 → WScaffold + WAppBar
 （消费方项目的标准页面默认用 CLI 生成的 AppScaffold；本文件是库 / 仓库内用法）
-底部 tab → WNavBar / WNavController（默认 safeArea: true；外层已包 SafeArea 时传 false）
+底部 tab → WNavBar / WNavController（默认 safeArea: true；外层已包 SafeArea 时传 false；
+每项点击区域默认 >= 48，可用 minItemHeight 调整）
 顶部 tab → Material TabBar + TabBarTheme（WTabBar / WTabBarStyle 已在 12.0 删除；
 indicator / divider / scrollable / tabAlignment 直接传 TabBar）
 步骤流程 → WStep
@@ -260,6 +263,7 @@ bigText
 
 ```text
 角标 / 数量提示 → WBadge（数量用 WBadge.count，圆点用 WBadge.dot）
+横向操作 / 单选行 → WActionRow / WSelectableRow（explain WActionRow）
 圆角裁剪 → Flutter 原生 ClipRRect（WClipRRect 已在 11.0 删除）
 普通 / 分隔线 / 网格 / 重叠列表 → WListView + WListViewSliver
 ```

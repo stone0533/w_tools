@@ -45,8 +45,9 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
             ),
             const SizedBox(height: 24),
             const WFormFieldStyleScope(
-              // 多行字段需要比页面默认（52）更高的外框，否则第三行会被裁掉。
+              // 只提高这一行的高度：mergeWithParent 让 padding / 文字样式沿用页面。
               style: WFormFieldStyle(height: 72),
+              mergeWithParent: true,
               child: WFormTextField(
                 name: 'bio',
                 hintText: '个人简介',
@@ -118,6 +119,21 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
                   },
                   icon: const Icon(Icons.memory),
                   label: const Text('读取 controller 状态'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _form.setError('bio', errorTextList: const ['模拟服务端：简介已被占用']);
+                  },
+                  icon: const Icon(Icons.cloud_off),
+                  label: const Text('模拟服务端错误'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _form.save();
+                    setState(() => _snapshot = 'savedValue: ${_form.savedValue}');
+                  },
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('save + savedValue'),
                 ),
               ],
             ),

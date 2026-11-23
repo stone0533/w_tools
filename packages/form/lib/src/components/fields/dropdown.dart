@@ -139,6 +139,8 @@ class WFormDropdownCore<T> extends StatelessWidget {
 
     return WFormFieldFrame(
       height: height,
+      // 错误由 InputDecoration 内联渲染；固定高度会把错误文案挤出框外。
+      heightIsMinimum: true,
       width: width,
       decoration: containerDecoration,
       margin: containerMargin,

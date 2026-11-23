@@ -57,7 +57,7 @@ packages/form/
 ```text
 WForm
   └─ WFormTheme（边框样式 / 图标）
-      └─ WFormFieldStyleScope（页面级字段默认样式）
+      └─ [WFormFieldStyleScope]（仅 fieldStyle 非 null 时插入；null 时继承外层作用域）
           └─ FormBuilder（包内 scope）
               └─ FormBuilder（flutter_form_builder）
                   └─ 包内只读作用域
@@ -95,8 +95,8 @@ final borderStyle = WFormThemeData.of(context)?.borderStyle;
 |---|---|
 | `value` / `savedValue` | 当前值 / 上次显式 `save()` 的快照 |
 | `fields` | 字段集合；未挂载时为 null |
-| `setValue` | 程序化写值 + 清该字段边框错误；不要在字段自己的 `onChanged` 里回写同字段 |
-| `save` | 显式保存；触发字段 `onSaved`，刷新 `savedValue` |
+| `setValue` | 程序化写值 + 清该字段边框错误；**需在 WForm 挂载后调用**（挂载前断言）；不要在字段自己的 `onChanged` 里回写同字段 |
+| `save` | 显式保存；刷新 `savedValue`（直接字段没有 `onSaved`，需自定义 `FormBuilderField`） |
 | `validatorSettings` | `WForm` 注入的默认校验设置（只读） |
 | `getFieldsValue<T>` | 不 `save` 也能取即时值 |
 | `validate({settings, items})` | 一步校验；未挂载返回 false |
@@ -108,7 +108,7 @@ final borderStyle = WFormThemeData.of(context)?.borderStyle;
 
 ## 3. WFormTheme / WFormIcons — 表单主题
 
-普通页面优先用 `WForm`，它内部创建主题与作用域；`WFormTheme` 用于自定义布局。
+普通页面优先用 `WForm`，它内部创建主题 / 只读作用域（`fieldStyle` 非 null 时才插入字段样式作用域）；`WFormTheme` 用于自定义布局。
 
 - 图标优先级：字段自身 icon 参数 > `WForm.icons`（或继承的 `WFormTheme.icons`）> `WFormIcons.defaults`。
 - `WForm.icons` 只影响当前表单；App 统一放 `WFormTheme` 外层（6.0 起 `WForm` 会继承外层 `WFormTheme` 的图标）。
@@ -163,8 +163,13 @@ WForm(
 
 字段不接受 `config`；不要写 `WFormTextField(config: ...)`，也不要 `Config.build(...)`。
 整表变化用 `WForm(onChanged:)`：任一字段 `didChange` 后回调拿到当前 `controller.value`，不必逐字段挂 `onChanged`。
-页面级高度 / 内边距 / 文本样式用 `WForm.fieldStyle`（`height` 只对单行字段生效），字段级差异用直接参数。
-单字段样式覆盖用 `WFormFieldStyleScope`；宽度 / 偏移 / 自定义外框用外层布局包裹。
+页面级高度 / 内边距 / 文本样式用 `WForm.fieldStyle`，字段级差异用直接参数。
+单字段样式覆盖用 `WFormFieldStyleScope`；默认整体替换页面样式，只改部分字段用
+`mergeWithParent: true`，需要清空 / 完全接管时用默认替换（或 `pageStyle.copyWith(...)`）。
+宽度 / 偏移 / 自定义外框用外层布局包裹。
+9.0 计划：把 `WFormFieldStyleScope` 改为 `StatelessWidget` + 私有 `InheritedWidget`
+（删除 `updateShouldNotify`，行为不变），与 `remove-in: 9.0.0` 的清理同批发布；
+见 [analysis/2026-11-23-form-field-style-scope-9.0.md](../analysis/2026-11-23-form-field-style-scope-9.0.md)。
 
 ## 4. 边框系统
 
@@ -248,6 +253,8 @@ WFormTextField(
 
 - 值类型 `Set<T>`（enum / int 等非 String 值也可用）；弹层由包内实现，不对外公开。
 - `disabledKeys` 显示选中态但不可点击；已选项按选择先后拼接（`Set` 插入序，等价于点击顺序）。
+- 选项默认行高 48（`itemPadding` 默认 `EdgeInsets.symmetric(vertical: 12)`）；弹层外观用
+  `popUpLayerPadding` / `popUpLayerElevation` / `popUpLayerShadowColor`，选项间距用 `itemTitlePadding`。
 
 ### 5.4 WFormCheckbox
 
@@ -268,6 +275,7 @@ validator 的错误才有边框位置可显示。显式 `bordered: false` 时错
 - 存储格式固定 ISO `yyyy-MM-dd`；显示格式用 `displayFormat`（默认 `yMMMMd`）。
 - 初值只接受 `initialValue`（ISO `yyyy-MM-dd` 字符串）；`initialDate` 8.0 起移除。
 - 使用系统 `showDatePicker`；`firstDate` / `lastDate` 默认 `1900` / `2100`，需要收窄范围时显式传。
+- 空值打开时默认选中今天（clamp 到区间），点 OK 会写入；`clearable: true` 时有值时显示清除图标。
 - 显示文案走 `intl`：需要中文月份 / 本地化文案时，宿主 `MaterialApp` 要挂
   `flutter_localizations`；未挂时回退 `en_US`（不崩，但显示英文月份）。
 
@@ -286,8 +294,11 @@ validator 的错误才有边框位置可显示。显式 `bordered: false` 时错
 ## 7. 校验系统
 
 `WFormValidator` 由 `WFormController.validators({settings, items})` 创建，按序执行。
-`validate()` 不会隐式 `save()`：`savedValue` 与字段 `onSaved` 只在显式 `form.save()`
-时更新；校验读取的是当前 `instantValue`。
+`WForm.autovalidateMode` 是原生自动校验：错误走 `InputDecoration`（文本 / 下拉）或边框兜底，
+不要再用 `formKey.validate()` 触发第二套错误通道；固定高度字段按最小高度撑开。
+`validate()` 会先收起当前焦点（`FocusManager.primaryFocus?.unfocus()`），再按序校验；
+`validate()` 不会隐式 `save()`：`savedValue` 只在显式 `form.save()` 时更新（直接字段没有
+`onSaved` 参数，字段级 onSaved 需自定义 `FormBuilderField`）；校验读取的是当前 `instantValue`。
 `items` 为 null 时与 `validate()` 一致：校验当前已挂载字段的自身 validator。
 表单未挂载时：字段校验项 / 空校验项返回 false；纯自定义 `validatorBuilder` 仍可运行。
 
@@ -391,9 +402,12 @@ class _LoginPageState extends State<LoginPage> {
 ## 注意事项
 
 - **不要从 Config 开始**：字段 Config / `*Core` 是包内实现；页面统一 `WForm` + 直接字段。
-- **只读**：整页 `WForm(readOnly: true)`；单字段用字段的 `readOnly`，不要手写只读作用域。
+- **只读**：整页 `WForm(readOnly: true)`；单字段用字段的 `readOnly`。**文本字段**只读仍可聚焦 /
+  选中 / 复制；下拉 / 日期 / 多选 / 复选 / 单选只读为不可交互的只读态（0.5 透明、不参与焦点）。
+  真正禁用用字段的 `enabled: false`，不要手写只读作用域。
 - **边框**：默认 `WFormBorderStyle.fromTheme(Theme.of(context))`；`WFormBorder` 8.0 起移除公开入口，不要直接使用。
-- **字段高度**：`WForm.fieldStyle.height` 只对单行字段生效；单选组、多行文本由内容撑高。
+- **字段高度**：`WForm.fieldStyle.height` 对文本 / 下拉是**最小高度**（错误文案 / 计数器 / 多行撑高），
+  单选组等由内容决定高度。
 - **Controller 生命周期**：`WFormController` 由页面 State 持有即可；它没有 `dispose`，表单状态随 `WForm` 卸载。
 - **校验设置**：`WForm.validatorSettings` 会成为 `validate()` / `validators()` 的默认值；
   `WFormController.validatorSettings` 只读，业务不要二次覆盖。

@@ -113,6 +113,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               firstDate: DateTime(1900),
               lastDate: DateTime.now(),
               displayFormat: 'yyyy-MM-dd',
+              clearable: true,
               icon: const Icon(Icons.calendar_today_outlined),
               iconSize: 20,
             ),
@@ -137,6 +138,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               },
               initialValue: {'travel'},
               disabledKeys: {'music'},
+              itemPadding: EdgeInsets.symmetric(vertical: 12), // 默认行高 48
               itemStyle: TextStyle(color: Color(0xFF374151)),
               itemCheckedStyle: TextStyle(
                 color: Color(0xFF059669),

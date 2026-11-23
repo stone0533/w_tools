@@ -176,7 +176,7 @@ void main() {
       expect(find.byIcon(Icons.expand_more), findsOneWidget);
     });
 
-    testWidgets('外层 height / width 生效', (tester) async {
+    testWidgets('外层 height / width 生效（height 是最小高度）', (tester) async {
       await tester.pumpWidget(
         buildDropdown(
           name: 'fruit',
@@ -187,7 +187,8 @@ void main() {
         ),
       );
 
-      // 外层 Container 使用 config.height / width
+      // 下拉和内联错误共用 InputDecoration：height 必须是最小高度，
+      // 否则固定高度会把校验文案挤出框外。
       final container = tester.widget<Container>(
         find
             .descendant(
@@ -196,7 +197,7 @@ void main() {
             )
             .first,
       );
-      expect(container.constraints?.maxHeight, 60);
+      expect(container.constraints?.minHeight, 60);
       expect(container.constraints?.maxWidth, 200);
     });
 

@@ -40,6 +40,12 @@ class WNavBar extends StatefulWidget {
   /// 处理底部 inset。放在页面 body 内或已由外层 `SafeArea` 包裹时传 false。
   final bool safeArea;
 
+  /// 每个导航项的最小高度（点击区域），默认 48（Material / 无障碍基线）。
+  ///
+  /// 默认项内容约 42（24 图标 + 2 间距 + 16 文字）时，点击区域仍会被撑到该高度；
+  /// 自定义 [itemBuilder] 内容更高时按内容高度。
+  final double minItemHeight;
+
   const WNavBar({
     super.key,
     this.decoration,
@@ -49,7 +55,12 @@ class WNavBar extends StatefulWidget {
     this.onBeforeTap,
     required this.controller,
     this.safeArea = true,
+    this.minItemHeight = 48,
   }) : assert(
+         minItemHeight > 0,
+         'WNavBar: minItemHeight 必须大于 0',
+       ),
+       assert(
          (itemBuilder == null) != (destinations == null),
          'WNavBar: itemBuilder 与 destinations 必须且只能提供一个',
        ),
@@ -121,14 +132,22 @@ class _WNavBarState extends State<WNavBar> {
               selected: i == _controller.currentIndex,
               child: WPressable(
                 onTap: () => _handleTap(i),
-                child: RepaintBoundary(
-                  child: widget.itemBuilder != null
-                      ? widget.itemBuilder!(context, i, i == _controller.currentIndex)
-                      : _buildDestinationItem(
-                          context,
-                          widget.destinations![i],
-                          i == _controller.currentIndex,
-                        ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: widget.minItemHeight),
+                  child: Align(
+                    // heightFactor: 1 → 按内容收缩高度（不占满父约束），
+                    // 再由 ConstrainedBox 抬到 minItemHeight。
+                    heightFactor: 1,
+                    child: RepaintBoundary(
+                      child: widget.itemBuilder != null
+                          ? widget.itemBuilder!(context, i, i == _controller.currentIndex)
+                          : _buildDestinationItem(
+                              context,
+                              widget.destinations![i],
+                              i == _controller.currentIndex,
+                            ),
+                    ),
+                  ),
                 ),
               ),
             ),

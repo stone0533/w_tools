@@ -23,6 +23,41 @@ void main() {
     expect(builder.autovalidateMode, AutovalidateMode.onUserInteraction);
   });
 
+  testWidgets('autovalidateMode.onUserInteraction：错误可见且固定高度不越界', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            fieldStyle: const WFormFieldStyle(
+              height: 40,
+              containerPadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: WFormTextField(
+              name: 'a',
+              hintText: 'A',
+              validator: (_) => '错误',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'x');
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('错误'), findsOneWidget);
+
+    final field = tester.getRect(find.byType(WFormTextField));
+    final error = tester.getRect(find.text('错误'));
+    expect(field.height, greaterThan(40));
+    expect(error.bottom, lessThanOrEqualTo(field.bottom));
+  });
+
   testWidgets('运行期切换 readOnly：值保留，切回后可继续编辑', (tester) async {
     final form = WFormController();
     Widget build({required bool readOnly}) => MaterialApp(
@@ -654,6 +689,66 @@ void main() {
 
     expect(find.text('2024-03-05'), findsOneWidget);
     expect(form.value['d'], '2024-03-05');
+  });
+  testWidgets('固定高度字段：原生 validate 的错误文案不压输入、不越出字段', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            fieldStyle: const WFormFieldStyle(
+              height: 40,
+              containerPadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: WFormTextField(
+              name: 'email',
+              hintText: '请输入邮箱',
+              validator: (_) => '邮箱格式不正确，请重新输入',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    form.formKey.currentState!.validate();
+    await tester.pump();
+    await tester.pump();
+
+    final field = tester.getRect(find.byType(WFormTextField));
+    final hint = tester.getRect(find.text('请输入邮箱'));
+    final error = tester.getRect(find.text('邮箱格式不正确，请重新输入'));
+
+    // height 是最小高度：出现错误时字段长高，装饰留在字段内。
+    expect(field.height, greaterThan(40));
+    expect(field.top, lessThanOrEqualTo(hint.top));
+    expect(hint.bottom, lessThanOrEqualTo(error.top));
+    expect(error.bottom, lessThanOrEqualTo(field.bottom));
+  });
+
+  testWidgets('固定高度字段：maxLength 计数器留在字段内', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            fieldStyle: const WFormFieldStyle(
+              height: 40,
+              containerPadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: const WFormTextField(name: 'code', hintText: '验证码', maxLength: 6),
+          ),
+        ),
+      ),
+    );
+
+    final field = tester.getRect(find.byType(WFormTextField));
+    final counter = tester.getRect(find.text('0/6'));
+
+    expect(field.height, greaterThanOrEqualTo(40));
+    expect(counter.top, greaterThanOrEqualTo(field.top));
+    expect(counter.bottom, lessThanOrEqualTo(field.bottom));
   });
 }
 

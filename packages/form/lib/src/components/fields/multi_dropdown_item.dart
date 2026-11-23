@@ -133,7 +133,9 @@ class _WFormMultiDropdownItemState<T> extends State<_WFormMultiDropdownItem<T>> 
           onTap: toggle,
           excludeFromSemantics: true,
           child: Container(
-            padding: widget.padding ?? EdgeInsets.zero,
+            // 默认纵向留白把行高撑到 48（复选框 24 + 12*2），满足最小点击区域；
+            // 需要更紧凑时显式传 itemPadding（例如 EdgeInsets.zero 回到 24）。
+            padding: widget.padding ?? const EdgeInsets.symmetric(vertical: 12),
             alignment: Alignment.centerLeft,
             child: Row(
               mainAxisSize: MainAxisSize.min,

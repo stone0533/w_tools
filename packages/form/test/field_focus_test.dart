@@ -147,4 +147,38 @@ void main() {
     expect(tapped, 1);
     expect(form.value['coupon'], 'new_user');
   });
+
+  testWidgets('Tab / TextInputAction.next 一步进入下一个文本字段，键盘不收起', (tester) async {
+    final form = WFormController();
+
+    await _pump(
+      tester,
+      form: form,
+      child: const Column(
+        children: [
+          WFormTextField(name: 'a', hintText: 'A', textInputAction: TextInputAction.next),
+          WFormTextField(name: 'b', hintText: 'B'),
+        ],
+      ),
+    );
+
+    final bNode = tester.widget<TextField>(find.byType(TextField).at(1)).focusNode!;
+
+    await tester.showKeyboard(find.byType(TextField).at(0));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    // 字段壳不是焦点站：next 必须直接落到 b 的输入框，键盘保持。
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pump();
+    expect(bNode.hasFocus, isTrue);
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    // Tab 同理：从 a 出发一次就进入 b。
+    await tester.showKeyboard(find.byType(TextField).at(0));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    expect(bNode.hasFocus, isTrue);
+  });
 }
