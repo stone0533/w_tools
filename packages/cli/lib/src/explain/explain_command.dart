@@ -86,6 +86,7 @@ CommandResult run(List<String> argv) {
             'schemaVersion': 1,
             'query': name,
             'found': matches.length == 1,
+            'exact': exact != null,
             'ambiguous': matches.length > 1,
             'import': aggregateImport,
             'packageVersion': matches.length == 1 ? lockedVersions[matches.single.package] : null,
@@ -124,6 +125,9 @@ CommandResult run(List<String> argv) {
       final e = matches.single;
       final packageVersion = lockedVersions[e.package];
       if (asPrompt) {
+        if (exact == null) {
+          print('# 未精确命中 `$name`；以下为关键词近似匹配，用 `list $name` 查看候选。');
+        }
         print(
           renderExplainPrompt(
             e,
@@ -138,6 +142,9 @@ CommandResult run(List<String> argv) {
           print(_bannedText(entry));
         }
         return;
+      }
+      if (exact == null) {
+        print('（未精确命中 `$name`，以下为关键词近似匹配；用 `list $name` 查看候选）');
       }
       print('${e.name}  (${e.package})');
       print('层级：${e.tier}');

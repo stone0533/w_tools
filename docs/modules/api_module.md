@@ -23,7 +23,7 @@ Token / 日志 / 重试 / 指标都是按需加。下面的 LRU / TTL、`replace
 - 统一调用 / 显式解码 / 分页 / 上传下载 → `WApiClient`
 - Token 401 刷新 → `WTokenInterceptor`
 - 日志 → `WLogInterceptor`（默认脱敏敏感头与敏感 body）
-- 优先用 `DioRegistry`；裸 `Dio()` 必须传 `dio:`，否则 401 后无法重试
+- 优先用 `DioRegistry`；裸 `Dio()` 必须给 token / retry 拦截器构造传 `dio:`，否则 401 刷新与重试都无法重放
 - 可运行示例：[packages/api/example](../../packages/api/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
@@ -65,7 +65,7 @@ Dio 实例之间也不会共享同一份可变配置。
 
 | 成员 | 说明 |
 |------|------|
-| `DioRegistry.forBaseUrl(baseUrl, {options, interceptors})` | 获取或创建指定 `baseUrl` 的实例 |
+| `DioRegistry.forBaseUrl(baseUrl, {options, interceptors, replace})` | 获取或创建指定 `baseUrl` 的实例 |
 | `dio` | 获取内部 `Dio` 实例 |
 | `DioRegistry.maybeForBaseUrl(baseUrl)` | 读取已注册的 `Dio`，不创建新实例 |
 | `DioRegistry.dispose(baseUrl)` | 关闭并移除指定 `baseUrl` 的实例 |
@@ -79,6 +79,11 @@ Dio 实例之间也不会共享同一份可变配置。
 > `replace` 会 `close(force: true)`；LRU / TTL 淘汰用 `close(force: false)`，
 > 不强制中断在途请求。
 >
+> 「不同」的判定：基础配置按内容比较（header 名大小写不敏感，query / extra 深度比较），
+> 但 `validateStatus` / `requestEncoder` / `responseDecoder` 按**函数实例引用**比较。
+> 语义相同的新闭包也算不同配置；复用同一个函数实例，或传 `replace: true` 重建。
+> `interceptors` 也按实例比较（同一实例列表才命中缓存）。
+>
 > `BaseOptions` 的 `headers` / `extra` / `queryParameters` 都会被复制，实例之间不共享
 > 可变 Map。
 >
@@ -91,8 +96,9 @@ Dio 实例之间也不会共享同一份可变配置。
 final registry = DioRegistry.forBaseUrl(
   'https://api.example.com',
   interceptors: [
-    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
+    // 放在日志前：请求方向先注入 Authorization，日志才能看到（已脱敏的）头。
     WTokenInterceptor(tokenGetter: () => token),
+    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
   ],
 );
 final response = await registry.dio.get('/users');
@@ -163,7 +169,7 @@ final logInterceptor = WLogInterceptor(
 |------|------|--------|------|
 | `tokenGetter` | `String? Function()?` | null | 读取当前 token |
 | `tokenClearer` | `Future<void> Function()?` | null | 清除 token |
-| `tokenRefresher` | `Future<String?> Function()?` | null | 刷新 token，返回新 token（返回 null 表示失败） |
+| `tokenRefresher` | `Future<String?> Function()?` | null | 刷新 token，返回新 token；`null` / 空串 / 纯空白都表示刷新失败 |
 | `onAuthFailure` | `void Function(DioException)?` | null | 刷新失败 / 无刷新器 / 达到重试上限时回调 |
 | `shouldRefresh` | `bool Function(RequestOptions)?` | null | 每次 401 是否允许自动刷新；返回 false 时直接交出 401 |
 | `unauthorizedStatusCode` | int | 401 | 未授权状态码 |
@@ -172,6 +178,7 @@ final logInterceptor = WLogInterceptor(
 ### 行为说明
 
 - 请求已显式带 `Authorization` 时跳过注入；否则按 `tokenGetter` 注入。
+- 显式 `Authorization` 的请求 401 时**不接管**：不清理、不刷新、不重试，直接把 401 交给调用方（避免用 session token 覆盖 API Key / 第三方凭证）。
 - 同一个 `WTokenInterceptor` 只能绑定一个 Dio；多个 registry 请各建实例，共享实例会在第二次绑定时报 `ArgumentError`。
 - 登录 / 刷新 / 公开接口可用 `shouldRefresh` 跳过自动刷新；返回 false 时不清理、不刷新、不重试。
 - 刷新失败 / 未配置 `tokenRefresher` / 达到 `maxAuthRetries` 时调用 `onAuthFailure`，适合跳登录或清会话。
@@ -179,6 +186,7 @@ final logInterceptor = WLogInterceptor(
 - `tokenRefresher` 抛出的异常会被捕获并记录日志，请求以原错误结束，不会逃逸出拦截器链。
 - 刷新成功但重试请求失败（例如 500）时，调用方拿到的是**重试的真实错误**，不会误触发
   `onAuthFailure`。
+- 空白值一律按「没有 token」处理：`tokenRefresher` 返回 `null` / 空串 / 纯空白都算刷新失败（清 token + `onAuthFailure`，不重试）；`tokenGetter` 返回空串 / 纯空白时不注入 `Authorization`；token 写入请求头前会 trim。
 - 刷新契约：`tokenRefresher` 取得新 token 后应自行持久化，使 `tokenGetter` 随后返回新 token；若提供 `tokenClearer`，须保证清除后 `tokenGetter` 不再返回旧 token（返回 null 亦可，此时重试会使用拦截器显式写入的新 token）。
 - 重试会**重新经过整条请求拦截器链**（请保证 `onRequest` 逻辑幂等）；`FormData` 请求体会在重放前被 `clone()`，`Stream` 请求体无法重放，此时放弃重试并记录日志。
 - 重试只复用已知 Dio：`DioRegistry` 自动绑定；裸 `Dio()` 需构造传 `dio:`。若同 `baseUrl` 已有 registry，裸 Dio 的 401 会落到该实例（配置可能不一致）；否则不重试并记录错误。
@@ -248,7 +256,8 @@ final user = await client.get(
 | `query` | 值为 `null` 的键会被丢弃 |
 | `body` | 原始值（Map / String / FormData…）或 `WApiBody` |
 | `decode` | `T Function(Object? json)`；不传则返回原始 JSON |
-| `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码 |
+| `options` | 单条请求的 dio `Options`：`extra` / `validateStatus` / `responseType` 等；`method` 永远由调用的方法决定，`headers` 参数 > `options.headers` |
+| `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码；`WApiClient` 对 `Uint8List` body 省略 `Content-Type` 时兜底 `application/octet-stream` |
 | `page` | 已弃用（7.0 删除）；GET 分页，返回 `WPage<T>` |
 | `upload` | `multipart/form-data` 上传；`method` 支持 POST / PUT / PATCH |
 | `download` | 已弃用（7.0 删除）；下载并返回 `Uint8List` |
@@ -295,8 +304,7 @@ final client = WApiClient(
 - HTTP 401 仍由 `WTokenInterceptor` 处理；
 - 204 / 空 body 默认跳过信封（`skipEmptyBody: true`），不会调用 `readCode(null)`；
   需要旧行为时显式传 `skipEmptyBody: false`；
-- 需要只对某条请求启用 / 覆盖信封时，用 `client.send(..., envelope: parser)` 或
-  `client.send(..., envelope: parser)`。
+- 需要只对某条请求启用 / 覆盖信封时，用 `client.send(..., envelope: parser)`。
 
 ### 分页
 
@@ -376,7 +384,7 @@ final registry = DioRegistry.forBaseUrl(
 - 不重试 401（交给 `WTokenInterceptor`）、其他 4xx、`unknown`（默认）和已取消的请求；
   需要放行 `unknown` 用 `shouldRetry`；
 - `POST` / `PATCH` 默认不重试（避免重复提交）；显式覆盖 `retryOnMethods` 后自行保证幂等；
-- 单条请求关闭重试：`Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})`；
+- 单条请求关闭重试：`client.get(..., options: Options(extra: {WRetryInterceptor.disableRetryExtraKey: true}))`；
 - 裸 `Dio` 需构造传 `dio:` 或手动 `bindDio`；`DioRegistry` 会自动绑定；
 - 缓存 / 离线不在本包范围，使用 `dio_cache_interceptor` 等外部方案。
 
@@ -433,8 +441,8 @@ void setupApi() {
   final registry = DioRegistry.forBaseUrl(
     'https://api.example.com',
     interceptors: [
-      WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
       WTokenInterceptor(tokenGetter: () => token),
+      WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
     ],
   );
 }
@@ -444,12 +452,24 @@ void setupApi() {
 
 ## 拦截器执行顺序
 
-拦截器按添加顺序在请求方向正序执行、响应方向倒序执行（Dio 标准行为）：
+拦截器按添加顺序执行；请求、响应、错误三个方向都是 **FIFO**（Dio 标准行为）：
 
 ```text
 请求方向:  interceptors[0] → interceptors[1] → ... → 网络请求
-响应方向:  网络响应 → ... → interceptors[1] → interceptors[0] → 业务代码
+响应方向:  网络响应 → interceptors[0] → interceptors[1] → ... → 业务代码
+错误方向:  网络错误 → interceptors[0] → interceptors[1] → ... → 业务代码
 ```
+
+某个拦截器 `resolve` / 不再向下传递时，**更晚**的同方向回调不再执行。
+
+实践约定：
+
+- 想记录注入后的 `Authorization`，`WLogInterceptor` 必须放在 `WTokenInterceptor`
+  **之后**；想在 401 刷新前记录原始请求头，再挂一个放在前面；
+- `WMetricsInterceptor` 放在 token / retry 之前才会统计每次重试尝试；
+- `WTokenInterceptor` / `WRetryInterceptor` 需要知道「当前 Dio」：`DioRegistry.forBaseUrl`
+  会自动 `bindDio`；裸 `Dio()` 手动 `interceptors.add` 时必须构造传 `dio: dio`，
+  否则 401 刷新与重试都无法重放（错误时才放弃，默认无日志输出）。
 
 ---
 
@@ -461,7 +481,7 @@ void setupApi() {
 | 网络连接失败 / 证书校验失败 | `WApiException.kind == network`；`WRetryInterceptor` 可重试 |
 | 401 未授权 | `WTokenInterceptor` 清除 Token，尝试刷新并重试（受 `maxAuthRetries` 限制） |
 | 403 / 404 / 其他 4xx | `WApiException.kind` 分别为 `forbidden` / `notFound` / `client` |
-| 5xx | `WApiException.kind == server`；`WRetryInterceptor` 可重试 |
+| 5xx | `WApiException.kind == server`；`WRetryInterceptor` 默认只重试 500 / 502 / 503 / 504（其他 5xx 用 `retryOnStatusCodes` 放行） |
 | 请求取消 | `WApiException.kind == canceled` |
 | 响应解码失败 | `WApiException.kind == decode`，`cause` 保留原始异常 |
 | 业务码失败 | `WApiException.kind == business`，带 `businessCode` / `payload` |

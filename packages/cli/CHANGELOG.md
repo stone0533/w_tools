@@ -1,3 +1,13 @@
+## 2.9.2
+
+### Changed
+- `init` 的 `w_tools_api` 约束抬到 `^6.4.0`。
+- catalog 同步 api 的 `options` / 重试状态码 / 空 token 边界说明。
+- catalog 补 `DioRegistry` 函数引用比较、`WLogInterceptor` 顺序、`WApiBody.bytes`
+  兜底类型、`WApiException` kind 列表、`WMetric` 字段。
+- `explain` 精确未命中时明确提示「近似匹配」，`--format=json` 增加 `exact` 字段；
+  避免 `explain WMetric` 静默返回 `WMetricsInterceptor`。
+
 ## 2.9.1
 
 ### Changed

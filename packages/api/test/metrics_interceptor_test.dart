@@ -70,6 +70,19 @@ void main() {
     expect(metrics.single.failed, isTrue);
   });
 
+  test('自定义 validateStatus 接受 304 时不算 failed', () async {
+    adapter.handler = (_) => _json(304, {'cached': true});
+
+    await dio.get(
+      '/cache',
+      options: Options(validateStatus: (_) => true),
+    );
+
+    expect(metrics, hasLength(1));
+    expect(metrics.single.statusCode, 304);
+    expect(metrics.single.failed, isFalse);
+  });
+
   test('重试时每次尝试的 attempt 递增', () async {
     var calls = 0;
     adapter.handler = (_) {
@@ -89,6 +102,30 @@ void main() {
     retry.bindDio(dio);
 
     await dio.get('/retry');
+
+    expect(metrics.map((metric) => metric.attempt), [1, 2]);
+    expect(metrics.first.failed, isTrue);
+    expect(metrics.last.failed, isFalse);
+  });
+
+  test('401 刷新后的重试也产生 attempt=2 的指标', () async {
+    adapter.handler = (options) => _json(
+      options.headers['Authorization'] == 'Bearer fresh' ? 200 : 401,
+      {'ok': true},
+    );
+
+    dio.interceptors.clear();
+    // metrics 放在 token 之前：错误方向先产出首次尝试的 metric。
+    dio.interceptors.add(WMetricsInterceptor(onMetric: metrics.add));
+    dio.interceptors.add(
+      WTokenInterceptor(
+        dio: dio,
+        tokenGetter: () => 'expired',
+        tokenRefresher: () async => 'fresh',
+      ),
+    );
+
+    await dio.get('/secure');
 
     expect(metrics.map((metric) => metric.attempt), [1, 2]);
     expect(metrics.first.failed, isTrue);

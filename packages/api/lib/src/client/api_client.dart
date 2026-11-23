@@ -17,12 +17,23 @@ import 'api_response.dart';
 /// 只负责「怎么调」，不负责 token（`WTokenInterceptor`）、日志、缓存和业务编排。
 /// URL 应集中写在 `*_api.dart`，页面 / Repository 不拼路径。
 ///
+/// 除已弃用的 `page` / `download` 外，每个请求方法都接受 `options:`
+/// （dio 的 [Options]），用于单条请求的 `extra`（如
+/// `WRetryInterceptor.disableRetryExtraKey`）、`validateStatus`（接受 304 / 409）、
+/// `responseType` 等；与 client 自己的 method / headers 合并规则见 [send]。
+///
 /// ```dart
 /// final client = WApiClient(registry.dio);
 /// final user = await client.get(
 ///   '/users/{id}',
 ///   pathParameters: {'id': '42'},
 ///   decode: (json) => User.fromJson(json as Map<String, dynamic>),
+/// );
+/// // 单条请求关闭重试 / 接受 409
+/// await client.get<void>(
+///   '/items/1',
+///   options: Options(extra: {WRetryInterceptor.disableRetryExtraKey: true}),
+///   decode: WApiDecoders.none,
 /// );
 /// ```
 class WApiClient {
@@ -50,6 +61,12 @@ class WApiClient {
   ///
   /// 需要限流头、分页 total 头或请求 ID 时用它；普通请求仍用 `get/post/...`。
   /// [envelope] 只对本次请求生效，不传时使用 client 级信封。
+  /// `options:` 透传 dio 的 [Options]（`extra` / `validateStatus` / `responseType`
+  /// / `listFormat` 等），并按以下优先级与 client 自己的配置合并：
+  /// `method` 永远取本方法的 HTTP 方法；`headers` 参数优先于
+  /// `options.headers`；显式 `Content-Type` 头优先于 `options.contentType`，
+  /// 两者都没有时才用 [WApiBody] 的默认类型。其他请求方法的 `options:`
+  /// 语义相同。
   Future<WApiResponse<T>> send<T>(
     String method,
     String path, {
@@ -62,6 +79,7 @@ class WApiClient {
     Map<String, String>? headers,
     void Function(int sent, int total)? onSendProgress,
     void Function(int received, int total)? onReceiveProgress,
+    Options? options,
   }) => _sendResponse<T>(
     method,
     path,
@@ -74,6 +92,7 @@ class WApiClient {
     headers: headers,
     onSendProgress: onSendProgress,
     onReceiveProgress: onReceiveProgress,
+    options: options,
   );
 
   /// GET 请求。
@@ -84,6 +103,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'GET',
     path,
@@ -92,6 +112,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// HEAD 请求。
@@ -102,6 +123,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'HEAD',
     path,
@@ -110,6 +132,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// OPTIONS 请求。
@@ -120,6 +143,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'OPTIONS',
     path,
@@ -128,6 +152,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// POST 请求。
@@ -139,6 +164,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'POST',
     path,
@@ -148,6 +174,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// PUT 请求。
@@ -159,6 +186,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'PUT',
     path,
@@ -168,6 +196,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// PATCH 请求。
@@ -179,6 +208,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'PATCH',
     path,
@@ -188,6 +218,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// DELETE 请求。
@@ -200,6 +231,7 @@ class WApiClient {
     WApiDecoder<T>? decode,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) => _send<T>(
     'DELETE',
     path,
@@ -208,6 +240,7 @@ class WApiClient {
     decode: decode,
     cancelToken: cancelToken,
     headers: headers,
+    options: options,
   );
 
   /// GET 分页请求。
@@ -312,6 +345,7 @@ class WApiClient {
     void Function(int sent, int total)? onProgress,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) async {
     final normalized = method.toUpperCase();
     if (!const {'POST', 'PUT', 'PATCH'}.contains(normalized)) {
@@ -332,6 +366,7 @@ class WApiClient {
       cancelToken: cancelToken,
       headers: headers,
       onSendProgress: onProgress,
+      options: options,
     );
   }
 
@@ -361,6 +396,8 @@ class WApiClient {
   /// 下载文件，并保留 status / headers / requestOptions。
   ///
   /// 文件名通常从 `content-disposition` 读取；写文件仍由业务层决定。
+  /// [options] 只影响 `extra` / `headers` / `validateStatus` 等字段：
+  /// `responseType` 固定为 `bytes`，方法固定为 GET。
   Future<WApiResponse<Uint8List>> downloadResponse(
     String path, {
     Map<String, Object?>? query,
@@ -368,6 +405,7 @@ class WApiClient {
     void Function(int received, int total)? onProgress,
     CancelToken? cancelToken,
     Map<String, String>? headers,
+    Options? options,
   }) async {
     final resolvedPath = _resolvePath(path, pathParameters);
     try {
@@ -375,10 +413,13 @@ class WApiClient {
         resolvedPath,
         queryParameters: _cleanQuery(query),
         cancelToken: cancelToken,
-        options: Options(
+        options: _mergeOptions(
+          method: 'GET',
           headers: headers,
-          responseType: ResponseType.bytes,
-        ),
+          bodyContentType: null,
+          requestBody: null,
+          options: options,
+        ).copyWith(responseType: ResponseType.bytes),
         onReceiveProgress: onProgress,
       );
       final data = response.data;
@@ -403,6 +444,7 @@ class WApiClient {
     CancelToken? cancelToken,
     Map<String, String>? headers,
     void Function(int sent, int total)? onSendProgress,
+    Options? options,
   }) async => (await _sendResponse<T>(
     method,
     path,
@@ -413,6 +455,7 @@ class WApiClient {
     cancelToken: cancelToken,
     headers: headers,
     onSendProgress: onSendProgress,
+    options: options,
   )).data;
 
   Future<WApiResponse<T>> _sendResponse<T>(
@@ -427,12 +470,11 @@ class WApiClient {
     Map<String, String>? headers,
     void Function(int sent, int total)? onSendProgress,
     void Function(int received, int total)? onReceiveProgress,
+    Options? options,
   }) async {
     final resolvedPath = _resolvePath(path, pathParameters);
     final requestBody = body is WApiBody ? body.data : body;
     final bodyContentType = body is WApiBody ? body.contentType : null;
-    final mergedHeaders = <String, dynamic>{...?headers};
-    final contentType = _headerOf(mergedHeaders, Headers.contentTypeHeader) ?? bodyContentType;
 
     try {
       final response = await _dio.request<Object?>(
@@ -440,10 +482,12 @@ class WApiClient {
         data: requestBody,
         queryParameters: _cleanQuery(query),
         cancelToken: cancelToken,
-        options: Options(
-          method: method.toUpperCase(),
-          headers: mergedHeaders,
-          contentType: contentType,
+        options: _mergeOptions(
+          method: method,
+          headers: headers,
+          bodyContentType: bodyContentType,
+          requestBody: requestBody,
+          options: options,
         ),
         onSendProgress: onSendProgress,
         onReceiveProgress: onReceiveProgress,
@@ -561,5 +605,55 @@ class WApiClient {
       }
     }
     return null;
+  }
+
+  /// 把调用方 [Options] 与 client 自己的 method / headers / contentType 合并。
+  ///
+  /// 优先级：`headers` 参数 > `options.headers`；显式 `Content-Type` 头 >
+  /// `options.contentType` > `bodyContentType` > 字节 body 的
+  /// `application/octet-stream` 兜底；`method` 永远取调用方法。
+  /// 其余字段（`extra` / `validateStatus` / `responseType` / `listFormat` /
+  /// 超时等）原样保留，未传 [options] 时相当于 `Options()`。
+  static Options _mergeOptions({
+    required String method,
+    required Map<String, String>? headers,
+    required String? bodyContentType,
+    required Object? requestBody,
+    required Options? options,
+  }) {
+    // 大小写不敏感地合并：headers 参数优先，同名不同大小写的键只保留一个
+    // （否则 _headerOf 会取到 options 里先插入的那个，违反 headers 优先级）。
+    final mergedHeaders = <String, dynamic>{};
+    for (final entry in (options?.headers ?? const <String, dynamic>{}).entries) {
+      mergedHeaders[entry.key] = entry.value;
+    }
+    for (final entry in (headers ?? const <String, String>{}).entries) {
+      mergedHeaders.removeWhere(
+        (key, _) => key.toLowerCase() == entry.key.toLowerCase(),
+      );
+      mergedHeaders[entry.key] = entry.value;
+    }
+    // 先把 Content-Type 头取出来再从 headers 里移除：dio 的 Options.copyWith
+    // 不允许同时传 contentType 和 content-type 头（会触发断言）。
+    final headerContentType = _headerOf(
+      mergedHeaders,
+      Headers.contentTypeHeader,
+    );
+    mergedHeaders.removeWhere(
+      (key, _) => key.toLowerCase() == Headers.contentTypeHeader,
+    );
+    final contentType =
+        headerContentType ??
+        options?.contentType ??
+        bodyContentType ??
+        // 只有 Uint8List 会被 dio 当成原始字节（普通 List<int> 会走
+        // transformer 变成字符串），省略 Content-Type 时按未知二进制兜底；
+        // multipart 的 FormData 由 dio 自己写 boundary。
+        (requestBody is Uint8List ? 'application/octet-stream' : null);
+    return (options ?? Options()).copyWith(
+      method: method.toUpperCase(),
+      headers: mergedHeaders,
+      contentType: contentType,
+    );
   }
 }

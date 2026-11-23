@@ -106,6 +106,22 @@ class DemoUserApi {
     decode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
   );
 
+  /// 单条请求的 dio 配置：把 409 当作业务结果，不抛 WApiException。
+  ///
+  /// `options` 与其他请求方法同名；`headers` 参数仍优先于 `options.headers`，
+  /// `method` 由调用的方法决定。
+  Future<WApiResponse<DemoUser>> updateAcceptingConflict({
+    required int id,
+    required String name,
+  }) => _client.send(
+    'PATCH',
+    '/users/{id}',
+    pathParameters: {'id': '$id'},
+    body: WApiBody.json({'name': name}),
+    options: Options(validateStatus: (status) => status == 409),
+    decode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
+  );
+
   /// 单条请求临时覆盖信封，不影响 client 级配置。
   Future<DemoUser> meWithEnvelope({int id = 42}) async {
     final response = await _client.send<DemoUser>(

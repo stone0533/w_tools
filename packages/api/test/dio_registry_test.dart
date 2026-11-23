@@ -210,6 +210,46 @@ void main() {
       );
     });
 
+    test('语义相同的自定义 validateStatus 闭包仍算配置冲突，错误信息给出出路', () {
+      DioRegistry.forBaseUrl(
+        'https://validate.example.com',
+        options: BaseOptions(validateStatus: (_) => true),
+      );
+
+      expect(
+        () => DioRegistry.forBaseUrl(
+          'https://validate.example.com',
+          options: BaseOptions(validateStatus: (_) => true),
+        ),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            allOf(
+              contains('validateStatus'),
+              contains('引用'),
+              contains('replace: true'),
+            ),
+          ),
+        ),
+      );
+    });
+
+    test('复用同一个 validateStatus 函数实例时命中缓存', () {
+      bool acceptAll(int? status) => true;
+      final first = DioRegistry.forBaseUrl(
+        'https://validate-same.example.com',
+        options: BaseOptions(validateStatus: acceptAll),
+      );
+
+      final second = DioRegistry.forBaseUrl(
+        'https://validate-same.example.com',
+        options: BaseOptions(validateStatus: acceptAll),
+      );
+
+      expect(identical(first, second), isTrue);
+    });
+
     test('queryParameters 不与调用方共享引用', () {
       final options = BaseOptions(queryParameters: {'locale': 'zh'});
       final registry = DioRegistry.forBaseUrl(

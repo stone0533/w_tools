@@ -1,3 +1,8 @@
+## 21.1.1
+
+### Changed
+- `w_tools_api` 约束抬到 `^6.4.0`，接入空 token 修复与 `WApiClient` 单条请求 `options`。
+
 ## 21.1.0
 
 ### Changed

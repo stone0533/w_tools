@@ -131,6 +131,31 @@ void main() {
     );
   });
 
+  test('bytes body 省略 content-type 时默认 application/octet-stream', () async {
+    await client.put<void>(
+      '/blob',
+      body: WApiBody.bytes([1, 2, 3]),
+      decode: (json) {},
+    );
+
+    expect(adapter.last!.data, isA<Uint8List>());
+    expect(
+      _headerOf(adapter.last!.headers, 'content-type'),
+      'application/octet-stream',
+    );
+  });
+
+  test('bytes body 的显式请求头覆盖默认 content-type', () async {
+    await client.put<void>(
+      '/blob',
+      body: WApiBody.bytes([1, 2, 3]),
+      headers: {'Content-Type': 'image/png'},
+      decode: (json) {},
+    );
+
+    expect(_headerOf(adapter.last!.headers, 'content-type'), 'image/png');
+  });
+
   test('用户请求头优先于 body 默认 content-type', () async {
     await client.post<void>(
       '/x',
@@ -215,6 +240,18 @@ void main() {
     await client.delete('/users/1');
 
     expect(adapter.last!.method, 'DELETE');
+  });
+
+  test('PATCH 使用 PATCH method 并发送 body', () async {
+    await client.patch<void>(
+      '/users/1',
+      body: const WApiBody.json({'name': 'Ada'}),
+      decode: WApiDecoders.none,
+    );
+
+    expect(adapter.last!.method, 'PATCH');
+    expect(adapter.last!.path, '/users/1');
+    expect(adapter.last!.data, {'name': 'Ada'});
   });
 
   test('HEAD / OPTIONS 使用对应 method', () async {
@@ -340,6 +377,150 @@ void main() {
   test('barrel 重导出 InterceptorsWrapper / QueuedInterceptor', () {
     expect(InterceptorsWrapper(), isA<Interceptor>());
     expect(QueuedInterceptor(), isA<Interceptor>());
+  });
+
+  group('options', () {
+    test('options.extra 透传给请求（单条关闭重试 / 埋点）', () async {
+      await client.get<void>(
+        '/x',
+        options: Options(
+          extra: {WRetryInterceptor.disableRetryExtraKey: true},
+        ),
+        decode: WApiDecoders.none,
+      );
+
+      expect(
+        adapter.last!.extra[WRetryInterceptor.disableRetryExtraKey],
+        isTrue,
+      );
+      expect(adapter.last!.method, 'GET');
+    });
+
+    test('options.validateStatus 接受 409 时返回 WApiResponse', () async {
+      adapter.handler = (_) => _json(409, {'error': 'conflict'});
+
+      final response = await client.send<Map<String, dynamic>>(
+        'POST',
+        '/items/1',
+        options: Options(validateStatus: (status) => status == 409),
+      );
+
+      expect(response.statusCode, 409);
+      expect(response.data, {'error': 'conflict'});
+    });
+
+    test('headers 参数优先于 options.headers，method 由方法名决定', () async {
+      await client.post<void>(
+        '/x',
+        options: Options(
+          method: 'GET',
+          headers: {'X-Trace': 'from-options', 'X-Only-Options': 'o'},
+        ),
+        headers: {'X-Trace': 'from-param'},
+        decode: WApiDecoders.none,
+      );
+
+      expect(adapter.last!.method, 'POST');
+      expect(_headerOf(adapter.last!.headers, 'x-trace'), 'from-param');
+      expect(_headerOf(adapter.last!.headers, 'x-only-options'), 'o');
+    });
+
+    test('options.contentType 只在没有显式 Content-Type 时生效', () async {
+      await client.post<void>(
+        '/x',
+        body: const WApiBody.json({'a': 1}),
+        options: Options(contentType: 'application/vnd.api+json'),
+        decode: WApiDecoders.none,
+      );
+      expect(
+        _headerOf(adapter.last!.headers, 'content-type'),
+        'application/vnd.api+json',
+      );
+
+      await client.post<void>(
+        '/x',
+        body: const WApiBody.json({'a': 1}),
+        options: Options(
+          contentType: 'application/vnd.api+json',
+          headers: {'Content-Type': 'application/problem+json'},
+        ),
+        decode: WApiDecoders.none,
+      );
+      expect(
+        _headerOf(adapter.last!.headers, 'content-type'),
+        'application/problem+json',
+      );
+    });
+
+    test('headers 参数与 options.headers 大小写不同时 headers 胜出', () async {
+      await client.post<void>(
+        '/x',
+        options: Options(
+          headers: {
+            'content-type': 'text/plain',
+            'x-trace': 'from-options',
+          },
+        ),
+        headers: {
+          'Content-Type': 'image/png',
+          'X-Trace': 'from-param',
+        },
+        decode: WApiDecoders.none,
+      );
+
+      // 大小写不同的同名 header 不能同时存在，且 headers 参数优先。
+      final contentTypes = adapter.last!.headers.keys
+          .where((key) => key.toLowerCase() == 'content-type')
+          .toList();
+      expect(contentTypes, hasLength(1));
+      expect(_headerOf(adapter.last!.headers, 'content-type'), 'image/png');
+      expect(_headerOf(adapter.last!.headers, 'x-trace'), 'from-param');
+    });
+
+    test('get 的 options 也能关闭重试（与 WRetryInterceptor 集成）', () async {
+      final retryAdapter = _RecordingAdapter()..handler = (_) => _json(500, {'error': 'boom'});
+      final retryDio = Dio(BaseOptions(baseUrl: 'https://api.test'))
+        ..httpClientAdapter = retryAdapter;
+      retryDio.interceptors.add(
+        WRetryInterceptor(
+          dio: retryDio,
+          maxRetries: 2,
+          baseDelay: Duration.zero,
+          jitter: false,
+        ),
+      );
+
+      await expectLater(
+        WApiClient(retryDio).get<void>(
+          '/x',
+          options: Options(
+            extra: {WRetryInterceptor.disableRetryExtraKey: true},
+          ),
+          decode: WApiDecoders.none,
+        ),
+        throwsA(isA<WApiException>()),
+      );
+      expect(retryAdapter.calls, 1);
+    });
+
+    test('downloadResponse 透传 options，responseType 仍为 bytes', () async {
+      adapter.handler = (_) => ResponseBody.fromString(
+        'A',
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/octet-stream'],
+        },
+      );
+
+      final response = await client.downloadResponse(
+        '/file',
+        options: Options(extra: {'trace': 't1'}),
+      );
+
+      expect(response.data, [65]);
+      expect(adapter.last!.extra['trace'], 't1');
+      expect(adapter.last!.responseType, ResponseType.bytes);
+    });
   });
 
   test('DioException.unknown 带响应时按 HTTP 状态分类', () {

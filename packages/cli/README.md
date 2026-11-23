@@ -454,6 +454,8 @@ dart run w_tools_cli:w_tools explain WAsync --format=prompt
 同样包含「不要用于」段。
 项目配置了 `banned` 时会提示禁用项和替代方案。
 `banned` 读取 `--root` 或当前工作目录的 `.w_tools_doctor.yaml`。
+精确名称不在 catalog 时会按关键词做近似匹配并明确提示；`--format=json` 的
+`exact` 字段区分是否精确命中，需要更宽的搜索用 `list <关键词>`。
 
 ---
 

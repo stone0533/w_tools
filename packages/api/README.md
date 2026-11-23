@@ -38,7 +38,7 @@ Token、日志、重试、指标都是按需加；下面「高级配置」里的
 
 ```yaml
 dependencies:
-  w_tools_api: ^6.3.0
+  w_tools_api: ^6.4.0
 ```
 
 ```bash
@@ -110,6 +110,32 @@ response.uri;
 
 `get/post/...` 仍直接返回模型；只有需要元数据时才用 `send`。
 需要单条请求临时覆盖信封时，给 `send` / `page` 传 `envelope:`。
+
+### 单条请求的 options
+
+除已弃用的 `page` / `download` 外，所有请求方法都接受 `options:`（dio 的 `Options`），
+用来做单条请求的 dio 级配置：
+
+```dart
+// 本次不重试（配合 WRetryInterceptor）
+await client.get<void>(
+  '/items/1',
+  options: Options(extra: {WRetryInterceptor.disableRetryExtraKey: true}),
+  decode: WApiDecoders.none,
+);
+
+// 接受 409 作为业务结果，用 send 读 statusCode
+final response = await client.send<Map<String, dynamic>>(
+  'POST',
+  '/items/1',
+  options: Options(validateStatus: (status) => status == 409),
+);
+```
+
+合并优先级：`method` 永远由调用的方法决定；`headers` 参数 > `options.headers`；
+显式 `Content-Type` 头 > `options.contentType` > `WApiBody` 的默认类型；其余字段
+（`extra` / `validateStatus` / `responseType` / `listFormat` / 超时等）原样透传。
+`downloadResponse` 的 `responseType` 固定为 `bytes`，其余字段同样可用。
 
 ### 业务信封（可选）
 
@@ -221,9 +247,11 @@ final registry = DioRegistry.forBaseUrl(
 ```
 
 - 只重试幂等方法：GET / HEAD / PUT / DELETE / OPTIONS；**POST / PATCH 默认不重试**（显式覆盖 `retryOnMethods` 后自行保证幂等）；
-- 默认只重试网络错误和 408 / 429 / 5xx；401 交给 `WTokenInterceptor`；
+- 默认只重试网络错误和 408 / 429 / **500 / 502 / 503 / 504**；401 交给 `WTokenInterceptor`；
+  501 / 505 / 506 / 507 / 508 / 510 / 511 默认不重试（重试通常无收益），需要时用
+  `retryOnStatusCodes` 显式覆盖；
 - `DioExceptionType.unknown` 默认不重试；需要放行时用 `shouldRetry` 自定义；
-- 单条请求关闭重试：`Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})`；
+- 单条请求关闭重试：`client.get(..., options: Options(extra: {WRetryInterceptor.disableRetryExtraKey: true}))`；
 - `maxRetries` 是重试次数（不含首次）；`baseDelay` 指数退避，`jitter` 默认开启；
 - HTTP 缓存 / 离线不在本包范围，可使用 `dio_cache_interceptor` 等外部方案。
 
@@ -268,15 +296,26 @@ import 'package:w_tools_core/w_tools_core.dart';
 final registry = DioRegistry.forBaseUrl(
   'https://api.example.com',
   interceptors: [
-    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
     WTokenInterceptor(
       tokenGetter: WToken.getToken,
       tokenClearer: WToken.clearToken,
       tokenRefresher: () async => refreshAccessToken(),
     ),
+    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
   ],
 );
 ```
+
+### 拦截器顺序与绑定
+
+- `DioRegistry.forBaseUrl(interceptors: [...])` 会为 `WTokenInterceptor` /
+  `WRetryInterceptor` 自动绑定 Dio；用裸 `Dio()` 自己 `interceptors.add(...)` 时必须
+  构造传 `dio: dio`，否则 401 刷新与重试都无法重放请求（只在错误时放弃，默认不打印日志）。
+- 请求方向按添加顺序执行：要把注入 `Authorization` 之后的头写进日志，`WLogInterceptor`
+  必须放在 `WTokenInterceptor` **后面**（想同时记录 401 刷新前的原始头，就再挂一个放在前面）。
+- 想让 `WMetricsInterceptor` 统计每次重试尝试，把它放在 token / retry 之前；
+  只要最终结果就放在后面。
+- `WRetryInterceptor` 只管重放，不做 token 刷新；401 永远交给 `WTokenInterceptor`。
 
 登录 / 刷新 / 公开接口等需要自己处理 401 时，可传 `shouldRefresh`：
 
@@ -289,6 +328,10 @@ WTokenInterceptor(
 ```
 
 返回 `false` 时不会清除 token、不会刷新、也不会重试，直接把原始 401 交给调用方。
+
+请求自己带了 `Authorization`（API Key / 第三方 token 等）时，401 不会被自动处理：
+不清理 session token、不刷新、也不会改用 session token 重试，原 401 直接交给调用方。
+需要自动刷新时让 `WTokenInterceptor` 注入 token，或自行处理 401。
 
 `tokenRefresher` 由业务实现，**必须自己持久化新 token**，否则下一次 `tokenGetter` 仍返回旧值。刷新失败或达到重试上限时，可配置 `onAuthFailure` 跳登录 / 清会话：
 
@@ -321,8 +364,9 @@ Future<String?> refreshAccessToken() async {
 | 缓存上限 / TTL（已弃用，7.0 删除） | 多域名、长驻进程 | `DioRegistry.maxCachedInstances` / `cacheTtl` |
 | 登录 / 刷新接口跳过自动刷新 | 这些接口自己处理 401 | `WTokenInterceptor.shouldRefresh` |
 | 单条请求覆盖信封 | 同一个 client 混用不同后端 | `client.send(..., envelope: ...)` |
+| 单条请求 dio 配置 | 关重试 / 接受 409 / 换 responseType | `client.get(..., options: Options(...))` |
 | 下载元数据 | 需要文件名 / Content-Type | `client.downloadResponse(...)` |
-| 页头 total | 后端把 total 放在 `X-Total-Count` | `page(readTotalFromResponse: ...)` |
+| 页头 total | 后端把 total 放在 `X-Total-Count` | `client.send(...)` 读 `WApiResponse.headers` |
 | 自定义重试边界 | 只对特定路径 / 状态重试 | `WRetryInterceptor.shouldRetry` / `disableRetryExtraKey` |
 | 请求指标 | 埋点 / 监控 | `WMetricsInterceptor` |
 
@@ -334,7 +378,7 @@ Future<String?> refreshAccessToken() async {
 |---|---|
 | Dio 注册表 | `DioRegistry.forBaseUrl(replace:)` / `maybeForBaseUrl` / `dispose` / `clearCache` |
 | 默认配置 | `WApiSettings.baseOptions` / `WApiSettings.reset`（测试清理） |
-| 调用层 | `WApiClient.get/post/put/patch/delete/head/options` |
+| 调用层 | `WApiClient.get/post/put/patch/delete/head/options`（均支持 `options:`） |
 | 原始响应 | `WApiClient.send` / `WApiResponse` |
 | 下载响应 | `WApiClient.downloadResponse` |
 | 请求体 | `WApiBody.json/form/multipart/bytes` |

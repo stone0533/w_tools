@@ -101,6 +101,11 @@ class DioRegistry {
   /// [options] / [interceptors]，会抛 [ArgumentError]，不再静默忽略。
   /// 需要换配置时传 [replace] = `true`，或先 [dispose]。
   ///
+  /// 「不同」的判定：基础配置按内容比较（header 名大小写不敏感，query / extra
+  /// 深度比较），但 `validateStatus` / `requestEncoder` / `responseDecoder`
+  /// 按**函数实例引用**比较。语义相同的新闭包也算不同配置；复用同一个函数实例，
+  /// 或传 [replace] = `true` 重建。
+  ///
   /// [replace] 会先关闭并移除同一 [baseUrl] 的旧实例，再按本次配置重建；
   /// 旧实例上的在途请求会随 `close(force: true)` 一起结束。
   ///
@@ -130,7 +135,8 @@ class DioRegistry {
           baseUrl,
           'baseUrl',
           'DioRegistry 已存在同一 baseUrl 的不同 BaseOptions；'
-              '如需更换配置请先 DioRegistry.dispose(baseUrl)',
+              'validateStatus / requestEncoder / responseDecoder 按函数实例引用比较，'
+              '语义相同的新闭包也会冲突：复用同一个函数实例，或传 replace: true 重建',
         );
       }
       if (interceptors != null && !listEquals(active._interceptors, interceptors)) {

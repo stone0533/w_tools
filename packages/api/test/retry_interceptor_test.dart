@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_api/w_tools_api.dart';
 
@@ -84,6 +85,44 @@ void main() {
       throwsA(isA<WApiException>()),
     );
     expect(adapter.calls, 1);
+  });
+
+  for (final status in const [501, 507]) {
+    test('$status 不在默认重试状态码里（docs 口径 500/502/503/504）', () async {
+      adapter = _SequenceAdapter([status]);
+      dio.httpClientAdapter = adapter;
+
+      await expectLater(
+        client.get('/user'),
+        throwsA(isA<WApiException>()),
+      );
+      expect(adapter.calls, 1);
+      expect(
+        WRetryInterceptor(
+          maxRetries: 1,
+        ).retryOnStatusCodes,
+        {408, 429, 500, 502, 503, 504},
+      );
+    });
+  }
+
+  test('显式 retryOnStatusCodes 可以放行 507', () async {
+    final retry = WRetryInterceptor(
+      maxRetries: 1,
+      baseDelay: Duration.zero,
+      jitter: false,
+      retryOnStatusCodes: const {507},
+    );
+    final sequenceAdapter = _SequenceAdapter([507, 200]);
+    final retryDio = Dio(BaseOptions(baseUrl: 'https://retry-507.test'))
+      ..httpClientAdapter = sequenceAdapter;
+    retryDio.interceptors.add(retry);
+    retry.bindDio(retryDio);
+
+    final user = await WApiClient(retryDio).get('/user', decode: _userFromJson);
+
+    expect(user.name, 'Ada');
+    expect(sequenceAdapter.calls, 2);
   });
 
   test('onRetry 回调带 attempt', () async {
@@ -340,6 +379,96 @@ void main() {
 
     expect(localAdapter.calls, 2);
     expect(localAdapter.last?.data, isA<FormData>());
+  });
+
+  test('退避按指数增长（fakeAsync 虚拟时钟）', () {
+    fakeAsync((async) {
+      final attempts = <Duration>[];
+      final retry = WRetryInterceptor(
+        maxRetries: 3,
+        baseDelay: const Duration(milliseconds: 100),
+        jitter: false,
+        onRetry: (_, __) => attempts.add(async.elapsed),
+      );
+      final localDio = Dio(BaseOptions(baseUrl: 'https://retry-backoff.test'));
+      final localAdapter = _SequenceAdapter([500]);
+      localDio.httpClientAdapter = localAdapter;
+      localDio.interceptors.add(retry);
+      retry.bindDio(localDio);
+
+      final future = WApiClient(localDio).get<dynamic>('/user');
+      future.then<void>((_) {}, onError: (Object _) {});
+      async.elapse(const Duration(seconds: 5));
+
+      // onRetry 在等待之前触发：100ms → 200ms → 400ms。
+      expect(attempts, const [
+        Duration.zero,
+        Duration(milliseconds: 100),
+        Duration(milliseconds: 300),
+      ]);
+      expect(localAdapter.calls, 4);
+    });
+  });
+
+  test('maxDelay 上限生效（fakeAsync 虚拟时钟）', () {
+    fakeAsync((async) {
+      final attempts = <Duration>[];
+      final retry = WRetryInterceptor(
+        maxRetries: 2,
+        baseDelay: const Duration(milliseconds: 500),
+        maxDelay: const Duration(milliseconds: 20),
+        jitter: false,
+        onRetry: (_, __) => attempts.add(async.elapsed),
+      );
+      final localDio = Dio(BaseOptions(baseUrl: 'https://retry-max-delay.test'));
+      final localAdapter = _SequenceAdapter([500]);
+      localDio.httpClientAdapter = localAdapter;
+      localDio.interceptors.add(retry);
+      retry.bindDio(localDio);
+
+      Duration? completedAt;
+      final future = WApiClient(localDio).get<dynamic>('/user');
+      future.then<void>(
+        (_) {},
+        onError: (Object _) => completedAt = async.elapsed,
+      );
+      async.elapse(const Duration(seconds: 5));
+
+      // 未封顶时两次退避是 500ms + 1000ms；封顶后每次 20ms。
+      expect(attempts, const [Duration.zero, Duration(milliseconds: 20)]);
+      expect(completedAt, const Duration(milliseconds: 40));
+      expect(localAdapter.calls, 3);
+    });
+  });
+
+  test('默认 jitter=true 时延迟在 0.5–1 倍 baseDelay', () {
+    fakeAsync((async) {
+      final attempts = <Duration>[];
+      final retry = WRetryInterceptor(
+        maxRetries: 1,
+        baseDelay: const Duration(milliseconds: 80),
+        onRetry: (_, __) => attempts.add(async.elapsed),
+      );
+      final localDio = Dio(BaseOptions(baseUrl: 'https://retry-jitter.test'));
+      final localAdapter = _SequenceAdapter([500]);
+      localDio.httpClientAdapter = localAdapter;
+      localDio.interceptors.add(retry);
+      retry.bindDio(localDio);
+
+      Duration? completedAt;
+      final future = WApiClient(localDio).get<dynamic>('/user');
+      future.then<void>(
+        (_) {},
+        onError: (Object _) => completedAt = async.elapsed,
+      );
+      async.elapse(const Duration(seconds: 5));
+
+      // 只有一次重试：onRetry 在等待前触发一次；完成时间就是抖动后的延迟。
+      expect(attempts, const [Duration.zero]);
+      // 抖动范围 50%–100%，即 40–80ms；随机值落在闭区间内。
+      expect(completedAt!.inMicroseconds, inInclusiveRange(40000, 80000));
+      expect(localAdapter.calls, 2);
+    });
   });
 }
 
