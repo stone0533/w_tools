@@ -116,7 +116,7 @@ bash scripts/check_feedback.sh
 | --- | --- | --- |
 | [figma](figma.md) | 0 | 2026-11-21 |
 | [cli](cli.md) | 1 | 2026-11-23 |
-| [device](device.md) | 6 | 2026-11-24 |
+| [device](device.md) | 0 | 2026-11-24 |
 | [e2e](e2e.md) | 0 | 2026-11-04 |
 | [api](api.md) | 0 | 2026-11-23 |
 | [async](async.md) | 0 | 2026-11-23 |
