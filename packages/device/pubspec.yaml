@@ -1,9 +1,9 @@
 name: w_tools_device
-description: iOS/Android 模拟器与 Android 真机设备验证（list/boot/shot/tap/drag/verify）；iOS 真机仅 list/shot。
+description: iOS 模拟器与 Android（模拟器 + 真机）设备验证（list/boot/shot/tap/drag/verify）；iOS 真机仅 list/shot。
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/device
 issue_tracker: https://github.com/stone0533/w_tools/issues
-version: 0.3.3
+version: 0.4.0
 resolution: workspace
 
 environment:

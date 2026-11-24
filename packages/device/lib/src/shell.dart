@@ -1,25 +1,49 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 /// 极薄的进程封装：便于测试时替换（不直接依赖 `Process.run`）。
+///
+/// 只暴露两个原语：文本输出 [run] 与原始字节 [runBytes]；
+/// [runOrThrow] 由基类派生，fake 不需要重复实现。
 abstract class Shell {
-  Future<ProcessResult> run(String exe, List<String> args);
-  Future<ProcessResult> runOrThrow(String exe, List<String> args);
+  const Shell();
 
-  /// 取**原始字节**（截图等二进制输出；默认实现按 UTF-8 转一遍，仅供 fake 用）。
+  Future<ProcessResult> run(String exe, List<String> args);
+
+  /// 取**原始字节**（截图等二进制输出）。
   Future<Uint8List> runBytes(String exe, List<String> args);
+
+  /// 带自定义超时执行；默认实现忽略 [timeout]（fake 用），[ProcessShell] 会真正生效。
+  Future<ProcessResult> runWithTimeout(
+    String exe,
+    List<String> args,
+    Duration timeout,
+  ) =>
+      run(exe, args);
+
+  Future<ProcessResult> runOrThrow(String exe, List<String> args) async {
+    final result = await run(exe, args);
+    if (result.exitCode != 0) {
+      throw ProcessException(exe, args, '${result.stderr}'.trim(), result.exitCode);
+    }
+    return result;
+  }
 }
 
-class ProcessShell implements Shell {
+class ProcessShell extends Shell {
   /// [timeout] 是每条外部命令的上限：`xcrun` / `adb` 卡死时不能把整个 CI 拖住。
   /// 默认 120 秒（模拟器冷启动 + `bootstatus` 可能比较久）。
   const ProcessShell({this.timeout = const Duration(seconds: 120)});
 
   final Duration timeout;
 
-  Future<(int, List<int>, List<int>)> _run(String exe, List<String> args) async {
+  Future<(int, List<int>, List<int>)> _run(
+    String exe,
+    List<String> args,
+    Duration timeout,
+  ) async {
     final process = await Process.start(exe, args, runInShell: false);
     final outFuture = process.stdout.fold<List<int>>(
       <int>[],
@@ -40,30 +64,33 @@ class ProcessShell implements Shell {
 
   @override
   Future<ProcessResult> run(String exe, List<String> args) async {
-    final (code, out, err) = await _run(exe, args);
-    return ProcessResult(
-      0,
-      code,
-      utf8.decode(out, allowMalformed: true),
-      utf8.decode(err, allowMalformed: true),
-    );
+    final (code, out, err) = await _run(exe, args, timeout);
+    return _result(code, out, err);
   }
 
   @override
+  Future<ProcessResult> runWithTimeout(
+    String exe,
+    List<String> args,
+    Duration timeout,
+  ) async {
+    final (code, out, err) = await _run(exe, args, timeout);
+    return _result(code, out, err);
+  }
+
+  ProcessResult _result(int code, List<int> out, List<int> err) => ProcessResult(
+        0,
+        code,
+        utf8.decode(out, allowMalformed: true),
+        utf8.decode(err, allowMalformed: true),
+      );
+
+  @override
   Future<Uint8List> runBytes(String exe, List<String> args) async {
-    final (code, out, err) = await _run(exe, args);
+    final (code, out, err) = await _run(exe, args, timeout);
     if (code != 0) {
       throw ProcessException(exe, args, utf8.decode(err, allowMalformed: true).trim(), code);
     }
     return Uint8List.fromList(out);
-  }
-
-  @override
-  Future<ProcessResult> runOrThrow(String exe, List<String> args) async {
-    final r = await run(exe, args);
-    if (r.exitCode != 0) {
-      throw ProcessException(exe, args, '${r.stderr}'.trim(), r.exitCode);
-    }
-    return r;
   }
 }

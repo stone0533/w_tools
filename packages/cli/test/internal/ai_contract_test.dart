@@ -459,7 +459,6 @@ void main() {
         'calibrate',
         'tap',
         'drag',
-        'type',
         'size',
         'foreground',
         'wait',

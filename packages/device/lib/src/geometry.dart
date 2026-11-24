@@ -28,6 +28,10 @@ class DRect {
   /// 以中心为准，换成给定宽高。
   DRect withSize(double w, double h) => DRect(centerX - w / 2, centerY - h / 2, w, h);
 
+  /// 四边与尺寸按 [factor] 缩放（point → px 等）。
+  DRect scaled(double factor) =>
+      DRect(left * factor, top * factor, width * factor, height * factor);
+
   @override
   String toString() => 'DRect($left, $top, $width × $height)';
 }

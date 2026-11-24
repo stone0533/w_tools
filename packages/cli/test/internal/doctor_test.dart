@@ -80,7 +80,7 @@ void main() {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
         'tool/main_e2e.dart': "import 'package:w_tools_e2e/w_tools_e2e.dart';\n",
-        'test/x_test.dart': "import 'package:w_tools_device/w_tools_device.dart';\n",
+        'test/x_test.dart': "import 'package:w_tools_figma/w_tools_figma.dart';\n",
         'integration_test/app_test.dart': "import 'package:w_tools_e2e/w_tools_e2e.dart';\n",
       });
       final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
@@ -90,7 +90,7 @@ void main() {
     test('lib/ 里 import dev-only 工具包仍然报 R2', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
-        'lib/app/tool.dart': "import 'package:w_tools_device/w_tools_device.dart';\n",
+        'lib/app/tool.dart': "import 'package:w_tools_figma/w_tools_figma.dart';\n",
       });
       final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
       expect(r.status, DoctorRuleStatus.fail);

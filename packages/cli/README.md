@@ -120,7 +120,7 @@ dart run w_tools_cli:w_tools init --no-map      # 显式关闭（默认关）
 ### 设备验证
 
 ```bash
-# 生成通用设备文档 + Gradle 镜像（不再生成 device_smoke）
+# 生成通用设备文档 + Gradle 镜像（device_smoke 已删除，不再生成）
 dart run w_tools_cli:w_tools init --device
 ```
 

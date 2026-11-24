@@ -1698,7 +1698,7 @@ const String agentsFigma = r'''
 
 const String agentsDevice = r'''
 - **设备 / 真机验证**（`w_tools_device`，可选）：先读 `docs/agents/device-testing.md`，不要手写 adb / DeviceHub。
-  子命令：`dart run w_tools_device:device list|boot|shot|calibrate|tap|drag|type|size|foreground|wait|verify`。
+  子命令：`dart run w_tools_device:device list|boot|shot|calibrate|tap|drag|size|foreground|wait|verify`。
   E2E 自动登录用 `w_tools_e2e`（只放 `tool/main_e2e.dart`，凭证只用测试账号）。
 ''';
 
@@ -1837,7 +1837,7 @@ const String agentsFigmaEn = r'''
 const String agentsDeviceEn = r'''
 - **Device validation** (`w_tools_device`, optional): read `docs/agents/device-testing.md` first; never
   hand-roll adb / DeviceHub. Subcommands:
-  `dart run w_tools_device:device list|boot|shot|calibrate|tap|drag|type|size|foreground|wait|verify`.
+  `dart run w_tools_device:device list|boot|shot|calibrate|tap|drag|size|foreground|wait|verify`.
   Use `w_tools_e2e` for E2E login (keep it in `tool/main_e2e.dart`, test accounts only).
 ''';
 
@@ -2102,16 +2102,22 @@ dart run w_tools_device:device foreground --android
 - iOS 模拟器点击需要 cliclick，并给宿主 App 开「辅助功能」+「屏幕录制」；
 - iOS 真机只能 list/shot，点击需要 idb/XCUITest；
 - Android 不需要 cliclick/标定，`tap` 坐标就是截图像素；
-- 多台 Android 就绪且未指定 `--device`（或型号子串命中多台）会报错并列出设备，用 `--device=` 指定；
-- `verify` 默认比较整屏，动画/轮播会误判；用 `--region` 只看会变的区域；
-- `--scale` 只用于 iOS 模拟器的 calibrate/tap/drag/size/wait/verify；
-- 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时 · `4` 未分类执行错误；
-- 标定缓存：`~/.cache/w_tools_device/<udid>.json`。
+- 多台设备命中（模拟器 / 真机 / Android 型号子串）会报错并列出候选，用 `--device=` 精确指定；
+- `verify` 默认比较整屏，动画/轮播会误判；用 `--region`（与 tap 同坐标系：iOS=设备 point，Android=截图像素）；
+- `size --json` 的 `scale` / `scaleSource` 给出像素密度来源，不需要再传 `--scale`；
+- 标定不缓存：`tap` / `drag` / `verify` 每次现算，DeviceHub 缩放后不会复用旧坐标；
+- Device Hub 窗口里选中的设备必须与 `--device` 一致，否则 `calibrate` / `tap` 会报错（exit 3）；
+- iOS 的 `tap` / `drag` 默认先释放宿主左键（`du:.`）；`--no-release-mouse` 可关闭预释放与
+  `verify` 失败后的自动释放（需要保留进行中的拖拽时用）；
+- 点击**全部**无效（tap 返回 0 但画面不动 / 模拟器像被长按）先查宿主左键是否卡住：
+  `swift -e 'import CoreGraphics; print(CGEventSource.buttonState(.hidSystemState, button: .left))'`，
+  用 `cliclick du:.` 释放；`verify` 没变化时 JSON 可能带 `mouseButtonDown` / `releasedMouse` / `hint`；
+- 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时 · `4` 未分类执行错误。
 
 ## 可选 recipe
 
-- Tab 型 App 的冒烟示例（不是 init 生成物）：
-  <https://github.com/stone0533/w_tools/blob/main/packages/device/example/tool/device_smoke.dart>
+- 命令片段（Tab 冒烟等，不是 init 生成物）：
+  <https://github.com/stone0533/w_tools/blob/main/packages/device/example/README.md>
 - Keep-alive / TickerMode 集成测试：
   <https://github.com/stone0533/w_tools/blob/main/docs/recipes/keepalive-integration-test.md>
 - E2E 免登录：

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:w_tools_device/w_tools_device.dart';
+import 'package:w_tools_device/src/shell.dart';
 
 void main() {
   test('命令超时抛 ProcessException，而不是一直挂着', () async {

@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- `init` 写入的 `w_tools_device` 约束同步到 `^0.4.0`（0.4.0 删除 `type` / `--scale` /
+  `--no-cache` 与标定缓存，设备文档模板同步新命令与坐标单位）。
+
 ## 2.9.6
 
 ### Fixed

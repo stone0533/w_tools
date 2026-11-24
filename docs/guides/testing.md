@@ -215,6 +215,11 @@ dart run w_tools_device:device verify <x> <y> --region=<x,y,w,h>
 
 这是**坐标级兜底**，优先使用 `integration_test` + Key。
 
+坐标：iOS 模拟器 `tap` / `drag` / `verify` 的输入是设备 point，`--region` 与 tap 同坐标系（point）；
+Android 全部是截图像素。设备像素密度由 `size --json` 的 `scale` / `scaleSource` 给出
+（0.4.0 起不再需要 `--scale`，正常应为 `deviceType`）；标定不缓存，`tap` / `drag` / `verify` 每次现算，
+DeviceHub 缩放后不会复用旧坐标。
+
 ### E2E 免登录
 
 `w_tools_e2e` 只负责测试账号登录：

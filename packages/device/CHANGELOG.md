@@ -1,5 +1,70 @@
 # Changelog
 
+## 0.4.0
+
+### Breaking
+- 删除 `type` 命令：iOS 侧 cliclick 的 `t:` 打到**当前焦点应用**（很可能是终端），
+  Android 侧输入法/控制字符不可控；输入请用 `integration_test` 的 `enterText`。
+- 删除 `--scale`：设备像素密度改为读模拟器设备类型描述
+  （`simctl list devicetypes` 的 `bundlePath` → `ScreenDimensionsCapability.main-screen-scale`），
+  读不到才回退并把 `scaleSource` 标成 `fallback`。
+- 设备选择统一：iOS 模拟器 / iOS 真机 / Android 都按「精确匹配优先、子串命中多台直接报错（exit 2）」，
+  不再静默取第一台。
+- 删除 `--no-cache` 与标定缓存：`tap` / `drag` / `verify` 每次现算（原因与代价见 Changed）。
+- `--json` 升级到 `schemaVersion: 2`：删除 `real`、Android drag 的 legacy `from`/`to` 与重复的
+  `screen` / `serial` / `android` 字段；错误 JSON 也带 `platform`；`wait` 超时改为 `ok:false`（退出码仍 3）。
+- `size`（iOS）输出 point + 截图 px + `scale` + `scaleSource`；Android 不再输出重复的 `serial`（用 `deviceId`）。
+- 删除 `example/tool/device_smoke.dart`：它不是通用脚本，却带着一套假 `dart` 测试夹具；
+  Tab 冒烟改为 [`example/README.md`](example/README.md) 里的命令片段。
+- 库不再提供 barrel：`lib/w_tools_device.dart` 删除，`lib/src/**` 只供包内测试，CLI 才是稳定契约。
+  随之删除 / 收口的内部 API：`CalibrationStore`、`Calibration.fromJson`、`Calibration.matches`、
+  `Adb.resolve`、`Adb.requirePackage`、`Adb.text`、`Adb.escapeTextArgument`、`Input.type`、
+  `DeviceOptions.deviceOrFirst` / `seen` / `noCache` / `scale`、`Simctl.resolve` / `guessScale`、
+  `RealDevice.resolve`、`AndroidDevice.product` / `transport`。
+- `DeviceCliDeps`（6 个工厂闭包 + 全局可变 `_deps`）改为 `DeviceRuntime`（显式实例注入）。
+
+### Changed
+- `calibrate --json` 新增 `windowTitle`（标定时 Device Hub 窗口标题），便于核对标定的是哪台设备。
+- `--region` **与 tap 同坐标系**（iOS 模拟器 = 设备 point，Android = 截图像素）；
+  `wait --region` 不再依赖 DeviceHub 标定，但仍按同一坐标系使用。
+- `verify` / `wait` 的 `--json` 增加 `regionPixels`（实际参与指纹比较的截图 px；`region` 仍是输入坐标）；
+  `size` 回退时增加 `scaleReason`（`no-device-type` / `no-devicetypes` / `unknown-device-type` /
+  `no-capabilities`），排障时能看出卡在哪一步。
+- 标定不缓存：`tap` / `drag` / `verify` 每次现算（旧缓存会在 DeviceHub 缩放 / 侧栏布局变化后
+  复用旧 `deviceRect` 静默点偏；代价是每次多一次标定，约 0.5–1s）。
+- `shot`（模拟器 / Android）不再做全黑警告：深色界面是正常内容；只有 `shot --real` 保留该提示。
+- 参数校验改为命令表驱动：位置参数个数、平台、选项亲和性定义在一处。
+- 临时文件统一由 `tempPath` / `withTempFile` 管理；Android 指纹采样改为内存直取，不再每帧落盘。
+- `ScreenFingerprint` 固定像素采样步长（去掉同名不同单位的 `step` 参数）。
+
+### Fixed
+- iOS 模拟器 `tap` / `drag` / `verify` 的 `deviceRect` 补回窗口原点（`screencapture -R` 截的是
+  窗口局部图），修复 0.3.3 起「窗口不在 (0,0) 时点击整体偏移、且仍报成功」；`#145` 回归用例
+  改为真实屏幕坐标，并新增「点击结果必须落在 `deviceRect` 内」断言。
+- `size` / `verify` 的像素密度：`device.plist` 的 `deviceType` 是标识符，而 DeviceTypes 目录名是
+  人类可读名（含空格），改为用 `simctl list devicetypes --json` 的 `bundlePath` 定位
+  `capabilities.plist`。此前 `scaleSource` 永远 `fallback`，iPad 等非 3x 设备会算错 point 尺寸。
+- 密度兜底按宽高比识别 iPad / 横屏：`1488×2266` 的 iPad mini 不再被宽度启发式判成 3x；
+  横屏 iPhone（`2622×1206`）也不会再被误判成 2x。
+- Device Hub 窗口标题校验容忍 `Simulator` / `模拟器` 后缀（部分 Xcode 会这样写），
+  同时仍拒绝 `iPhone 17 Pro` 误配 `iPhone 17 Pro Max`。
+- `list --real`：`transportType` / `bootState` 缺失时不再输出字符串 `"null"` 或空串；
+  `state` 回落 `tunnelState`，空字段在 JSON 里省略；文本表把状态显示成中文（JSON 仍保留 raw）；
+  `shot --real` 失败文案带 `state=` 原文，且 `tunnelState=connected` 也会被当作可用。
+- `drag` 在异常 / 超时路径补发一次幂等 `du:`：cliclick 被 kill 时不会执行 args 末尾的 `du:`，
+  否则宿主左键会留在按下状态，之后所有 `tap` 都被系统当成拖拽延续而静默失效。
+- `tap` / `drag` 默认在点击前先发 `du:.`（当前位置释放，和点击串在同一次 cliclick 调用），
+  自动清掉上一次中断留下的按键状态；新增 `--no-release-mouse` 关闭预释放与 `verify` 失败后的自动释放。
+- `verify` 没变化时读一次 `CGEventSource.buttonState`（仅失败路径调用 swift）：若左键仍按下则
+  尝试 `du:.` 释放，并在 JSON 输出 `mouseButtonDown` / `releasedMouse` 与对应 `hint`；
+  探针 / 释放使用 5s 短超时，`swift` 挂起不再把命令拖到 120s。
+- 指定一台存在但未启动的模拟器时，报「模拟器存在但未启动：…（先 device boot）」，
+  不再误报「找不到匹配的模拟器」。
+- `calibrate --json` 的 `screenshot.scale` 优先使用标定时读到的真实密度
+  （`ScreenMetrics.scale` → `Calibration.deviceScale`）；非整除宽度不再因整数除法反推而偏差。
+- Device Hub 窗口显示的设备与 `--device` 不一致时直接报错（exit 3），不再静默标定 / 点击另一台；
+  「识别不到机身」的提示区分「被遮挡」与「窗口里选中的设备已关机 / 没有实时预览」，并附窗口标题。
+
 ## 0.3.3
 
 ### Fixed
