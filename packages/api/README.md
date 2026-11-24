@@ -306,6 +306,31 @@ final registry = DioRegistry.forBaseUrl(
 );
 ```
 
+### 刷新客户端（同一 baseUrl 的例外）
+
+`WTokenInterceptor.tokenRefresher` 是调用方自管的刷新入口。刷新请求通常需要更长的
+`connectTimeout`，并且**不能**再挂 `WTokenInterceptor`（否则刷新请求返回 401 会递归）。
+这种情况可以单独构造一个只用于刷新的 Dio：
+
+```dart
+final refreshDio = Dio(
+  WApiSettings.baseOptions.copyWith(
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+  ),
+);
+// 只挂日志等无 401 刷新的拦截器；不要挂 WTokenInterceptor。
+final response = await refreshDio.post<Map<String, dynamic>>(
+  '/auth/refresh',
+  data: {'refresh_token': currentRefreshToken},
+);
+// 解析 response.data 里的 access_token，持久化后让 tokenGetter 返回新值。
+```
+
+这是「不要裸 `Dio()`」的唯一例外；普通业务请求仍然必须走 `DioRegistry`。
+`DioRegistry` 目前按 `baseUrl` 单 key，同一 baseUrl 的第二套完整配置不会被缓存；
+需要 registry 级别的多客户端时，等 7.0 的 registry 收敛（见 issue #285）。
+
 ### 拦截器顺序与绑定
 
 - `DioRegistry.forBaseUrl(interceptors: [...])` 会为 `WTokenInterceptor` /

@@ -31,7 +31,7 @@ enum WAsyncPagedFooterStatus {
   /// 已翻过页且没有更多。
   noMore,
 
-  /// 可以继续上拉 / 加载更多。
+  /// 可以继续加载下一页；不是“正在加载”（正在加载看 `loading`）。
   loadMore,
 }
 

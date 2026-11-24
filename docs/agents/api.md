@@ -107,6 +107,8 @@ await client.upload<void>(
 ## 不要用
 
 - 用裸 `Dio()` 绕过 `DioRegistry`；必须裸用时给 token / retry 拦截器构造传 `dio:`，否则 401 刷新与重试都无法重放；
+  唯一例外是 `tokenRefresher` 内部的刷新客户端：它需要独立超时且不能挂 `WTokenInterceptor`（避免刷新请求 401 递归），
+  可用 `WApiSettings.baseOptions.copyWith(...)` 构造，业务请求仍走 `DioRegistry`；
 - 同一 `baseUrl` 第二次传不同 `options` / `interceptors`（会抛 `ArgumentError`）；
   需要换配置用 `replace: true` 或先 `dispose`；
 - 依赖日志拦截器做业务错误处理；日志只输出技术信息，UI 文案按 `WApiException.kind` 映射；
