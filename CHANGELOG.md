@@ -1,3 +1,8 @@
+## 21.1.3
+
+### Changed
+- `w_tools_form` 约束抬到 `^8.2.1`，接入 `heightIsMinimum` 在有界父级里按内容收缩的修复。
+
 ## 21.1.2
 
 ### Changed

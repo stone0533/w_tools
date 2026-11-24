@@ -1,3 +1,10 @@
+## 8.2.1
+
+### Fixed
+- `WFormFieldStyle.height` 作为最小高度时，不再在有界父级（`Scaffold body`、固定高
+  `Container`、bottom sheet 等）里铺满整个可用高度；字段按内容收缩，再由 `minHeight`
+  抬起。`heightIsMinimum: false` 的固定高度行为不变。
+
 ## 8.2.0
 
 ### Added

@@ -68,26 +68,36 @@ class WFormFieldFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = Row(
+      children: [
+        leading ?? const SizedBox.shrink(),
+        Expanded(
+          child: Container(
+            transform: yOffset != null ? Matrix4.translationValues(0, yOffset!, 0) : null,
+            child: child,
+          ),
+        ),
+        ...?actions,
+      ],
+    );
+    final minHeight = heightIsMinimum ? height : null;
     return Container(
       height: heightIsMinimum ? null : height,
-      constraints: heightIsMinimum && height != null ? BoxConstraints(minHeight: height!) : null,
+      constraints: minHeight != null ? BoxConstraints(minHeight: minHeight) : null,
       width: width,
-      alignment: Alignment.center,
+      // 有 minHeight 时不能用 Container(alignment:)：它内部的 Align 在
+      // 有界父级里会撑满 max 高度。改为按内容收缩后再由 minHeight 抬起。
+      alignment: minHeight == null ? Alignment.center : null,
       decoration: decoration,
       margin: margin,
       padding: padding,
-      child: Row(
-        children: [
-          leading ?? const SizedBox.shrink(),
-          Expanded(
-            child: Container(
-              transform: yOffset != null ? Matrix4.translationValues(0, yOffset!, 0) : null,
-              child: child,
+      child: minHeight == null
+          ? content
+          : Align(
+              alignment: Alignment.center,
+              heightFactor: 1,
+              child: content,
             ),
-          ),
-          ...?actions,
-        ],
-      ),
     );
   }
 

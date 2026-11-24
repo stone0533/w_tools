@@ -77,7 +77,8 @@ WFormFieldStyleScope(
 `WFormFieldStyleScope` 默认**整体替换**页面样式（只传 height 会丢 padding / 文字 / 占位样式）；
 只改部分字段用 `mergeWithParent: true`（null = 沿用外层），要清空 / 完全接管才用默认替换；
 `pageStyle.copyWith(...)` 适合显式派生完整样式；
-`WFormFieldStyle.height` 对文本 / 下拉是最小高度（错误文案 / 计数器 / 多行会撑高），
+`WFormFieldStyle.height` 对文本 / 下拉是最小高度（错误文案 / 计数器 / 多行会撑高；
+有界父级里按内容收缩，不铺满父级），
 单选组等由内容决定高度。
 
 10. 其他字段与弹层：

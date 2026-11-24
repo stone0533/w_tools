@@ -25,7 +25,7 @@ CatalogEntry? findComponent(String name) {
 /// 关键词搜索：名字、别名、用途、反例、分组任一命中
 List<CatalogEntry> searchComponents(String query) {
   final q = query.trim().toLowerCase();
-  if (q.isEmpty) return catalogEntries;
+  if (q.isEmpty) return List.of(catalogEntries);
   return catalogEntries.where((entry) {
     if (entry.names.any((n) => n.toLowerCase().contains(q))) return true;
     if (entry.aliases.any((n) => n.toLowerCase().contains(q))) return true;
