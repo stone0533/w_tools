@@ -2,7 +2,26 @@
 
 ## 待处理
 
-（暂无）
+### [待处理] form: form 8.2：WFormFieldStyle.height 作为最小高度时，字段在有界父级里铺满整个高度（应为按内容收缩）
+
+- 包/版本：w_tools_form 8.2.0（override 到本地检出，pub 8.2.0 同源）
+- 环境：Flutter / macOS，项目 ureward_member_app；`flutter test` 375×812
+- 命令 / 输入：`WForm` + `WFormFieldStyle(height: 40)` + `WFormTextField`（dart 片段见下）
+  ```dart
+  Scaffold(
+    body: WForm(
+      controller: WFormController(),
+      fieldStyle: WFormFieldStyle(height: 40),
+      child: WFormTextField(name: 'a', bordered: false),
+    ),
+  )
+  ```
+- 期望：字段高度 = max(40, 内容高度)，即 40（`heightIsMinimum` 的语义是「内容更高时才长高」）。
+- 实际：`WFormFieldFrame` 高度 = 812（父级可用高度全占），TextField 在 812 高里垂直居中；`WFormFieldFrame` 尺寸 375×812，`Align` 343×812，`ConstrainedBox` 约束 `40<=h<=812`。
+- 影响：字段放进**有界但非紧约束**的父级（Scaffold body、固定高 Container、bottom sheet 主体等）会被拉成整屏高，布局看起来像「字段不见了 / 表单中间一大片空白」。本项目的 OTP 输入框回归测试就是按 40.w 找字段容器而失败（`test/register/otp_field_padding_test.dart`）。真实页面里字段都在 SingleChildScrollView（无界高度）里，所以没炸，但这是个很容易踩的隐性契约。
+- 建议：`lib/src/components/field_frame.dart` 的 `heightIsMinimum` 分支不要用 `Container(alignment: center, constraints: minHeight)`（Container 带 alignment 时内部 Align 会撑满 max 约束）。改成 `ConstrainedBox(minHeight: height) > Align(heightFactor: 1, child: ...)`（与 `WNavBar` 的最小高度写法一致），就能「按内容收缩、再被 minHeight 抬起」。
+- 复现数据：`WFormFieldStyle(height: 40)` + `WFormTextField(bordered: false)`，375×812；`tester.getRect(WFormFieldFrame)` = 0,0,375,812。
+- 状态变更：2026-11-24 待处理
 
 ## 已闭环
 

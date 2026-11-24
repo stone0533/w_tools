@@ -63,6 +63,17 @@ names = [
     r'WAsyncPagedList\.strings\b',
     r'WAsyncPagedSliver\.(?:ready|footer|strings)\b',
     r'WAsyncPagedList\.(?:refreshController|header|footer)\b',
+    # device 0.4.0：删除 type / --no-cache / 标定缓存，收掉公开 barrel。
+    r'\bCalibrationStore\b', r'Calibration\.(?:fromJson|matches)\b',
+    r'Adb\.(?:resolve|requirePackage|text|escapeTextArgument)\b',
+    r'Input\.type\b',
+    r'DeviceOptions\.(?:deviceOrFirst|seen|noCache|scale)\b',
+    r'\bDeviceCliDeps\b',
+    r'Simctl\.(?:resolve|guessScale)\b',
+    r'RealDevice\.resolve\b',
+    r'AndroidDevice\.(?:product|transport)\b',
+    r'--no-cache',
+    r'device_smoke',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # app_getx 2.0：全局语言状态与静态路由栈收口。
     r'\bWAppConfig\b', r'WLocaleConfig\.defaultLanguage', r'WLanguage\.languageStream',

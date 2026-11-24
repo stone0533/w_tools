@@ -5,7 +5,6 @@ import 'package:image/image.dart' as img;
 
 import '../android.dart';
 import '../calibration.dart';
-import '../calibration_store.dart';
 import '../device_hub.dart';
 import '../geometry.dart';
 import '../input.dart';
@@ -13,18 +12,17 @@ import '../options.dart';
 import '../real_device.dart';
 import '../simctl.dart';
 import '../stability.dart';
+import '../temp.dart';
 
-part 'device_ios_commands.dart';
 part 'device_android_commands.dart';
+part 'device_ios_commands.dart';
 
 /// 与 pubspec 版本保持一致；`test/docs_test.dart` 会守住。
-const String deviceCliVersion = '0.3.3';
+const String deviceCliVersion = '0.4.0';
 
-var _tempSeq = 0;
-
-/// 内部截图/指纹临时文件；避免并发命令互相覆盖。
-String _tempFile(String prefix, String ext) =>
-    '${Directory.systemTemp.path}/${prefix}_${DateTime.now().microsecondsSinceEpoch}_${_tempSeq++}.$ext';
+/// `--json` 的 schema 版本。2：删掉 `real` / drag 的 legacy `from`/`to`，
+/// 错误 JSON 也带 `platform`。
+const int deviceJsonSchemaVersion = 2;
 
 /// 已按退出码分类的 CLI 错误；人类可读消息 + 可选 usage。
 class DeviceCliException implements Exception {
@@ -38,77 +36,69 @@ class DeviceCliException implements Exception {
   String toString() => message;
 }
 
-/// 可注入的 CLI 依赖：测试可在进程内替换设备/输出，不依赖 PATH 假命令。
-class DeviceCliDeps {
-  DeviceCliDeps({
-    Simctl Function()? simctl,
-    Adb Function()? adb,
-    Devicectl Function()? devicectl,
-    DeviceHub Function()? deviceHub,
-    Input Function()? input,
-    CalibrationStore Function()? calibrationStore,
+/// CLI 依赖：显式传入实例（测试直接注入）。
+///
+/// 没有全局可变状态，也没有「工厂闭包」这层间接 —— 需要替换哪个外部命令，
+/// 就给那个类传一个假 [Shell]。
+class DeviceRuntime {
+  DeviceRuntime({
+    Simctl? simctl,
+    Adb? adb,
+    Devicectl? devicectl,
+    DeviceHub? deviceHub,
+    Input? input,
     void Function(String)? write,
     void Function(String)? writeError,
-  })  : _simctl = simctl ?? (() => Simctl()),
-        _adb = adb ?? (() => Adb()),
-        _devicectl = devicectl ?? (() => Devicectl()),
-        _deviceHub = deviceHub ?? (() => DeviceHub()),
-        _input = input ?? (() => Input()),
-        _calibrationStore = calibrationStore ?? (() => CalibrationStore()),
+  })  : simctl = simctl ?? Simctl(),
+        adb = adb ?? Adb(),
+        devicectl = devicectl ?? Devicectl(),
+        deviceHub = deviceHub ?? DeviceHub(),
+        input = input ?? Input(),
         _write = write ?? stdout.write,
         _writeError = writeError ?? stderr.write;
 
-  final Simctl Function() _simctl;
-  final Adb Function() _adb;
-  final Devicectl Function() _devicectl;
-  final DeviceHub Function() _deviceHub;
-  final Input Function() _input;
-  final CalibrationStore Function() _calibrationStore;
+  final Simctl simctl;
+  final Adb adb;
+  final Devicectl devicectl;
+  final DeviceHub deviceHub;
+  final Input input;
   final void Function(String) _write;
   final void Function(String) _writeError;
 
-  Simctl simctl() => _simctl();
-  Adb adb() => _adb();
-  Devicectl devicectl() => _devicectl();
-  DeviceHub deviceHub() => _deviceHub();
-  Input input() => _input();
-  CalibrationStore calibrationStore() => _calibrationStore();
   void write(String text) => _write(text);
   void writeError(String text) => _writeError(text);
 }
 
-DeviceCliDeps _deps = DeviceCliDeps();
-
 const _usage = '''
-w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 list/shot
+w_tools_device —— iOS 模拟器 / Android（模拟器 + 真机）可交互；iOS 真机 list/shot
 
 用法：
   dart run w_tools_device:device list                 # 列出模拟器（udid / 名称 / 状态）
   dart run w_tools_device:device list --real          # 列出物理真机（devicectl）
   dart run w_tools_device:device list --android       # 列出 Android 设备（adb）
-  dart run w_tools_device:device boot <名称|udid>      # 启动并等待可用（省略时用第一台/已启动）
-  dart run w_tools_device:device shot --out=<path>    # 截设备屏（也支持 --out <path>；--real 走 devicectl）
-  dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
+  dart run w_tools_device:device boot <名称|udid>      # 启动并等待可用（省略时用唯一匹配的模拟器）
+  dart run w_tools_device:device shot --out=<path>    # 截设备屏（--real 走 devicectl）
+  dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标（每次现算）
   dart run w_tools_device:device tap <x> <y>          # 用设备坐标点（自动换算成屏幕坐标）
   dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
-  dart run w_tools_device:device type <text>          # 实验：输入文本（先点中输入框）
-  dart run w_tools_device:device size                 # 设备分辨率（iOS=point，Android=像素）
+  dart run w_tools_device:device size                 # 分辨率（iOS=point + 截图 px；Android=像素）
   dart run w_tools_device:device foreground --android # 前台 App 包名（仅 Android）
   dart run w_tools_device:device wait                 # 等画面稳定
-  dart run w_tools_device:device verify <x> <y>       # 点一下并确认画面有变化（坐标自检）
+  dart run w_tools_device:device verify <x> <y>       # 点一下并确认画面真的变了（坐标自检）
 
 可选：
-  --device=<udid|名称>   指定设备（默认用已启动的 / 第一台；也支持 --device <值>）
-  --no-cache            忽略标定缓存，强制重算（仅 iOS 模拟器 tap/drag/verify；
-                        DeviceHub 缩放/布局变化后也要用）
-  --scale=3             设备像素密度；仅 iOS 模拟器 calibrate/tap/drag/size/wait/verify
+  --device=<udid|名称>   指定设备（默认用唯一已启动的；多台命中会报错，不会静默取第一台）
   --timeout-ms=15000    等待超时；wait 一次，verify 为点击前+后的总预算
   --stable-ms=600       画面稳定判定窗口；仅 wait / verify
-  --region=x,y,w,h      只看这块区域；iOS 模拟器=设备坐标(point)，Android=截图像素；verify/wait 用
+  --region=x,y,w,h      只看这块区域（与 tap 同坐标系：iOS=设备 point，Android=截图像素）；
+                        verify/wait 用
+  --no-release-mouse    iOS 交互命令默认先释放宿主左键（du:.）再点，verify 失败时也会
+                        自动释放；需要保留进行中的拖拽 / 完全不动鼠标时关闭
+                        （tap / drag / verify）
   --real                操作物理真机（仅 list / shot；点击需要 idb，本工具不支持）
-  --android             走 Android（adb）：list/shot/tap/drag/type/size/wait/verify/foreground 都支持，
+  --android             走 Android（adb）：list/shot/tap/drag/size/wait/verify/foreground，
                         坐标是**截图像素**（不需要标定，也不需要 cliclick）
-  --json                输出 JSON（schemaVersion=1，给脚本 / CI 用）
+  --json                输出 JSON（schemaVersion=$deviceJsonSchemaVersion，给脚本 / CI 用）
   --version             打印版本
   --help                打印本帮助
 
@@ -117,134 +107,87 @@ w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 li
 依赖：macOS + Xcode；`brew install cliclick`；给宿主 App 开「辅助功能」+「屏幕录制」。
 ''';
 
-Future<void> runDeviceCli(List<String> args, {DeviceCliDeps? deps}) async {
-  final previous = _deps;
-  if (deps != null) _deps = deps;
-  try {
-    await _runDeviceCli(args);
-  } finally {
-    _deps = previous;
-  }
-}
-
-Future<void> _runDeviceCli(List<String> args) async {
+Future<void> runDeviceCli(List<String> args, {DeviceRuntime? runtime}) async {
+  final rt = runtime ?? DeviceRuntime();
   final wantsJson = args.contains('--json');
+  final fallbackPlatform = _platformFromArgs(args);
   if (args.isEmpty) {
-    _deps.write(_usage);
+    rt.write(_usage);
     exitCode = 2;
     return;
   }
   if (args.first == '-h' || args.first == '--help') {
-    _deps.write(_usage);
+    rt.write(_usage);
     exitCode = 0;
     return;
   }
   if (args.length == 1 && args.first == '--version') {
-    _deps.write('w_tools_device $deviceCliVersion\n');
+    rt.write('w_tools_device $deviceCliVersion\n');
     return;
   }
 
   DeviceOptions? options;
-  final simctl = _deps.simctl();
   try {
     options = DeviceOptions.parse(args);
     options.validate();
     final o = options;
     switch (o.command) {
       case 'list':
-        if (o.android) {
-          await _androidList(o);
-        } else {
-          await _list(o, simctl);
-        }
+        await _list(rt, o);
       case 'boot':
-        await _boot(simctl, o);
+        await _boot(rt, o);
       case 'shot':
-        if (o.android) {
-          await _androidShot(o);
-        } else {
-          await _shot(simctl, o);
-        }
+        await _shot(rt, o);
       case 'calibrate':
-        final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-        _emitCalibration(o, await _calibrate(simctl, o, udid, force: true), deviceId: udid);
+        final target = await _resolveSim(rt, o, bootedOnly: true);
+        final cal = await _calibrate(rt, target);
+        _emit(rt, o, {...cal.toJson(), 'deviceId': target.udid}, _calibrationText(cal));
       case 'tap':
-        if (o.android) {
-          await _androidTap(o);
-        } else {
-          await _tap(simctl, o);
+        switch (o.platform) {
+          case DevicePlatform.android:
+            await _androidTap(rt, o);
+          case DevicePlatform.iosSimulator:
+            await _tap(rt, o);
+          case DevicePlatform.iosDevice:
+            throw _unsupportedOnReal('tap');
         }
       case 'drag':
-        if (o.android) {
-          await _androidDrag(o);
-        } else {
-          await _drag(simctl, o);
+        switch (o.platform) {
+          case DevicePlatform.android:
+            await _androidDrag(rt, o);
+          case DevicePlatform.iosSimulator:
+            await _drag(rt, o);
+          case DevicePlatform.iosDevice:
+            throw _unsupportedOnReal('drag');
         }
-      case 'type':
-        if (o.android) {
-          final serial = await _androidSerial(o);
-          await _deps.adb().text(serial, o.positional.join(' '));
-        } else {
-          await _requireCliclick();
-          await _deps.input().type(o.positional.join(' '));
-        }
-        _emit(o, {'text': o.positional.join(' ')}, '已输入：${o.positional.join(' ')}');
       case 'size':
-        if (o.android) {
-          final serial = await _androidSerial(o);
-          final size = await _deps.adb().screenSize(serial);
-          _emit(
-            o,
-            {
-              'width': size.$1,
-              'height': size.$2,
-              'serial': serial,
-              'deviceId': serial,
-              'android': true,
-            },
-            '${size.$1} x ${size.$2}（像素）',
-          );
-        } else {
-          final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-          final size = await simctl.screenshotSize(udid);
-          final scale = o.scale ?? Simctl.guessScale(size.$1);
-          final width = size.$1 ~/ scale;
-          final height = size.$2 ~/ scale;
-          _emit(
-            o,
-            {
-              'width': width,
-              'height': height,
-              'deviceId': udid,
-              'android': false,
-            },
-            '$width x $height（point）',
-          );
+        switch (o.platform) {
+          case DevicePlatform.android:
+            await _androidSize(rt, o);
+          case DevicePlatform.iosSimulator:
+            await _simSize(rt, o);
+          case DevicePlatform.iosDevice:
+            throw _unsupportedOnReal('size');
         }
       case 'foreground':
-        if (!o.android) {
-          throw const DeviceCliException('foreground 只支持 --android（iOS 请用 flutter run 的日志判断）', 2);
-        }
-        final serial = await _androidSerial(o);
-        final pkg = await _deps.adb().currentPackage(serial);
-        if (pkg.isEmpty) {
-          throw const DeviceCliException(
-            '取不到 Android 前台包名（设备可能锁屏 / 无 Activity）',
-            3,
-          );
-        }
-        _emit(o, {'package': pkg, 'serial': serial, 'deviceId': serial}, pkg);
+        await _androidForeground(rt, o);
       case 'wait':
-        if (o.android) {
-          await _androidWait(o);
-        } else {
-          await _wait(simctl, o);
+        switch (o.platform) {
+          case DevicePlatform.android:
+            await _androidWait(rt, o);
+          case DevicePlatform.iosSimulator:
+            await _wait(rt, o);
+          case DevicePlatform.iosDevice:
+            throw _unsupportedOnReal('wait');
         }
       case 'verify':
-        if (o.android) {
-          await _androidVerify(o);
-        } else {
-          await _verify(simctl, o);
+        switch (o.platform) {
+          case DevicePlatform.android:
+            await _androidVerify(rt, o);
+          case DevicePlatform.iosSimulator:
+            await _verify(rt, o);
+          case DevicePlatform.iosDevice:
+            throw _unsupportedOnReal('verify');
         }
       default:
         throw DeviceCliException(
@@ -254,71 +197,102 @@ Future<void> _runDeviceCli(List<String> args) async {
         );
     }
   } on DeviceCliException catch (e) {
-    _fail(options, e.message, e.exitCode, jsonRequested: wantsJson, usage: e.showUsage);
+    _fail(
+      rt,
+      options,
+      e.message,
+      e.exitCode,
+      jsonRequested: wantsJson,
+      platform: options?.platform ?? fallbackPlatform,
+      usage: e.showUsage,
+    );
   } on VerificationTimeout catch (e) {
-    _fail(options, e.message, 3, jsonRequested: wantsJson);
+    _fail(rt, options, e.message, 3, jsonRequested: wantsJson, platform: fallbackPlatform);
   } on ProcessException catch (e) {
-    _fail(options, '命令执行失败：${e.message}', 3, jsonRequested: wantsJson);
+    _fail(rt, options, '命令执行失败：${e.message}', 3,
+        jsonRequested: wantsJson, platform: fallbackPlatform);
   } on FormatException catch (e) {
-    _fail(options, '参数错误：${e.message}', 2, jsonRequested: wantsJson);
+    _fail(rt, options, '参数错误：${e.message}', 2,
+        jsonRequested: wantsJson, platform: fallbackPlatform);
   } on StateError catch (e) {
-    _fail(options, e.message, 2, jsonRequested: wantsJson);
+    _fail(rt, options, e.message, 2, jsonRequested: wantsJson, platform: fallbackPlatform);
   } on FileSystemException catch (e) {
-    _fail(options, '文件操作失败：${e.message}', 3, jsonRequested: wantsJson);
+    _fail(rt, options, '文件操作失败：${e.message}', 3,
+        jsonRequested: wantsJson, platform: fallbackPlatform);
   } on Exception catch (e) {
-    _fail(options, '执行失败：$e', 4, jsonRequested: wantsJson);
+    _fail(rt, options, '执行失败：$e', 4, jsonRequested: wantsJson, platform: fallbackPlatform);
   }
 }
 
-/// iOS 模拟器点击依赖 cliclick；提前给出可执行的安装提示，而不是让 ProcessException 裸奔。
-Future<void> _requireCliclick() async {
-  if (!await _deps.input().available()) {
-    throw const DeviceCliException('找不到 cliclick；先 brew install cliclick（iOS 模拟器点击依赖它）', 3);
-  }
+/// 该命令在平台表里已排除 iOS 真机；这里只是把错误变成明确文案。
+DeviceCliException _unsupportedOnReal(String command) =>
+    DeviceCliException('$command 只支持 iOS 模拟器 / Android（不支持 iOS 真机）', 2);
+
+/// 参数解析失败时 `DeviceOptions` 还不存在，用原始参数推断平台，保证错误 JSON 也有 `platform`。
+DevicePlatform _platformFromArgs(List<String> args) {
+  if (args.contains('--android')) return DevicePlatform.android;
+  if (args.contains('--real')) return DevicePlatform.iosDevice;
+  return DevicePlatform.iosSimulator;
 }
 
-String _platformOf(DeviceOptions o) {
-  if (o.android) return 'android';
-  if (o.real) return 'ios-device';
-  return 'ios-simulator';
-}
+/// `--region` 的 JSON 视图（null = 整屏）。
+Map<String, Object?>? regionJson(DRect? region) => region == null
+    ? null
+    : {
+        'x': region.left,
+        'y': region.top,
+        'w': region.width,
+        'h': region.height,
+      };
 
 /// 输出：`--json` 打 JSON，否则打人类可读文本。
-void _emit(DeviceOptions o, Map<String, Object?> data, String human) {
+///
+/// [ok] 只表示「命令是否按预期完成」：`verify` 没变化仍算完成（findings，退出码 1），
+/// `wait` 超时算未完成（退出码 3，`ok:false`）。
+void _emit(
+  DeviceRuntime rt,
+  DeviceOptions o,
+  Map<String, Object?> data,
+  String human, {
+  bool ok = true,
+}) {
   if (o.json) {
-    _deps.write(
+    rt.write(
       '${jsonEncode(<String, Object?>{
-            'schemaVersion': 1,
-            'ok': true,
+            'schemaVersion': deviceJsonSchemaVersion,
+            'ok': ok,
             'command': o.command,
-            'platform': _platformOf(o),
+            'platform': o.platform.wireName,
             ...data,
           })}\n',
     );
   } else {
-    _deps.write('$human\n');
+    rt.write('$human\n');
   }
 }
 
 void _fail(
+  DeviceRuntime rt,
   DeviceOptions? o,
   String message,
   int code, {
-  bool jsonRequested = false,
+  required bool jsonRequested,
+  required DevicePlatform platform,
   bool usage = false,
 }) {
   final asJson = o?.json ?? jsonRequested;
   if (asJson) {
-    _deps.write(
+    rt.write(
       '${jsonEncode(<String, Object?>{
-            'schemaVersion': 1,
+            'schemaVersion': deviceJsonSchemaVersion,
             'ok': false,
             'command': o?.command,
+            'platform': (o?.platform ?? platform).wireName,
             'error': message,
           })}\n',
     );
   } else {
-    _deps.writeError(usage ? '$message\n\n$_usage' : '$message\n');
+    rt.writeError(usage ? '$message\n\n$_usage' : '$message\n');
   }
   exitCode = code;
 }

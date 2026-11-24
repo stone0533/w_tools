@@ -52,6 +52,20 @@ class DeviceHub {
     return parseWindow('${r.stdout}');
   }
 
+  /// 读窗口标题（例如 `iPhone 17 Pro – iOS 26.5`）。
+  ///
+  /// 用来核对 Device Hub 当前显示的设备与 `--device` 是否一致；
+  /// 读不到（未运行 / 无权限 / 未来 Xcode 改标题）返回 null，调用方应跳过校验。
+  Future<String?> title() async {
+    final r = await _shell.run('osascript', [
+      '-e',
+      'tell application "System Events" to tell process "DeviceHub" to get name of window 1',
+    ]);
+    if (r.exitCode != 0) return null;
+    final text = '${r.stdout}'.trim();
+    return text.isEmpty ? null : text;
+  }
+
   /// 解析 osascript 的 `x, y, w, h` 输出（单独暴露便于单测）。
   static HubWindow? parseWindow(String text) {
     final nums =

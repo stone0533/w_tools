@@ -9,7 +9,7 @@
 - major：同 minor，但允许删除；
 - 版本没抬（pubspec == 快照）时出现公开 API 变化直接失败。
 
-`cli` 没有 barrel，接口是命令 / catalog / 模板，`mode: tool` 跳过成员计数；
+`cli` / `device` 没有 barrel，接口是命令 / catalog / 模板，`mode: tool` 跳过成员计数；
 根包 `w_tools` 只重导出，不纳入本脚本（避免同一 API 重复计数）。
 
 用法：

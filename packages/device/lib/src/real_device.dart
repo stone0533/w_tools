@@ -9,7 +9,7 @@ class RealDevice {
     required this.udid,
     required this.name,
     required this.osVersion,
-    required this.bootState,
+    required this.state,
     required this.transport,
     required this.paired,
   });
@@ -17,18 +17,41 @@ class RealDevice {
   final String udid;
   final String name;
   final String osVersion;
-  final String bootState;
-  final String transport;
+
+  /// devicectl 能给到的最佳状态：`deviceProperties.bootState` →
+  /// `connectionProperties.tunnelState` → `unknown`。
+  ///
+  /// 设备 unavailable 时 devicectl 常常不给 `bootState`，只给
+  /// `tunnelState: unavailable`；这里统一成一句能看懂的 state，避免空串。
+  final String state;
+
+  /// `wired` / `localNetwork`；devicectl 没给时为 null（JSON 里省略）。
+  final String? transport;
+
   final bool paired;
 
-  bool get isBooted => bootState.toLowerCase() == 'booted';
+  /// 能尝试截图：`booted`，或 devicectl 只给了 `tunnelState=connected`。
+  bool get isUsable {
+    final normalized = state.toLowerCase();
+    return normalized == 'booted' || normalized == 'connected';
+  }
+
+  /// 人读状态标签（只用于终端表格；`--json` 里保留 raw state）。
+  static String stateLabel(String state) => switch (state.toLowerCase()) {
+        'booted' => '已启动',
+        'connected' => '已连接',
+        'unavailable' => '不可用',
+        'disconnected' => '已断开',
+        'shutdown' => '已关机',
+        _ => state,
+      };
 
   Map<String, Object?> toJson() => {
         'udid': udid,
         'name': name,
         'osVersion': osVersion,
-        'bootState': bootState,
-        'transport': transport,
+        'state': state,
+        if (transport != null) 'transport': transport,
         'paired': paired,
       };
 }
@@ -81,16 +104,19 @@ class Devicectl {
       final props = d['deviceProperties'];
       final conn = d['connectionProperties'];
       if (hw is! Map || props is! Map) continue;
-      final transport = conn is Map ? '${conn['transportType']}' : '';
+      final transport = conn is Map ? _string(conn['transportType']) : null;
       if ('${hw['platform']}' == 'simulator' || transport == 'sameMachine') continue;
       final udid = '${hw['udid'] ?? d['identifier'] ?? ''}';
       if (udid.isEmpty) continue;
+      final state = _string(props['bootState']) ??
+          (conn is Map ? _string(conn['tunnelState']) : null) ??
+          'unknown';
       out.add(
         RealDevice(
           udid: udid,
           name: '${props['name'] ?? ''}',
           osVersion: '${props['osVersionNumber'] ?? ''}',
-          bootState: '${props['bootState'] ?? ''}',
+          state: state,
           transport: transport,
           paired: conn is Map && '${conn['pairingState']}' == 'paired',
         ),
@@ -99,12 +125,22 @@ class Devicectl {
     return out;
   }
 
-  /// 按 udid / 名称 / 名称子串挑设备。
-  static RealDevice? resolve(List<RealDevice> all, String? query) {
-    if (query == null || query.isEmpty) return all.firstOrNull;
-    return all.where((d) => d.udid == query).firstOrNull ??
-        all.where((d) => d.name == query).firstOrNull ??
-        all.where((d) => d.name.toLowerCase().contains(query.toLowerCase())).firstOrNull;
+  /// devicectl 的字段可能缺失；`'$value'` 拼出来会是字符串 `"null"`，这里统一成 null。
+  static String? _string(Object? value) {
+    if (value == null) return null;
+    final text = '$value'.trim();
+    return text.isEmpty || text == 'null' ? null : text;
+  }
+
+  /// 按 udid / 名称精确匹配，其次按名称子串；返回**全部**命中项。
+  ///
+  /// 调用方必须在命中多台时报歧义（exit 2），不能静默取第一台。
+  static List<RealDevice> matches(List<RealDevice> all, String? query) {
+    if (query == null || query.isEmpty) return all;
+    final exact = all.where((d) => d.udid == query || d.name == query).toList();
+    if (exact.isNotEmpty) return exact;
+    final lower = query.toLowerCase();
+    return all.where((d) => d.name.toLowerCase().contains(lower)).toList();
   }
 
   /// 真机截图（需要设备已解锁并信任）。

@@ -45,27 +45,28 @@ class Stability {
 
 /// 截图指纹：相等即「画面没变」。
 ///
-/// PNG 先解码成像素再采样，避免「同一画面、不同 PNG 压缩/元数据」被误判为变化；
-/// 非 PNG（测试或异常输出）退化为长度 + 字节采样。
+/// PNG 先解码成像素再按固定步长采样，避免「同一画面、不同 PNG 压缩/元数据」
+/// 被误判为变化；非 PNG（测试或异常输出）退化为长度 + 字节采样。
 class ScreenFingerprint {
   const ScreenFingerprint._();
 
-  static String of(Uint8List bytes, {int step = 4096}) {
+  /// 采样后大约多少像素参与哈希（越大越灵敏、越慢）。
+  static const int _targetSamples = 5000;
+
+  /// 局部指纹的像素步长。
+  static const int _regionStep = 2;
+
+  static String of(Uint8List bytes) {
     final image = img.decodePng(bytes);
-    if (image == null) {
-      var acc = bytes.length;
-      for (var i = 0; i < bytes.length; i += step) {
-        acc = (acc * 31 + bytes[i]) & 0x7fffffff;
-      }
-      return '$acc';
-    }
-    // 约采样 [step] 个像素（step 是「字节步长」的旧语义，这里换算成像素步长）。
-    final stride = math.max(1, math.sqrt(step).round());
+    if (image == null) return 'raw:${bytes.length}:${_bytesHash(bytes)}';
+    final stride = math.max(
+      1,
+      math.sqrt(image.width * image.height / _targetSamples).round(),
+    );
     var acc = image.width * 1000003 + image.height;
     for (var y = 0; y < image.height; y += stride) {
       for (var x = 0; x < image.width; x += stride) {
-        final p = image.getPixel(x, y);
-        acc = (acc * 31 + p.r.toInt() + p.g.toInt() * 3 + p.b.toInt() * 7) & 0x7fffffff;
+        acc = _mix(acc, image.getPixel(x, y));
       }
     }
     return '$acc';
@@ -75,11 +76,7 @@ class ScreenFingerprint {
   /// 不会被 banner 轮播、页面滚动之类的无关变化干扰。
   ///
   /// 解码失败时退化成整图指纹（不抛）。
-  static String ofRegion(
-    Uint8List pngBytes, {
-    required DRect region,
-    int step = 2,
-  }) {
+  static String ofRegion(Uint8List pngBytes, {required DRect region}) {
     final image = img.decodePng(pngBytes);
     if (image == null) return of(pngBytes);
     final left = region.left.round().clamp(0, image.width - 1);
@@ -88,13 +85,24 @@ class ScreenFingerprint {
     final bottom = (region.top + region.height).round().clamp(top + 1, image.height);
 
     var acc = (right - left) * (bottom - top);
-    for (var y = top; y < bottom; y += step) {
-      for (var x = left; x < right; x += step) {
-        final p = image.getPixel(x, y);
-        acc = (acc * 31 + p.r.toInt() + p.g.toInt() * 3 + p.b.toInt() * 7) & 0x7fffffff;
+    for (var y = top; y < bottom; y += _regionStep) {
+      for (var x = left; x < right; x += _regionStep) {
+        acc = _mix(acc, image.getPixel(x, y));
       }
     }
     return '$acc';
+  }
+
+  static int _mix(int acc, img.Pixel pixel) =>
+      (acc * 31 + pixel.r.toInt() + pixel.g.toInt() * 3 + pixel.b.toInt() * 7) & 0x7fffffff;
+
+  static int _bytesHash(Uint8List bytes) {
+    final step = math.max(1, bytes.length ~/ 4096);
+    var acc = bytes.length;
+    for (var i = 0; i < bytes.length; i += step) {
+      acc = (acc * 31 + bytes[i]) & 0x7fffffff;
+    }
+    return acc;
   }
 }
 

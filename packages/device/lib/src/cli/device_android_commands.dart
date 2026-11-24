@@ -1,11 +1,11 @@
 part of 'device_cli.dart';
 
-Future<String> _androidSerial(DeviceOptions o) async {
-  final devices = await _deps.adb().devices();
-  final query = o.deviceQuery;
-  final matches = _androidReadyMatches(devices, query);
+Future<String> _androidSerial(DeviceRuntime rt, DeviceOptions o) async {
+  final devices = await rt.adb.devices();
+  final matches = Adb.readyMatches(devices, o.deviceQuery);
   if (matches.isEmpty) {
-    final suffix = query == null || query.isEmpty ? '' : '，未找到：$query';
+    final query = o.deviceQuery ?? '';
+    final suffix = query.isEmpty ? '' : '，未找到：$query';
     throw DeviceCliException(
       '没有就绪的 Android 设备（检查数据线 / 调试授权：adb devices -l）$suffix',
       3,
@@ -13,7 +13,8 @@ Future<String> _androidSerial(DeviceOptions o) async {
   }
   if (matches.length > 1) {
     final list = matches.map((d) => '  ${d.serial}  ${d.model}').join('\n');
-    final hint = query == null || query.isEmpty
+    final query = o.deviceQuery ?? '';
+    final hint = query.isEmpty
         ? '检测到 ${matches.length} 台就绪的 Android 设备，请用 --device=<serial|model> 指定：'
         : '匹配到 ${matches.length} 台 Android 设备，请用 --device=<serial> 精确指定：';
     throw DeviceCliException('$hint\n$list', 2);
@@ -21,152 +22,150 @@ Future<String> _androidSerial(DeviceOptions o) async {
   return matches.single.serial;
 }
 
-/// 与 [Adb.resolve] 的匹配规则一致，但保留全部命中项：
-/// 先按 serial 精确匹配，再按 model 子串匹配。命中多于一台时由调用方报歧义，
-/// 避免静默把截图 / 点击打到另一台设备。
-List<AndroidDevice> _androidReadyMatches(List<AndroidDevice> devices, String? query) {
-  final ready = devices.where((d) => d.isReady);
-  if (query == null || query.isEmpty) return ready.toList();
-  final exact = ready.where((d) => d.serial == query).toList();
-  if (exact.isNotEmpty) return exact;
-  final lower = query.toLowerCase();
-  return ready.where((d) => d.model.toLowerCase().contains(lower)).toList();
+Future<void> _androidList(DeviceRuntime rt, DeviceOptions o) async {
+  final devices = await rt.adb.devices();
+  _emit(
+    rt,
+    o,
+    {
+      'devices': [for (final d in devices) d.toJson()],
+    },
+    _androidTable(devices),
+  );
 }
 
-Future<void> _androidList(DeviceOptions o) async {
-  final devices = await _deps.adb().devices();
-  if (o.json) {
-    _emit(
-        o,
-        {
-          'android': true,
-          'devices': [for (final d in devices) d.toJson()],
-        },
-        '');
-    return;
-  }
-  if (devices.isEmpty) {
-    _deps.write('（没有 Android 设备）\n');
-    return;
-  }
+String _androidTable(List<AndroidDevice> devices) {
+  if (devices.isEmpty) return '（没有 Android 设备）';
   final b = StringBuffer('状态\t型号\t序列号\n');
   for (final d in devices) {
     b.writeln('${d.state}\t${d.model}\t${d.serial}');
   }
-  _deps.write('${b.toString().trimRight()}\n');
+  return b.toString().trimRight();
 }
 
-Future<void> _androidShot(DeviceOptions o) async {
-  final serial = await _androidSerial(o);
-  final out = o.out ?? _tempFile('w_tools_device_android_shot', 'png');
-  await _deps.adb().screenshot(serial, out);
-  final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
+Future<void> _androidShot(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
+  final out = o.out ?? tempPath('w_tools_device_android_shot', 'png');
+  await rt.adb.screenshot(serial, out);
+  _emit(rt, o, {'path': out, 'deviceId': serial}, out);
+}
+
+Future<void> _androidTap(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
+  final x = int.parse(o.positional[0]);
+  final y = int.parse(o.positional[1]);
+  await rt.adb.tap(serial, x, y);
   _emit(
+    rt,
     o,
     {
-      'path': out,
-      'serial': serial,
+      'device': {'x': x, 'y': y},
       'deviceId': serial,
-      'android': true,
-      if (dark) 'warning': '截图几乎全黑：设备可能息屏/锁屏，请点亮解锁后重试',
     },
-    dark ? '$out\n⚠️ 截图几乎全黑：设备可能息屏/锁屏' : out,
+    'tap $x, $y（像素）',
   );
 }
 
-Future<void> _androidTap(DeviceOptions o) async {
-  final serial = await _androidSerial(o);
-  final x = int.parse(o.positional[0]);
-  final y = int.parse(o.positional[1]);
-  await _deps.adb().tap(serial, x, y);
-  _emit(
-      o,
-      {
-        'device': {'x': x, 'y': y},
-        'serial': serial,
-        'deviceId': serial,
-      },
-      'tap $x, $y（像素）');
-}
-
-Future<void> _androidDrag(DeviceOptions o) async {
-  final serial = await _androidSerial(o);
+Future<void> _androidDrag(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
   final v = o.positional.map(int.parse).toList();
-  await _deps.adb().swipe(serial, v[0], v[1], v[2], v[3]);
-  final coords = {
-    'from': {'x': v[0], 'y': v[1]},
-    'to': {'x': v[2], 'y': v[3]},
-  };
+  await rt.adb.swipe(serial, v[0], v[1], v[2], v[3]);
   _emit(
-      o,
-      {
-        // 兼容旧 key；新脚本用 device/screen（Android 两者都是截图像素）。
-        ...coords,
-        'device': coords,
-        'screen': coords,
-        'serial': serial,
-        'deviceId': serial,
+    rt,
+    o,
+    {
+      'device': {
+        'from': {'x': v[0], 'y': v[1]},
+        'to': {'x': v[2], 'y': v[3]},
       },
-      'swipe ${v[0]},${v[1]} → ${v[2]},${v[3]}（像素）');
+      'deviceId': serial,
+    },
+    'swipe ${v[0]},${v[1]} → ${v[2]},${v[3]}（像素）',
+  );
 }
 
-Stability _androidStability(Adb adb, String serial, {DRect? region}) => Stability(
-      grab: () => _androidFingerprint(adb, serial, region: region),
+Future<void> _androidSize(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
+  final (width, height) = await rt.adb.screenSize(serial);
+  _emit(
+    rt,
+    o,
+    {
+      'width': width,
+      'height': height,
+      'deviceId': serial,
+    },
+    '$width x $height（像素）',
+  );
+}
+
+Future<void> _androidForeground(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
+  final pkg = await rt.adb.currentPackage(serial);
+  if (pkg.isEmpty) {
+    throw const DeviceCliException('取不到 Android 前台包名（设备可能锁屏 / 无 Activity）', 3);
+  }
+  _emit(
+    rt,
+    o,
+    {'package': pkg, 'deviceId': serial},
+    pkg,
+  );
+}
+
+Stability _androidStability(DeviceRuntime rt, String serial, {DRect? region}) => Stability(
+      grab: () => _androidFingerprint(rt, serial, region: region),
     );
 
-Future<String> _androidFingerprint(Adb adb, String serial, {DRect? region}) async {
-  final out = _tempFile('w_tools_device_fp_android', 'png');
-  try {
-    await adb.screenshot(serial, out);
-    final bytes = File(out).readAsBytesSync();
-    return region == null
-        ? ScreenFingerprint.of(bytes)
-        : ScreenFingerprint.ofRegion(bytes, region: region);
-  } finally {
-    final file = File(out);
-    if (file.existsSync()) file.deleteSync();
-  }
+/// 直接在内存里对截图像素做指纹：不落盘（一次 wait 可能采样几十帧）。
+Future<String> _androidFingerprint(
+  DeviceRuntime rt,
+  String serial, {
+  DRect? region,
+}) async {
+  final bytes = await rt.adb.screenshotBytes(serial);
+  return region == null
+      ? ScreenFingerprint.of(bytes)
+      : ScreenFingerprint.ofRegion(bytes, region: region);
 }
 
-Future<void> _androidWait(DeviceOptions o) async {
-  final serial = await _androidSerial(o);
-  final adb = _deps.adb();
-  final ok = await _androidStability(adb, serial, region: o.region).waitStable(
+Future<void> _androidWait(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
+  final ok = await _androidStability(rt, serial, region: o.region).waitStable(
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
-  _emit(o, {'stable': ok, 'serial': serial, 'deviceId': serial}, ok ? '画面已稳定' : '等待超时（画面仍在变化）');
+  _emit(
+    rt,
+    o,
+    {'stable': ok, 'deviceId': serial},
+    ok ? '画面已稳定' : '等待超时（画面仍在变化）',
+    ok: ok,
+  );
   if (!ok) exitCode = 3;
 }
 
-Future<void> _androidVerify(DeviceOptions o) async {
-  final serial = await _androidSerial(o);
-  final adb = _deps.adb();
+Future<void> _androidVerify(DeviceRuntime rt, DeviceOptions o) async {
+  final serial = await _androidSerial(rt, o);
   final x = int.parse(o.positional[0]);
   final y = int.parse(o.positional[1]);
   final changed = await TapVerifier.verify(
-    stability: _androidStability(adb, serial, region: o.region),
-    fingerprint: () => _androidFingerprint(adb, serial, region: o.region),
-    tap: () => adb.tap(serial, x, y),
+    stability: _androidStability(rt, serial, region: o.region),
+    fingerprint: () => _androidFingerprint(rt, serial, region: o.region),
+    tap: () => rt.adb.tap(serial, x, y),
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
   _emit(
-      o,
-      {
-        'changed': changed,
-        'device': {'x': x, 'y': y},
-        'serial': serial,
-        'deviceId': serial,
-        'region': o.region == null
-            ? null
-            : {
-                'x': o.region!.left,
-                'y': o.region!.top,
-                'w': o.region!.width,
-                'h': o.region!.height,
-              },
-      },
-      'tap $x, $y（像素）：${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}');
+    rt,
+    o,
+    {
+      'changed': changed,
+      'device': {'x': x, 'y': y},
+      'deviceId': serial,
+      'region': regionJson(o.region),
+    },
+    'tap $x, $y（像素）：${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}',
+  );
   if (!changed) exitCode = 1;
 }

@@ -36,7 +36,8 @@ packages:
   map_google: {}
   qr: {}
   figma: {}
-  device: {}
+  device:
+    mode: tool
   e2e: {}
   cli:
     mode: tool

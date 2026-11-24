@@ -22,10 +22,10 @@ from _dart_exports import exported_types, strip_comments  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SNAPSHOTS = ROOT / 'scripts/api_snapshots'
 
-# 没有 barrel 的包：公开 API 门禁对它不适用。`w_tools_cli` 是可执行工具（入口在 bin/），
-# lib/ 下只有 src/，没有 w_tools_cli.dart。显式登记后打印「不适用」并跳过 ——
+# 没有 barrel 的包：公开 API 门禁对它不适用。`w_tools_cli` / `w_tools_device` 是可执行工具
+# （入口在 bin/），lib/ 下只有 src/，没有 w_tools_<pkg>.dart。显式登记后打印「不适用」并跳过 ——
 # 空 surface 绝不能当成「与快照一致」的 ✓（否则这个包的门禁等于不存在）。
-NO_PUBLIC_API = {'cli'}
+NO_PUBLIC_API = {'cli', 'device'}
 
 # `w_tools_<pkg>-<version>.txt`；版本允许预发布后缀（`8.0.0-dev.1`）。
 # 不能用 `stem.rsplit('-', 1)`：`-dev.1` 会被截成 `1`，新基线永远不会被当成最新。

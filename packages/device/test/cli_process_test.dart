@@ -22,27 +22,30 @@ void main() {
     expect('${r.stdout}', contains('4'));
   });
 
-  test('未知选项 → exit 2', () async {
-    final r = await _run(<String>['list', '--nope']);
-    expect(r.exitCode, 2);
-  });
-
-  test('未知命令 → exit 2', () async {
-    final r = await _run(<String>['nope']);
-    expect(r.exitCode, 2);
-  });
-
   test('--version → exit 0，且与 pubspec 一致', () async {
     final r = await _run(<String>['--version']);
     expect(r.exitCode, 0);
     expect('${r.stdout}'.trim(), matches(RegExp(r'^w_tools_device \d+\.\d+\.\d+$')));
   });
 
-  test('--json 在参数解析失败时也输出 JSON', () async {
+  test('未知选项 / 已删除的选项 → exit 2', () async {
+    expect((await _run(<String>['list', '--nope'])).exitCode, 2);
+    expect((await _run(<String>['tap', '1', '2', '--scale=3'])).exitCode, 2);
+    expect((await _run(<String>['tap', '1', '2', '--no-cache'])).exitCode, 2);
+  });
+
+  test('已删除的 type 命令 → exit 2（未知命令）', () async {
+    final r = await _run(<String>['type', 'hi']);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('未知命令'));
+  });
+
+  test('--json 在参数解析失败时也输出 JSON（含 platform）', () async {
     final r = await _run(<String>['tap', '1', '2', '--json', '--bogus']);
     expect(r.exitCode, 2);
     expect('${r.stdout}', contains('"ok":false'));
-    expect('${r.stdout}', contains('schemaVersion'));
+    expect('${r.stdout}', contains('"schemaVersion":2'));
+    expect('${r.stdout}', contains('"platform":"ios-simulator"'));
     expect('${r.stderr}'.trim(), isEmpty);
   });
 
@@ -62,12 +65,13 @@ void main() {
     expect((await _run(<String>['tap', '1', '2', '3'])).exitCode, 2);
     expect((await _run(<String>['list', 'x'])).exitCode, 2);
     expect((await _run(<String>['shot', 'x'])).exitCode, 2);
-    expect((await _run(<String>['type'])).exitCode, 2);
+    expect((await _run(<String>['verify', '1'])).exitCode, 2);
   });
 
   test('非法平台组合 → exit 2（不会碰设备）', () async {
-    expect((await _run(<String>['tap', '--real'])).exitCode, 2);
+    expect((await _run(<String>['tap', '1', '2', '--real'])).exitCode, 2);
     expect((await _run(<String>['boot', '--android'])).exitCode, 2);
     expect((await _run(<String>['list', '--device=x'])).exitCode, 2);
+    expect((await _run(<String>['foreground'])).exitCode, 2);
   });
 }

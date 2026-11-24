@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'shell.dart';
 
@@ -8,8 +9,6 @@ class AndroidDevice {
     required this.serial,
     required this.state,
     required this.model,
-    required this.product,
-    required this.transport,
   });
 
   final String serial;
@@ -17,8 +16,6 @@ class AndroidDevice {
   /// `device` / `offline` / `unauthorized`
   final String state;
   final String model;
-  final String product;
-  final String transport;
 
   bool get isReady => state == 'device';
 
@@ -26,8 +23,6 @@ class AndroidDevice {
         'serial': serial,
         'state': state,
         'model': model,
-        'product': product,
-        'transport': transport,
       };
 }
 
@@ -58,8 +53,6 @@ class Adb {
       if (trimmed.isEmpty || trimmed.startsWith('List of devices')) continue;
       final parts = trimmed.split(RegExp(r'\s+'));
       if (parts.length < 2) continue;
-      final serial = parts[0];
-      final state = parts[1];
       String field(String key) {
         for (final p in parts.skip(2)) {
           if (p.startsWith('$key:')) return p.substring(key.length + 1);
@@ -69,24 +62,26 @@ class Adb {
 
       out.add(
         AndroidDevice(
-          serial: serial,
-          state: state,
+          serial: parts[0],
+          state: parts[1],
           model: field('model'),
-          product: field('product'),
-          transport: field('transport_id'),
         ),
       );
     }
     return out;
   }
 
-  static AndroidDevice? resolve(List<AndroidDevice> all, String? query) {
-    // 只从就绪设备里挑：显式指定 offline / unauthorized 设备时返回 null，
-    // 由调用方给出“没有就绪设备”的明确错误，而不是继续执行再报 adb 错误。
-    final ready = all.where((d) => d.isReady).toList();
-    if (query == null || query.isEmpty) return ready.firstOrNull;
-    return ready.where((d) => d.serial == query).firstOrNull ??
-        ready.where((d) => d.model.toLowerCase().contains(query.toLowerCase())).firstOrNull;
+  /// 按 serial 精确匹配，其次按型号子串；只从**就绪**设备里挑，返回全部命中项。
+  ///
+  /// 调用方必须在命中多台时报歧义（exit 2）：显式指定 offline / unauthorized
+  /// 设备时返回空，由调用方给出「没有就绪设备」的明确错误。
+  static List<AndroidDevice> readyMatches(List<AndroidDevice> all, String? query) {
+    final ready = all.where((d) => d.isReady);
+    if (query == null || query.isEmpty) return ready.toList();
+    final exact = ready.where((d) => d.serial == query).toList();
+    if (exact.isNotEmpty) return exact;
+    final lower = query.toLowerCase();
+    return ready.where((d) => d.model.toLowerCase().contains(lower)).toList();
   }
 
   /// 设备分辨率（px）。有 `Override size` 时优先用它，因为 `input tap/swipe`
@@ -107,9 +102,14 @@ class Adb {
     return (int.parse(m.group(1)!), int.parse(m.group(2)!));
   }
 
-  /// 截图（PNG）。二进制必须走 `runBytes`（`Process.run` 默认按 UTF-8 解码会毁掉 PNG）。
+  /// 截图（PNG 原始字节）。二进制必须走 `runBytes`
+  /// （`Process.run` 默认按 UTF-8 解码会毁掉 PNG）。
+  Future<Uint8List> screenshotBytes(String serial) =>
+      _shell.runBytes('adb', _args(serial, ['exec-out', 'screencap', '-p']));
+
+  /// 截图（PNG）写到 [out]。
   Future<String> screenshot(String serial, String out) async {
-    final bytes = await _shell.runBytes('adb', _args(serial, ['exec-out', 'screencap', '-p']));
+    final bytes = await screenshotBytes(serial);
     File(out).parent.createSync(recursive: true);
     File(out).writeAsBytesSync(bytes);
     return out;
@@ -135,27 +135,6 @@ class Adb {
     );
   }
 
-  /// 输入文本（先点中输入框）。
-  ///
-  /// Android 的 `input text` 用 `%s` 表示空格；这里用单引号包住整段，
-  /// 避免 `& | ; ( ) < >` 被远端 shell 解释。换行/控制字符无法可靠输入，直接报错。
-  /// 中文/emoji 取决于设备输入法，不保证可用。
-  Future<void> text(String serial, String text) async {
-    await _shell.runOrThrow(
-      'adb',
-      _args(serial, ['shell', 'input', 'text', escapeTextArgument(text)]),
-    );
-  }
-
-  /// 供单测：把文本转成传给 `adb shell input text` 的单个参数。
-  static String escapeTextArgument(String text) {
-    if (RegExp(r'[\x00-\x1F\x7F]').hasMatch(text)) {
-      throw StateError('type 不支持换行/控制字符；换行请用 keyevent');
-    }
-    final escaped = text.replaceAll(' ', '%s').replaceAll("'", "'\\''");
-    return "'$escaped'";
-  }
-
   /// 前台 App 的包名（空 = 取不到）。
   ///
   /// 注意：`dumpsys window mCurrentFocus` **不是合法子命令**（会报 Bad window command），
@@ -163,14 +142,6 @@ class Adb {
   Future<String> currentPackage(String serial) async {
     final r = await _shell.run('adb', _args(serial, ['shell', 'dumpsys', 'window']));
     return parseCurrentPackage('${r.stdout}');
-  }
-
-  /// 前台包名必须非空；供 CLI 把“取不到”转成明确失败。
-  static String requirePackage(String pkg) {
-    if (pkg.isEmpty) {
-      throw StateError('取不到 Android 前台包名（设备可能锁屏 / 无 Activity）');
-    }
-    return pkg;
   }
 
   /// 从 `dumpsys window` 输出里取前台包名；取不到回落到 `topResumedActivity`。
