@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^8.2.0
+  w_tools_form: ^8.2.1
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` 依赖约束）。
@@ -100,7 +100,7 @@ class _LoginFormState extends State<LoginForm> {
 普通页面优先用直接字段参数；跨字段默认值放 `WForm.fieldStyle`。
 可变 `WForm*Config` / `Config.build` 已在 form 5.0 移除。
 `WForm.fieldStyle.height` 对文本 / 下拉是**最小高度**：内联校验文案、`maxLength`
-计数器、`maxLines > 1` 的内容更高时字段会跟着长高，不会再压住输入或画到框外；
+计数器、多行文本更高时字段长高；在有界父级里按内容收缩，不会铺满父级。
 单选组等由内容决定高度的字段忽略它。
 
 单个字段要不同高度时用 `WFormFieldStyleScope`。它默认**整体替换**页面样式；

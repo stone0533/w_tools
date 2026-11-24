@@ -580,6 +580,14 @@ banned:
     expect('${r.stdout}', contains('c.load()'));
   });
 
+  test('list 无 query 输出全部（不排序不可变列表）', () async {
+    final r = await _run('list.dart', ['--format=prompt']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    expect('${r.stdout}', contains('# w_tools catalog'));
+    expect('${r.stdout}', contains('WAsync'));
+    expect('${r.stdout}', contains('WForm'));
+  });
+
   test('list --package 只输出目标包', () async {
     final r = await _run('list.dart', ['--package', 'w_tools_ui', '--format=prompt']);
     expect(r.exitCode, 0, reason: '${r.stderr}');

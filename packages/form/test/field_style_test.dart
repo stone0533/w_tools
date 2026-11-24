@@ -114,6 +114,22 @@ void _styleEqualityTests() {
     expect(tester.getRect(find.byType(TextField)).left, 0);
   });
 
+  testWidgets('heightIsMinimum 在有界父级里按内容收缩', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            fieldStyle: const WFormFieldStyle(height: 40),
+            child: const WFormTextField(name: 'a', bordered: false),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(WFormTextField)).height, 40);
+  });
+
   testWidgets('pageStyle.copyWith(height:) 只覆盖高度，其余沿用页面样式', (tester) async {
     final form = WFormController();
     const page = WFormFieldStyle(

@@ -1,8 +1,13 @@
-## Unreleased
+## 2.9.7
 
 ### Changed
 - `init` 写入的 `w_tools_device` 约束同步到 `^0.4.0`（0.4.0 删除 `type` / `--scale` /
   `--no-cache` 与标定缓存，设备文档模板同步新命令与坐标单位）。
+- `init` 写入的 `w_tools_form` 约束同步到 `^8.2.1`。
+
+### Fixed
+- `list` 不传 query 时不再对内部不可变列表原地排序，`list` / `list --format=json`
+  恢复列出全部组件（此前抛 `Cannot modify an unmodifiable list`，exit 3）。
 
 ## 2.9.6
 
