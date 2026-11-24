@@ -138,7 +138,7 @@ loader 统一返回 `WAsyncPage`（items + 可选 hasMore）。
 | 字段 | 作用 |
 | --- | --- |
 | `state` | `WAsyncState<List<T>>`，直接喂 `WAsyncView` |
-| `footerStatus` | hidden / loading / failed / noMore / loadMore |
+| `footerStatus` | hidden / loading / failed / noMore / loadMore；`loadMore` = 可以继续加载，不是“正在加载” |
 | `loadMoreError` | 最近一次追加失败 |
 | `hasMore` | 是否还有下一页 |
 | `isLoadingMore` | `footerStatus == loading` |

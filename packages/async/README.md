@@ -384,6 +384,7 @@ await controller.loadMore();
 final footer = controller.snapshot.value;
 footer.state;          // 喂给 WAsyncView
 footer.footerStatus;   // hidden / loading / failed / noMore / loadMore
+// loadMore = 可以继续加载（不是“正在加载”）；loading = 正在加载
 footer.loadMoreError;
 footer.hasMore;
 footer.isLoadingMore;
