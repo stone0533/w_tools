@@ -15,7 +15,7 @@
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^2.3.0
+  w_tools_async_ui: ^2.3.1
 ```
 
 要求 Flutter 3.38+、`w_tools_async >=8.1.0 <9.0.0`。
@@ -136,6 +136,10 @@ reloadRequests.value++;
 `reloadRequests` 会复用 `RefreshIndicator` 的刷新动画；刷新中再次触发时，
 最新请求完成后才收起，不会由旧请求提前收尾。刷新期间自动加载会挂起，
 完成后按新列表状态恢复。业务不需要持有外部刷新控制器。
+
+只有列表**有内容**时才复用下拉圈：首屏还没回来、结果是空的、或首屏就失败时，
+刷新只显示居中 loading（`WAsyncTheme` 的 loading 视图），不会同时出现两个加载
+提示；空态手动下拉同理，下拉头会先回弹收尾。
 
 程序化 reload 默认会回到列表顶部；需要保留当前位置时：
 

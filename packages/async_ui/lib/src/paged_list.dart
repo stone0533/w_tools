@@ -47,8 +47,9 @@ class WAsyncPagedList<T> extends StatefulWidget {
 
   /// 程序化重载入口；每次 `value++` 触发一次刷新。
   ///
-  /// 业务不需要持有外部刷新控制器。内部优先复用
-  /// [RefreshIndicator.show] 的动画；页面未挂载时直接刷新 controller。
+  /// 业务不需要持有外部刷新控制器。列表有内容时复用
+  /// [RefreshIndicator.show] 的动画；没有内容（首屏未回 / 空结果 / 首屏失败）
+  /// 时只保留居中 loading，不叠下拉圈。页面未挂载时直接刷新 controller。
   final ValueListenable<int>? reloadRequests;
 
   /// 距离底部多少像素时自动触发 [WAsyncPagedController.loadMore]。
@@ -126,8 +127,18 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
       _ignoreNextIndicatorRefresh = false;
       return _refreshFuture ?? Future<void>.value();
     }
-    return _startRefresh();
+    // 没有内容可保留时（首屏未回 / 空结果 / 首屏失败），居中 loading 已经是
+    // 反馈；让下拉头提前收尾，否则整个请求期间会同时有两个加载提示。
+    if (_hasContent) return _startRefresh();
+    unawaited(_startRefresh());
+    return Future<void>.value();
   }
+
+  /// 上一次成功的列表内容是否存在。
+  ///
+  /// `false` 表示首屏还没回来、结果是空的、或首屏就失败了 —— 这三种情况下
+  /// `WAsyncStateSliver` 没有内容可保留，会渲染居中 loading。
+  bool get _hasContent => widget.controller.state.value.data != null;
 
   Future<void> _drainRefresh() async {
     try {
@@ -170,6 +181,13 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
     if (_refreshRequested) {
       _refreshId++;
       _activeRefresh = widget.controller.refresh();
+      return;
+    }
+
+    // 没有内容可保留时不要下拉圈：居中 loading 是唯一反馈，叠两个圈会
+    // 让用户以为加载了两次（empty → 换筛选、首屏未回 → 换筛选）。
+    if (!_hasContent) {
+      _startRefresh();
       return;
     }
 

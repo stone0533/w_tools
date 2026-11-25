@@ -1,3 +1,8 @@
+## 2.9.11
+
+### Changed
+- `init` 的 `versions.dart` 约束跟随 `w_tools_async_ui 2.3.1`。
+
 ## 2.9.10
 
 ### Changed
