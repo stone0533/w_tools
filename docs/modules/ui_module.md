@@ -195,7 +195,9 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - 与 `RefreshIndicator` / 自定义刷新壳组合时，刷新壳在外、`WListView` 在内；
   不要把刷新壳包在 `WAsyncView` 外面（异步场景见 `docs/agents/async.md`）。
 - 头部 / 尾部 / 空状态通过对应 slot 传入，不要在 itemBuilder 里用 index 判断。
-- `WListViewSliver.overlap` 只调整布局；重叠区域的 hit test 不可靠，点击放在 item 内部。
+- `WListViewSliver.overlap` 的 `itemExtent` 是**视觉高度**：前 n-1 项按
+  `itemExtent - overlap` 布局、重叠区由下一项接管；最后一项按自然高度布局，整张卡可点。
+  卡片应自撑高度，视觉高度等于 `itemExtent` 时滚动范围最稳定。
 
 ## 7. WScaffold - 增强脚手架
 

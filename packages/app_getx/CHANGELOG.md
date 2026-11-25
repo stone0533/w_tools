@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.2.0
+
+### Added
+- `WApp.buildRoot()`：构建应用根（不调用 `runApp`、不要求 `init`），widget 测试复用运行时装配（`appWrapper` / `builder` / scope / 系统栏兜底）。
+- `WAppOptions.startupLog` / `WApp.startupReport` / `WAppStartupReport`：逐插件耗时、失败、首帧与启动摘要日志。
+- `WApp` 首帧后调用插件 `onFirstFrame()`，并为 `systemUiOverlayStyle` 加根级兜底 `AnnotatedRegion`。
+
+### Changed
+- `WAppTheme.systemUiOverlayStyle` 从一次性设置改为**全局兜底**：页面自己的 `WScaffold` / `WAppBar` 标注优先，页面未标注时回落到它（修复从浅色状态栏页面返回后不恢复）。
+- 插件失败 / 超时错误为 `WAppPluginInitException`（从 `w_tools_app` re-export）。
+
 ## 3.1.0
 
 ### Changed

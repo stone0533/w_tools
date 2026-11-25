@@ -256,6 +256,83 @@ void main() {
       expect(taps, [0, 1]);
     });
 
+    testWidgets('overlap 最后一项按自然高度布局，底部溢出区可点击', (tester) async {
+      final taps = <String>[];
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 40,
+              itemCount: 1,
+              itemBuilder: (_, i) => GestureDetector(
+                key: const Key('last'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => taps.add('last'),
+                child: const SizedBox(
+                  height: 140,
+                  width: double.infinity,
+                  child: ColoredBox(color: Colors.red),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // 布局盒内
+      await tester.tapAt(const Offset(200, 20));
+      // 视觉内、旧实现的布局盒外（60..140）
+      await tester.tapAt(const Offset(200, 100));
+      await tester.tapAt(const Offset(200, 130));
+
+      expect(taps, ['last', 'last', 'last']);
+    });
+
+    testWidgets('overlap 最后一项没有显式高度时至少占 itemExtent - overlap', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 40,
+              itemCount: 1,
+              itemBuilder: (_, i) => const SizedBox(key: Key('last'), width: double.infinity),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byKey(const Key('last'))).height, 60);
+    });
+
+    testWidgets('overlap 卡片高度 == itemExtent 时滚动范围与旧实现一致', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 20,
+              itemCount: 10,
+              itemBuilder: (_, i) => GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {},
+                child: const SizedBox(
+                  height: 100,
+                  width: double.infinity,
+                  child: ColoredBox(color: Colors.blue),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // 旧实现：10 * (100 - 20) + 20 = 820，视口 600 → 可滚 220。
+      final position = tester.state<ScrollableState>(find.byType(Scrollable)).position;
+      expect(position.maxScrollExtent, 220);
+    });
+
     testWidgets('overlap 与 padding / footer 一起工作', (tester) async {
       await tester.pumpWidget(
         _host(

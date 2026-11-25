@@ -32,14 +32,16 @@ packages:
   toast: {}
   app:
     growth: 21
-  app_getx: {}
+  app_getx:
+    growth: 13
   map: {}
   map_google: {}
   qr: {}
   figma: {}
   device:
     mode: tool
-  e2e: {}
+  e2e:
+    growth: 11
   cli:
     mode: tool
 
@@ -54,3 +56,15 @@ exceptions:
     type: WAppPluginInitException
     adr: docs/adr/0017-app-startup-observability.md
     until: 4.2.0
+  - package: app_getx
+    type: WAppStartupReport
+    adr: docs/adr/0017-app-startup-observability.md
+    until: 3.3.0
+  - package: e2e
+    type: E2eSignals
+    adr: docs/adr/0017-app-startup-observability.md
+    until: 0.4.0
+  - package: e2e
+    type: E2eSkipReason
+    adr: docs/adr/0017-app-startup-observability.md
+    until: 0.4.0

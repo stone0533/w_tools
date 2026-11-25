@@ -85,9 +85,28 @@ String _feedbackSignature(String text) {
 }
 
 bool _placeholder(String value) {
-  final s = value.trim().toLowerCase();
-  return s.isEmpty ||
-      s == '-' ||
+  final raw = value.trim();
+  if (raw.isEmpty) return true;
+
+  // 代码块 / 行内代码里的 `...`、`<...>` 是真实内容，不是占位：
+  // 多行命令与复现数据本来就常写成 fenced code。
+  final fences = RegExp(r'```[^\n]*\n([\s\S]*?)```').allMatches(raw);
+  final hasCodeContent = fences.any((m) => (m.group(1) ?? '').trim().isNotEmpty);
+  final inlineCodes = RegExp(r'`([^`\n]*)`').allMatches(raw);
+  final hasInlineContent = inlineCodes.any((m) {
+    final text = (m.group(1) ?? '').trim();
+    return text.isNotEmpty && text != '...' && !RegExp(r'^<.*>$').hasMatch(text);
+  });
+  final outside = raw
+      .replaceAll(RegExp(r'```[^\n]*\n[\s\S]*?```'), '')
+      .replaceAll(RegExp(r'`[^`\n]*`'), '')
+      .trim();
+
+  // 整个值就是代码块 / 行内代码：有实质内容就不算占位。
+  if (outside.isEmpty) return !(hasCodeContent || hasInlineContent);
+
+  final s = outside.toLowerCase();
+  return s == '-' ||
       s == '...' ||
       s == 'x' ||
       s == 'test' ||
@@ -118,7 +137,6 @@ class FeedbackLinter {
   static final _heading = RegExp(r'^###\s*\[([^\]]+)\]\s*(.*)$');
   static final _closedRow = RegExp(r'^\|\s*\d{4}-\d{2}-\d{2}\s*\|');
   static final _version = RegExp(r'✅\s*(?:[A-Za-z_]+\s+)?\d+\.\d+\.\d+');
-  static final _fieldLine = feedbackFieldLine;
   static final _statusDate = RegExp(r'状态变更[：:]\s*(\d{4}-\d{2}-\d{2})');
   static final _issueLink = RegExp(r'#\d+|https?://');
   static final _releaseVersion = RegExp(
@@ -238,12 +256,10 @@ class FeedbackLinter {
         }
         pending++;
 
-        // 字段：按行首 `- 字段：` 收集，避免正文里偶然出现关键词就过关
-        final present = <String>{};
-        for (final line in body) {
-          final m = _fieldLine.firstMatch(line);
-          if (m != null) present.add(m.group(1)!.trim());
-        }
+        // 字段：按行首 `- 字段：` 收集，避免正文里偶然出现关键词就过关。
+        // 值允许跨行（代码块 / 列表），由 feedbackFieldValues 统一解析。
+        final values = feedbackFieldValues(body.join('\n'));
+        final present = values.keys.toSet();
         for (final aliases in feedbackRequiredFields) {
           // 允许「命令 / 输入」「影响（我因此…）」这类带后缀的写法
           final filled = aliases.any((a) => present.any((key) => key.startsWith(a)));
@@ -258,11 +274,6 @@ class FeedbackLinter {
           }
         }
 
-        final values = <String, String>{};
-        for (final line in body) {
-          final m = RegExp(r'^\s*-\s*(.+?)\s*[：:]\s*(.*)$').firstMatch(line);
-          if (m != null) values[m.group(1)!.trim()] = m.group(2)!.trim();
-        }
         for (final aliases in const <List<String>>[
           ['命令', 'command'],
           ['复现数据', 'repro'],

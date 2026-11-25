@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:w_tools_app/w_tools_app.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 class _CountingPlugin extends WAppPlugin {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,7 @@ import 'package:w_tools_app/w_tools_app.dart';
 import 'options.dart';
 import 'routing/route_observer.dart';
 import 'routing/route_stack.dart';
+import 'startup_report.dart';
 
 /// 应用初始化和运行工具类。
 ///
@@ -32,7 +35,10 @@ class WApp {
   WApp.options(this.options)
     : language = WLanguage.fromConfig(options.localeConfig),
       routeStack = options.routeStack ?? WRouteStack(),
-      _pluginRunner = WAppPluginRunner(options.plugins);
+      _pluginRunner = WAppPluginRunner(
+        options.plugins,
+        _startupLogEnabledFor(options),
+      );
 
   /// 不可变配置。
   final WAppOptions options;
@@ -49,12 +55,20 @@ class WApp {
   Future<void>? _initFuture;
   bool _started = false;
   bool _hasRun = false;
+  bool _languageListenerAttached = false;
+  WAppStartupReport? _startupReport;
 
   /// 已注册插件（只读视图）。
   List<WAppPlugin> get plugins => _pluginRunner.plugins;
 
   /// 是否已完成 [init]。
   bool get isInitialized => _initialized;
+
+  /// 最近一次启动的耗时与插件结果；`init` 前为 null（失败时也有）。
+  WAppStartupReport? get startupReport => _startupReport;
+
+  /// 启动期日志是否打开（[WAppOptions.startupLog]，null 时跟随 debug）。
+  bool get _startupLogEnabled => _startupLogEnabledFor(options);
 
   /// 读取当前应用树里的 [WApp]；没有 scope 时返回 null。
   static WApp? maybeOf(BuildContext context) =>
@@ -104,19 +118,73 @@ class WApp {
   }) async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    _setupSystemUI();
-    await _setupOrientation();
-    await _pluginRunner.init();
+    final firstFrameWatch = Stopwatch()..start();
+    final pluginsWatch = Stopwatch()..start();
+    var customTasksDuration = Duration.zero;
 
-    if (customTasks != null && customTasks.isNotEmpty) {
-      await Future.wait(customTasks);
+    try {
+      _setupSystemUI();
+      await _setupOrientation();
+      await _pluginRunner.init();
+      pluginsWatch.stop();
+
+      if (customTasks != null && customTasks.isNotEmpty) {
+        final customWatch = Stopwatch()..start();
+        try {
+          await Future.wait(customTasks);
+        } finally {
+          customWatch.stop();
+          customTasksDuration = customWatch.elapsed;
+        }
+      }
+
+      _startupReport = WAppStartupReport(
+        pluginRuns: _pluginRunner.runs,
+        pluginsDuration: pluginsWatch.elapsed,
+        customTasksDuration: customTasksDuration,
+        initDuration: firstFrameWatch.elapsed,
+      );
+      _logStartup();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final firstFrame = firstFrameWatch.elapsed;
+        _startupReport?.markFirstFrame(firstFrame);
+        if (_startupLogEnabled) {
+          debugPrint('[WApp] first frame ${firstFrame.inMilliseconds}ms');
+        }
+        unawaited(_pluginRunner.firstFrame());
+        onLazyInit?.call();
+      });
+
+      _initialized = true;
+    } catch (_) {
+      pluginsWatch.stop();
+      _startupReport = WAppStartupReport(
+        pluginRuns: _pluginRunner.runs,
+        pluginsDuration: pluginsWatch.elapsed,
+        customTasksDuration: customTasksDuration,
+        initDuration: firstFrameWatch.elapsed,
+      );
+      if (_startupLogEnabled) {
+        debugPrint(
+          '[WApp] startup failed in '
+          '${firstFrameWatch.elapsed.inMilliseconds}ms',
+        );
+      }
+      rethrow;
     }
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      onLazyInit?.call();
-    });
-
-    _initialized = true;
+  /// 启动摘要（逐插件日志由 [WAppPluginRunner] 负责）。
+  void _logStartup() {
+    if (!_startupLogEnabled) return;
+    final report = _startupReport;
+    if (report == null) return;
+    debugPrint(
+      '[WApp] started in ${report.initDuration.inMilliseconds}ms '
+      '（plugins ${report.pluginsDuration.inMilliseconds}ms, '
+      'customTasks ${report.customTasksDuration.inMilliseconds}ms）',
+    );
   }
 
   /// 一站式启动：等价于 `await init(...)` + `run(...)`。
@@ -186,6 +254,42 @@ class WApp {
       throw StateError('run() 只能调用一次；应用已经启动');
     }
 
+    final root = buildRoot(
+      initialRoute: initialRoute,
+      getPages: getPages,
+      builder: builder,
+      navigatorObservers: navigatorObservers,
+      defaultTransition: defaultTransition,
+      theme: theme,
+      translations: translations,
+    );
+    _hasRun = true;
+    runApp(root);
+  }
+
+  /// 构建应用根 Widget（不调用 [runApp]，不要求先 [init]）。
+  ///
+  /// 与 [run] 使用同一套装配：`GetMaterialApp` → `appWrapper` →
+  /// `WAppScope` / `WLanguageScope` → 系统栏兜底 `AnnotatedRegion`。
+  /// 供 widget 测试或自定义根使用：
+  ///
+  /// ```dart
+  /// await tester.pumpWidget(
+  ///   WApp.options(options.copyWith(home: const HomeView())).buildRoot(),
+  /// );
+  /// ```
+  ///
+  /// 注意：它不执行插件初始化（需要时自行 `await app.init()`），也不标记
+  /// 应用已启动；重复调用会重新构建根。
+  Widget buildRoot({
+    String? initialRoute,
+    List<GetPage<dynamic>>? getPages,
+    TransitionBuilder? builder,
+    List<NavigatorObserver>? navigatorObservers,
+    Transition? defaultTransition,
+    ThemeData? theme,
+    Translations? translations,
+  }) {
     final title = options.title;
     if (title.trim().isEmpty) {
       throw StateError('title 不能为空');
@@ -257,9 +361,25 @@ class WApp {
       child: WLanguageScope(language: language, child: app),
     );
 
-    _hasRun = true;
-    runApp(app);
+    // 全局系统栏兜底：页面自己的 WScaffold / WAppBar 标注仍优先；
+    // 放在 appWrapper 之外，DevicePreview 这类 wrapper 也能覆盖。
+    // 启动时那次 SystemChrome 调用保留，首帧之前不会闪回默认样式。
+    final systemUiFallback = _appTheme.systemUiOverlayStyle;
+    if (!kIsWeb && systemUiFallback != null) {
+      app = AnnotatedRegion<SystemUiOverlayStyle>(
+        value: systemUiFallback,
+        child: app,
+      );
+    }
 
+    _attachLanguageListener();
+    return app;
+  }
+
+  /// 挂语言监听（幂等）；[run] 与 [buildRoot] 共用，测试宿主也能切语言。
+  void _attachLanguageListener() {
+    if (_languageListenerAttached) return;
+    _languageListenerAttached = true;
     language.languageListenable.addListener(() {
       // 只更新 GetMaterialApp 的 locale 并触发现有 GetBuilder 重建；
       // Get.updateLocale 会额外 performReassemble 整棵树，切语言成本过高。
@@ -309,3 +429,6 @@ class WAppScope extends InheritedWidget {
   @override
   bool updateShouldNotify(WAppScope oldWidget) => !identical(app, oldWidget.app);
 }
+
+/// 启动期日志开关的单一判定；构造函数与实例 getter 共用。
+bool _startupLogEnabledFor(WAppOptions options) => options.startupLog ?? kDebugMode;

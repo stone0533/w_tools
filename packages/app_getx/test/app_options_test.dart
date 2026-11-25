@@ -127,6 +127,20 @@ void main() {
       expect(options.theme, same(appTheme));
       expect(options.copyWith(theme: null).theme, isNull);
     });
+
+    test('startupLog 参与相等与 copyWith', () {
+      final options = WAppOptions(
+        title: 'Demo',
+        home: const SizedBox.shrink(),
+        startupLog: true,
+      );
+      final off = options.copyWith(startupLog: false);
+
+      expect(options.startupLog, isTrue);
+      expect(off.startupLog, isFalse);
+      expect(options == off, isFalse);
+      expect(options.copyWith(startupLog: null).startupLog, isNull);
+    });
   });
 }
 
