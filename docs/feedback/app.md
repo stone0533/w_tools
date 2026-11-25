@@ -2,7 +2,11 @@
 
 ## 待处理
 
-### [待处理] app: app 4.1：文档示例 onFirstFrame 里 remove 原生闪屏，post-frame 阶段 allowFirstFrame 不会再排帧，静态首屏会停在闪屏
+（暂无）
+
+## 已确认
+
+### [已确认] app: app 4.1：文档示例 onFirstFrame 里 remove 原生闪屏，post-frame 阶段 allowFirstFrame 不会再排帧，静态首屏会停在闪屏
 
 - 包/版本：w_tools_app 4.1.0 / w_tools_app_getx 3.2.0（本地检出 + pub 4.1.0）
 - 环境：Flutter 3.44.9 / iOS 模拟器；项目 ureward_member_app（flutter_native_splash 2.4.8 `preserve` 路径）
@@ -30,9 +34,9 @@
   或至少在 `onFirstFrame` 文档里写明「调用 `allowFirstFrame()` 的插件需自行再排一帧」。
 - 备注：`flutter_native_splash.removeAfter` 也是 post-frame 里 `allowFirstFrame()`，同一个坑；区别是它是第三方包。
 - 复现数据：代码路径证据（Flutter 3.44.9 源码）：`onFirstFrame` 跑在 `SchedulerPhase.postFrameCallbacks`（非 idle，`scheduleWarmUpFrame` 第一行直接 return）→ `allowFirstFrame()` 不排帧；同一帧的 `drawFrame` 因 `sendFramesToEngine == false` 跳过 `compositeFrame()`；`WApp` / runner 之后没有 `scheduleFrame()`。本项目 `SplashPlugin.onFirstFrame` 补 `WidgetsBinding.instance.scheduleFrame()` 后，iOS 模拟器上闪屏正常放行（`[WApp] first frame 2598ms`）。**未做**「静态首屏」设备复现（首页骨架动画一直在排帧），上述结论来自 SDK 源码与调用链，不是设备实测。
-- 状态变更：2026-11-25 待处理
+- 关联 issue：#415
+- 状态变更：2026-11-25 已确认 → #415
 
-## 已确认
 
 （暂无）
 

@@ -61,6 +61,11 @@ abstract mixin class WAppPlugin {
   /// `WApp` 会在 `runApp` 后的第一帧回调里逐个调用；单个插件抛错只记录，
   /// 不影响其它插件（`init` 已经成功，不会因此让 App 启动失败）。
   ///
+  /// 所有回调结束后 `WAppPluginRunner.firstFrame()` 会补排一帧：本钩子运行在
+  /// `postFrameCallbacks`，`FlutterNativeSplash.remove()` 等只调
+  /// `allowFirstFrame()` 的插件不会自己排帧。插件若自己 `unawaited` 延后调用
+  /// `allowFirstFrame()`，仍需自行 `scheduleFrame()`。
+  ///
   /// 只用 `WAppPluginRunner` 时，由调用方在首帧后自行调用
   /// `WAppPluginRunner.firstFrame()`。
   Future<void> onFirstFrame() async {}

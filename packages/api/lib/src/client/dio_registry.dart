@@ -5,7 +5,10 @@ import '../api_settings.dart';
 import '../interceptors/retry.dart';
 import '../interceptors/token.dart';
 
-/// Dio 实例注册表：按 `baseUrl` 缓存并复用 [Dio] 实例
+/// Dio 实例注册表：按 `(baseUrl, key)` 缓存并复用 [Dio] 实例
+///
+/// [key] 用于同一 baseUrl 的第二套配置（例如 token 刷新客户端需要更长的超时）：
+/// 不传 key 是默认桶，传 `key: 'refresh'` 是独立桶，二者互不冲突。
 ///
 /// 默认复用 dio 的平台 adapter；需要自定义 HTTPS 证书验证时，按 dio 文档
 /// 在原生分支里操作 `httpClientAdapter`，不要把平台判断塞进本类。
@@ -66,7 +69,7 @@ class DioRegistry {
   }
 
   /// 已创建的实例映射（key 为 baseUrl；按最近使用排序）
-  static final Map<String, DioRegistry> _instances = {};
+  static final Map<(String, String?), DioRegistry> _instances = {};
 
   /// 最大缓存实例数；`null` 表示不限制（默认），`<= 0` 表示不缓存
   ///
@@ -110,31 +113,37 @@ class DioRegistry {
   /// 旧实例上的在途请求会随 `close(force: true)` 一起结束。
   ///
   /// @param baseUrl 基础 URL
+  /// @param key 配置分桶名；null（默认）为默认桶。同一 baseUrl 的第二套配置
+  ///   （如 token 刷新客户端）用独立 key，按 `(baseUrl, key)` 缓存
   /// @param options Dio 基础配置，缺省使用 [WApiSettings.baseOptions]
   /// @param interceptors 拦截器列表，按传入顺序挂载
   /// @param replace 是否替换同 baseUrl 的已有实例
   /// @return DioRegistry 实例
   static DioRegistry forBaseUrl(
     String baseUrl, {
+    String? key,
     BaseOptions? options,
     List<Interceptor>? interceptors,
     bool replace = false,
   }) {
+    final cacheKey = (baseUrl, key);
     if (replace) {
-      dispose(baseUrl);
+      // 只替换目标桶：不带 key 的 replace 不应关掉同一 baseUrl 下的命名桶。
+      final old = _instances.remove(cacheKey);
+      old?._dio.close(force: true);
     }
-    final existing = _instances[baseUrl];
+    final existing = _instances[cacheKey];
     if (existing != null && existing._expired) {
-      _instances.remove(baseUrl);
+      _instances.remove(cacheKey);
       existing._dio.close(force: false);
     }
-    final active = _instances[baseUrl];
+    final active = _instances[cacheKey];
     if (active != null) {
       if (options != null && !_sameOptions(active._options, options)) {
         throw ArgumentError.value(
           baseUrl,
           'baseUrl',
-          'DioRegistry 已存在同一 baseUrl 的不同 BaseOptions；'
+          'DioRegistry 已存在同一 baseUrl（key: ${key ?? "默认"}）的不同 BaseOptions；'
               'validateStatus / requestEncoder / responseDecoder 按函数实例引用比较，'
               '语义相同的新闭包也会冲突：复用同一个函数实例，或传 replace: true 重建',
         );
@@ -143,12 +152,13 @@ class DioRegistry {
         throw ArgumentError.value(
           baseUrl,
           'baseUrl',
-          'DioRegistry 已存在同一 baseUrl 的不同 interceptors；'
-              '如需更换配置请先 DioRegistry.dispose(baseUrl)',
+          'DioRegistry 已存在同一 baseUrl（key: ${key ?? "默认"}）的不同 interceptors；'
+              '如需更换配置请先 '
+              '${key == null ? "DioRegistry.dispose(baseUrl)" : "DioRegistry.dispose(baseUrl, key: \"$key\")"}',
         );
       }
-      _instances.remove(baseUrl);
-      _instances[baseUrl] = active;
+      _instances.remove(cacheKey);
+      _instances[cacheKey] = active;
       _evictOverflow();
       return active;
     }
@@ -165,7 +175,7 @@ class DioRegistry {
     if (max != null && max <= 0) {
       return registry;
     }
-    _instances[baseUrl] = registry;
+    _instances[cacheKey] = registry;
     _evictOverflow();
     return registry;
   }
@@ -186,11 +196,12 @@ class DioRegistry {
   /// 已注册的 Dio（不创建新实例）；未注册返回 null。
   ///
   /// 供 [WTokenInterceptor] 在重试时复用当前实例，避免隐式注册污染缓存。
-  static Dio? maybeForBaseUrl(String baseUrl) {
-    final registry = _instances[baseUrl];
+  static Dio? maybeForBaseUrl(String baseUrl, {String? key}) {
+    final cacheKey = (baseUrl, key);
+    final registry = _instances[cacheKey];
     if (registry == null) return null;
     if (registry._expired) {
-      _instances.remove(baseUrl);
+      _instances.remove(cacheKey);
       registry._dio.close(force: false);
       return null;
     }
@@ -276,9 +287,18 @@ class DioRegistry {
   }
 
   /// 释放指定 baseUrl 的实例及其 Dio 资源
-  static void dispose(String baseUrl) {
-    final registry = _instances.remove(baseUrl);
-    registry?._dio.close(force: true);
+  static void dispose(String baseUrl, {String? key}) {
+    if (key != null) {
+      final registry = _instances.remove((baseUrl, key));
+      registry?._dio.close(force: true);
+      return;
+    }
+    // 不带 key 时清理该 baseUrl 下的所有桶（默认 + 命名 key），
+    // 避免调用方只关默认桶、命名桶泄漏。
+    final keys = _instances.keys.where((entry) => entry.$1 == baseUrl).toList();
+    for (final cacheKey in keys) {
+      _instances.remove(cacheKey)?._dio.close(force: true);
+    }
   }
 
   /// 清空所有缓存的实例

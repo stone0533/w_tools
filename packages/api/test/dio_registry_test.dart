@@ -36,6 +36,117 @@ void main() {
       expect(first, same(second));
     });
 
+    test('同一 baseUrl 用不同 key 承载第二套 options / interceptors', () {
+      final main = DioRegistry.forBaseUrl(
+        'https://multi.example.com',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 1)),
+        interceptors: [WLogInterceptor(parts: const {})],
+      );
+      final refresh = DioRegistry.forBaseUrl(
+        'https://multi.example.com',
+        key: 'refresh',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 30)),
+      );
+
+      expect(refresh, isNot(same(main)));
+      expect(refresh.dio.options.connectTimeout, const Duration(seconds: 30));
+      expect(
+        DioRegistry.maybeForBaseUrl('https://multi.example.com'),
+        same(main.dio),
+      );
+      expect(
+        DioRegistry.maybeForBaseUrl('https://multi.example.com', key: 'refresh'),
+        same(refresh.dio),
+      );
+    });
+
+    test('同 key 的配置冲突仍然报错', () {
+      DioRegistry.forBaseUrl(
+        'https://key-conflict.example.com',
+        key: 'refresh',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 1)),
+      );
+      expect(
+        () => DioRegistry.forBaseUrl(
+          'https://key-conflict.example.com',
+          key: 'refresh',
+          options: BaseOptions(connectTimeout: const Duration(seconds: 2)),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('replace 只重建同 key，不影响默认桶', () {
+      final main = DioRegistry.forBaseUrl('https://key-replace.example.com');
+      final refresh = DioRegistry.forBaseUrl(
+        'https://key-replace.example.com',
+        key: 'refresh',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 10)),
+      );
+
+      final next = DioRegistry.forBaseUrl(
+        'https://key-replace.example.com',
+        key: 'refresh',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 20)),
+        replace: true,
+      );
+
+      expect(next, isNot(same(refresh)));
+      expect(
+        DioRegistry.maybeForBaseUrl('https://key-replace.example.com'),
+        same(main.dio),
+      );
+      expect(
+        DioRegistry.maybeForBaseUrl('https://key-replace.example.com', key: 'refresh'),
+        same(next.dio),
+      );
+    });
+
+    test('replace 不带 key 只重建默认桶，不影响命名桶', () {
+      final refresh = DioRegistry.forBaseUrl(
+        'https://key-replace-default.example.com',
+        key: 'refresh',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 10)),
+      );
+
+      final main = DioRegistry.forBaseUrl(
+        'https://key-replace-default.example.com',
+        replace: true,
+        options: BaseOptions(connectTimeout: const Duration(seconds: 2)),
+      );
+
+      expect(main.dio.options.connectTimeout, const Duration(seconds: 2));
+      expect(
+        DioRegistry.maybeForBaseUrl(
+          'https://key-replace-default.example.com',
+          key: 'refresh',
+        ),
+        same(refresh.dio),
+      );
+    });
+
+    test('dispose 带 key 只清一个桶，不带 key 清整个 baseUrl', () {
+      final a = DioRegistry.forBaseUrl('https://key-dispose.example.com', key: 'a');
+      final b = DioRegistry.forBaseUrl('https://key-dispose.example.com', key: 'b');
+
+      DioRegistry.dispose('https://key-dispose.example.com', key: 'a');
+      expect(
+        DioRegistry.maybeForBaseUrl('https://key-dispose.example.com', key: 'a'),
+        isNull,
+      );
+      expect(
+        DioRegistry.maybeForBaseUrl('https://key-dispose.example.com', key: 'b'),
+        same(b.dio),
+      );
+
+      DioRegistry.dispose('https://key-dispose.example.com');
+      expect(
+        DioRegistry.maybeForBaseUrl('https://key-dispose.example.com', key: 'b'),
+        isNull,
+      );
+      expect(a, isA<DioRegistry>());
+    });
+
     test('命中缓存但 interceptors 不同时报错', () {
       final log = WLogInterceptor(parts: const {});
       DioRegistry.forBaseUrl('https://interceptor-conflict.example.com', interceptors: [log]);

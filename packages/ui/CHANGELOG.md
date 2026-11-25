@@ -1,3 +1,10 @@
+## 14.1.2
+
+### Fixed
+- `WListViewSliver.overlap` 14.1.1 回归：最后一项在 `SliverMainAxisGroup` 里先于前面的
+  固定 sliver 绘制，前一项的溢出会盖住最后一项顶部。最后一个固定项的 `OverflowBox`
+  现在裁到命中盒，最后一项顶部恢复可见（补齐像素取样回归测试）。
+
 ## 14.1.1
 
 ### Fixed

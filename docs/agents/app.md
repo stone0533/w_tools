@@ -56,7 +56,9 @@ await app.start();
 抛错 / 超时会抛 `WAppPluginInitException`（带插件名），重试时已成功的插件不重复执行。
 插件列表只在 `WAppOptions.plugins` 声明，没有 `addPlugin` / `removePlugin`。
 
-首帧后要做的事（移除原生闪屏、预热）写插件的 `onFirstFrame()`，不要塞进某个页面：
+首帧后要做的事（移除原生闪屏、预热）写插件的 `onFirstFrame()`，不要塞进某个页面。
+所有 `onFirstFrame` 完成后 runner 会补排一帧，插件里直接 `allowFirstFrame()` /
+`FlutterNativeSplash.remove()` 即可，不要依赖首屏恰好有动画在排帧：
 
 ```dart
 class SplashPlugin with WAppPlugin {

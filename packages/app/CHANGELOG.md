@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.1.1
+
+### Fixed
+- `WAppPluginRunner.firstFrame()` 在所有插件回调结束后补排一帧：`onFirstFrame` 运行在
+  `postFrameCallbacks`，`FlutterNativeSplash.remove()` 等只调 `allowFirstFrame()` 时
+  `scheduleWarmUpFrame()` 不会排帧，静态首屏会停在原生闪屏。补 `deferFirstFrame` +
+  post-frame 回归测试。
+
 ## 4.1.0
 
 ### Added

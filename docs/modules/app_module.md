@@ -157,7 +157,8 @@ AnnotatedRegion<SystemUiOverlayStyle>（根级兜底；appWrapper 之外）
 - 非关键插件（`critical: false`）失败只记入 `runner.runs` / `startupReport`，
   继续启动；依赖它的插件仍会执行（`dependsOn` 只表达顺序）。
 - `timeout` 默认 null（不限制）；设置后超时按失败处理。
-- 首帧后逐个插件调用 `onFirstFrame()`，失败隔离，不改变启动结果。
+- 首帧后逐个插件调用 `onFirstFrame()`，失败隔离，不改变启动结果；
+  所有回调结束后 runner 补排一帧（保证 `allowFirstFrame()` 后静态首屏也能放行）。
 - 重试会跳过已成功的插件，从失败点继续。
 - 插件 `name` 重复、`dependsOn` 引用未注册插件、存在循环依赖时抛 `StateError`。
 - 启动期日志默认 debug 打开（`WAppOptions.startupLog` 可覆盖），格式固定

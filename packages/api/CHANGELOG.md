@@ -1,5 +1,16 @@
 # Changelog
 
+## 6.5.0
+
+### Added
+- `DioRegistry.forBaseUrl` / `maybeForBaseUrl` / `dispose` 增加可选 `key`：按
+  `(baseUrl, key)` 分桶，同一 baseUrl 可以同时存在主客户端与刷新客户端（不同
+  `BaseOptions` / 拦截器）；默认 key 为 null，现有调用行为不变。
+- `dispose(baseUrl)` 不带 key 时清理该 baseUrl 下的所有桶；带 key 只清对应桶。
+
+### Changed
+- 配置冲突错误信息带上 key；`replace` 只重建同 key。
+
 ## 6.4.0
 
 ### Added

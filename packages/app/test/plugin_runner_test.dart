@@ -103,6 +103,8 @@ class _NeverPlugin extends WAppPlugin {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('依赖的插件一定先完成 onInit（与注册顺序无关）', () async {
     final log = <String>[];
     final runner = WAppPluginRunner([

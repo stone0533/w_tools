@@ -25,7 +25,7 @@ Token、日志、重试、指标都是按需加；下面「高级配置」里的
 
 ## 特性
 
-- **多客户端管理**：`DioRegistry` 按 `baseUrl` 缓存并复用 Dio 实例，支持 `replace` 重建
+- **多客户端管理**：`DioRegistry` 按 `(baseUrl, key)` 缓存并复用 Dio 实例，支持 `replace` 重建
 - **调用层**：`WApiClient` 收敛 GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS、path / query / body 与显式 JSON 解码
 - **请求体**：`WApiBody` 支持 json / form / multipart / bytes
 - **统一错误**：`WApiException` 按 `kind` 分类，不写死用户文案
@@ -38,7 +38,7 @@ Token、日志、重试、指标都是按需加；下面「高级配置」里的
 
 ```yaml
 dependencies:
-  w_tools_api: ^6.4.0
+  w_tools_api: ^6.5.0
 ```
 
 ```bash
@@ -306,30 +306,32 @@ final registry = DioRegistry.forBaseUrl(
 );
 ```
 
-### 刷新客户端（同一 baseUrl 的例外）
+### 刷新客户端（同一 baseUrl 的第二套配置）
 
 `WTokenInterceptor.tokenRefresher` 是调用方自管的刷新入口。刷新请求通常需要更长的
 `connectTimeout`，并且**不能**再挂 `WTokenInterceptor`（否则刷新请求返回 401 会递归）。
-这种情况可以单独构造一个只用于刷新的 Dio：
+用 `key` 给同一 baseUrl 开第二个桶，仍然走 registry：
 
 ```dart
-final refreshDio = Dio(
-  WApiSettings.baseOptions.copyWith(
+final refresh = DioRegistry.forBaseUrl(
+  'https://api.example.com',
+  key: 'refresh',
+  options: WApiSettings.baseOptions.copyWith(
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
   ),
+  // 只挂日志等无 401 刷新的拦截器；不要挂 WTokenInterceptor。
+  interceptors: [WLogInterceptor(parts: {WLogPart.request, WLogPart.error})],
 );
-// 只挂日志等无 401 刷新的拦截器；不要挂 WTokenInterceptor。
-final response = await refreshDio.post<Map<String, dynamic>>(
+final response = await refresh.dio.post<Map<String, dynamic>>(
   '/auth/refresh',
   data: {'refresh_token': currentRefreshToken},
 );
 // 解析 response.data 里的 access_token，持久化后让 tokenGetter 返回新值。
 ```
 
-这是「不要裸 `Dio()`」的唯一例外；普通业务请求仍然必须走 `DioRegistry`。
-`DioRegistry` 目前按 `baseUrl` 单 key，同一 baseUrl 的第二套完整配置不会被缓存；
-需要 registry 级别的多客户端时，等 7.0 的 registry 收敛（见 issue #285）。
+默认 key（null）和 `key: 'refresh'` 是两个独立桶，互不冲突；`dispose(baseUrl)` 会清理
+该 baseUrl 下的所有桶，`dispose(baseUrl, key: 'refresh')` 只清刷新桶。
 
 ### 拦截器顺序与绑定
 

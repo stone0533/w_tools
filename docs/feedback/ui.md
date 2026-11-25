@@ -2,7 +2,11 @@
 
 ## 待处理
 
-### [待处理] ui: ui 14.1.1：WListViewSliver.overlap 最后一项被上一项溢出盖住（SliverMainAxisGroup 倒序绘制）
+（暂无）
+
+## 已确认
+
+### [已确认] ui: ui 14.1.1：WListViewSliver.overlap 最后一项被上一项溢出盖住（SliverMainAxisGroup 倒序绘制）
 
 - 包/版本：w_tools_ui 14.1.1（本地检出 + pub 同源），Flutter 3.44.9
 - 环境：Android 真机（Pixel 5，dpr 2.75）与 flutter_tester 都能复现；项目 ureward_member_app
@@ -25,9 +29,9 @@
 - 影响：所有 `itemExtent < item 实际高度` 的叠卡列表，最后一项顶部的内容（标题条 / 白条 / 按钮）被上一项盖住。本项目会员卡页就是最后一张卡的白条（商家名 + 钱包余额）看不见。
 - 建议：`_buildFixedOverlapSliver` 里给每个 item 包 `ClipRect`（溢出的那截本来就被下一项遮住，视觉无损，最后一项也就不会被盖）；或把最后一项与其它项放进同一个 sliver（最后一行高 = itemExtent），保证绘制顺序与命中盒都对。
 - 复现数据：项目仓库 `test/component/w_list_overlap_test.dart`（纯色 + 像素取样，`flutter test test/component/w_list_overlap_test.dart`；最后一项用例目前 `skip: true`，去掉 skip 即红）。
-- 状态变更：2026-11-25 待处理
+- 关联 issue：#416
+- 状态变更：2026-11-25 已确认 → #416
 
-## 已确认
 
 ### [已确认] ui: WImage 构建期收到 loading 通知会 setState during build（真机首帧抛断言）
 
