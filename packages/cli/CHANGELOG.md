@@ -1,3 +1,8 @@
+## 2.9.10
+
+### Changed
+- `init` 的 `versions.dart` 约束跟随 `w_tools_ui 14.1.3`。
+
 ## 2.9.9
 
 ### Changed

@@ -955,7 +955,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "6-wlistview---列表",
     aliases: <String>[],
     usage: "WListView(sliver: WListViewSliver.list(itemCount: n, itemBuilder: ...));\nWListView(sliver: WListViewSliver.separated(itemCount: n, itemBuilder: ..., separatorBuilder: ...));\nWListView(sliver: WListViewSliver.grid(itemCount: n, gridDelegate: ..., itemBuilder: ...));\nWListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap: 24, itemBuilder: ...));\n",
-    pitfalls: <String>["嵌自定义滚动壳 / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳", "shrinkWrap: true 与 emptyFill: true 同时用会断言", "overlap 的 itemExtent 是视觉高度：前 n-1 项命中盒是 itemExtent - overlap，重叠区归下一项；最后一项按自然高度布局，整卡可点；最后一个固定项的溢会被裁掉，避免盖住最后一项顶部"],
+    pitfalls: <String>["嵌自定义滚动壳 / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳", "shrinkWrap: true 与 emptyFill: true 同时用会断言", "overlap 的 itemExtent 是视觉高度：前 n-1 项命中盒是 itemExtent - overlap，重叠区归下一项；最后一项按自然高度布局，整卡可点；叠卡内容按顺序绘制，最后一项盖住前一项溢出，圆角完整"],
     related: <String>["`WKeepAliveWrapper`", "`WNotificationListener`"],
     teach: true,
   ),
