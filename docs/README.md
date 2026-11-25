@@ -43,6 +43,7 @@
 - [0014 WAsync 默认生命周期钩子](adr/0014-async-default-hooks.md)：`WAsyncHooks` / `defaultHooks` / 单次 `hooks`
 - [0015 WAsyncExecutor](adr/0015-async-executor.md)：实例执行器替代全局 `defaultHooks`
 - [0016 WAsyncPagedList 刷新样式](adr/0016-async-paged-refresh-style.md)：`WAsyncRefreshIndicatorStyle`
+- [0017 应用启动可观测性](adr/0017-app-startup-observability.md)：插件首帧钩子 / 超时与关键性 / `startupReport` / `buildRoot` / e2e 诊断
 
 - [ADR 索引与模板](adr/README.md)：按主题分组的索引、状态词、模板、新增/取代规则
 - [0001 子包独立版本](adr/0001-package-versioning.md)：独立 semver、不回滚（操作规则见 releasing.md）

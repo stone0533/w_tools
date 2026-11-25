@@ -10,6 +10,8 @@ packages:
     - WMetric
     - WPageQuery
   w_tools_app:
+    - WAppPluginInitException
+    - WAppPluginRun
     - WLanguageScope
   w_tools_app_getx:
     - WAppScope

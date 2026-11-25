@@ -1247,21 +1247,29 @@ components:
     package: 'w_tools_app'
     docsAnchor: '2-wappplugin---插件接口'
     section: '2. WAppPlugin - 插件接口'
-    useFor: '插件分层初始化'
+    useFor: '插件分层初始化 + 首帧钩子'
     dontUseFor: '不要用插件包裹应用；需要 Theme / MediaQuery 的中间件放 WAppOptions.builder'
     usage: |
       class EnvPlugin extends WAppPlugin {
         @override String get name => 'env';
         @override Future<void> onInit() async { ... }
       }
+      class SplashPlugin extends WAppPlugin {
+        @override String get name => 'native-splash';
+        @override Future<void> onInit() async => FlutterNativeSplash.preserve(...);
+        @override Future<void> onFirstFrame() async => FlutterNativeSplash.remove();
+      }
       class ServicePlugin extends WAppPlugin {
         @override String get name => 'service';
         @override List<String> get dependsOn => ['env'];
+        @override Duration get timeout => const Duration(seconds: 10);
         @override Future<void> onInit() async { ... }
       }
     pitfalls:
       - '有顺序要求必须写 dependsOn；同层按注册顺序串行'
-      - 'onInit 抛错会中断本次 init；重试跳过已成功插件'
+      - '关键插件失败 / 超时抛 WAppPluginInitException（带插件名）；critical: false 时记录后继续'
+      - 'timeout 默认 null（不限制）；网络 / 原生通道插件建议显式设置'
+      - '首帧后的收尾（移除闪屏 / 预热）写 onFirstFrame，不要塞进某个页面'
       - '插件没有 builderWrapper / wrapApp；全局包裹用 WAppOptions.builder / appWrapper'
     related: ['`WApp`', '`WAppPluginRunner`']
     teach: true

@@ -30,7 +30,10 @@ void main() {
     final plugin = _Plugin();
     expect(plugin.dependsOn, isEmpty);
     expect(plugin.navigatorObservers, isNull);
+    expect(plugin.timeout, isNull);
+    expect(plugin.critical, isTrue);
     await plugin.onInit();
+    await plugin.onFirstFrame();
   });
 
   test('dependsOn 默认为空，可覆写顺序', () {

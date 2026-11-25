@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- `init` 的 `versions.dart` 约束跟随 `w_tools_app 4.1.0`。
+
 ## 2.9.7
 
 ### Changed

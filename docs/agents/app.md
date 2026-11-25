@@ -52,9 +52,27 @@ final app = WApp.options(
 await app.start();
 ```
 
-插件按 `dependsOn` 分层、同层按注册顺序**串行**执行；某个 `onInit` 抛错会中断本次
-`init`，重试时已成功的插件不重复执行。插件列表只在 `WAppOptions.plugins` 声明，
-没有 `addPlugin` / `removePlugin`。
+插件按 `dependsOn` 分层、同层按注册顺序**串行**执行；关键插件（默认）的 `onInit`
+抛错 / 超时会抛 `WAppPluginInitException`（带插件名），重试时已成功的插件不重复执行。
+插件列表只在 `WAppOptions.plugins` 声明，没有 `addPlugin` / `removePlugin`。
+
+首帧后要做的事（移除原生闪屏、预热）写插件的 `onFirstFrame()`，不要塞进某个页面：
+
+```dart
+class SplashPlugin with WAppPlugin {
+  @override
+  String get name => 'native-splash';
+  @override
+  Future<void> onInit() async => FlutterNativeSplash.preserve(
+    widgetsBinding: WidgetsBinding.instance,
+  );
+  @override
+  Future<void> onFirstFrame() async => FlutterNativeSplash.remove();
+}
+```
+
+单插件可设 `Duration? get timeout`（默认不限制）与 `bool get critical`（默认 true；
+false 时失败只记录、继续启动）。
 
 多语言：
 

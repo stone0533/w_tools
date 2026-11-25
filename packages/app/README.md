@@ -2,28 +2,58 @@
 
 `w_tools_app` 是 w_tools 的 **GetX-free 应用内核**，提供：
 
-- `WAppPlugin`：插件契约（`name` / `dependsOn` / `onInit` / `navigatorObservers`）；
-- `WAppPluginRunner`：插件注册表、`dependsOn` 分层串行初始化；
+- `WAppPlugin`：插件契约（`name` / `dependsOn` / `onInit` / `onFirstFrame` /
+  `timeout` / `critical` / `navigatorObservers`）；
+- `WAppPluginRunner`：插件注册表、`dependsOn` 分层串行初始化、首帧钩子与运行记录；
+- `WAppPluginRun` / `WAppPluginInitException`：插件耗时与带插件名的失败异常；
 - `WLanguage` / `WLanguageScope` / `WLocaleConfig`：语言状态、树内注入与语言配置；
 - `WAppTheme`：应用外观（亮/暗主题、主题模式、系统栏）。
 
 ```dart
-class AppServicePlugin extends WAppPlugin {
+class SplashPlugin extends WAppPlugin {
   @override
-  String get name => 'app-service';
+  String get name => 'native-splash';
 
   @override
   Future<void> onInit() async {
-    // 初始化
+    FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  }
+
+  @override
+  Future<void> onFirstFrame() async {
+    // 首帧后移除原生闪屏；不再依赖某个页面先被打开
+    FlutterNativeSplash.remove();
   }
 }
 
-final runner = WAppPluginRunner([AppServicePlugin()]);
+final runner = WAppPluginRunner([SplashPlugin()]);
 await runner.init();
+runner.firstFrame(); // 非 GetX 壳：首帧后自行调用
 ```
 
-`WAppPluginRunner` 只执行 `dependsOn` / `onInit`；插件上的 `navigatorObservers`
-由 GetX 启动器 `WApp` 消费。同层插件按注册顺序串行执行，失败后重试会跳过已成功的插件。
+`WAppPluginRunner` 执行 `dependsOn` / `onInit` / `onFirstFrame`；插件上的
+`navigatorObservers` 由 GetX 启动器 `WApp` 消费。同层插件按注册顺序串行执行，
+失败后重试会跳过已成功的插件。
+
+插件失败默认会抛 `WAppPluginInitException`（带 `pluginName` 与原始 `cause`）。
+可以用 `timeout` 限制单个插件的初始化时间（默认不限制），用 `critical: false`
+让非关键插件失败时只记录、继续启动。
+
+```dart
+class AnalyticsPlugin extends WAppPlugin {
+  @override
+  String get name => 'analytics';
+
+  @override
+  Duration get timeout => const Duration(seconds: 10);
+
+  @override
+  bool get critical => false; // 埋点失败不影响启动
+
+  @override
+  Future<void> onInit() => Analytics.init();
+}
+```
 
 需要完整的 `WApp` 启动器、GetX 路由与底部弹窗时，依赖：
 

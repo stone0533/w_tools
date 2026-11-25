@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.1.0
+
+### Added
+- `WAppPlugin.onFirstFrame()`：首帧后逐插件调用，失败隔离；适合移除原生闪屏 / 首帧后预热。
+- `WAppPlugin.timeout` / `WAppPlugin.critical`：单插件初始化超时与关键性；非关键插件失败记录后继续启动。
+- `WAppPluginRun` / `WAppPluginInitException`：插件耗时记录与带插件名的失败异常；`WAppPluginRunner.runs` / `totalDuration` / `firstFrame()`。
+
+### Changed
+- 关键插件 `onInit` 失败 / 超时现在抛 `WAppPluginInitException`（`cause` 保留原异常），不再直接透传插件异常；重试语义不变。
+- 生命周期文档区分 App 级（`customTasks` / `onLazyInit`）与插件级（`onInit` / `onFirstFrame`）。
+
 ## 4.0.1
 
 ### Changed
