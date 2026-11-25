@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:w_tools_app/w_tools_app.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 class _CountingPlugin extends WAppPlugin {
@@ -132,7 +133,14 @@ void main() {
     final flaky = _FlakyPlugin('b');
     final app = _app(plugins: [success, flaky]);
 
-    await expectLater(app.init(), throwsA(isA<StateError>()));
+    await expectLater(
+      app.init(),
+      throwsA(
+        isA<WAppPluginInitException>()
+            .having((e) => e.pluginName, 'pluginName', 'b')
+            .having((e) => e.cause, 'cause', isA<StateError>()),
+      ),
+    );
     expect(success.initCount, 1);
     expect(flaky.attempts, 1);
     expect(app.isInitialized, isFalse);

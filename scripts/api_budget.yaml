@@ -30,7 +30,8 @@ packages:
   form: {}
   api: {}
   toast: {}
-  app: {}
+  app:
+    growth: 21
   app_getx: {}
   map: {}
   map_google: {}
@@ -44,4 +45,12 @@ packages:
 
 # 新增公开类型必须在这里登记，并指向真正的 ADR；`until` 到期后例外失效。
 # 新类型进入已发布快照后，删掉对应条目（脚本会对过期条目告警）。
-exceptions: []
+exceptions:
+  - package: app
+    type: WAppPluginRun
+    adr: docs/adr/0017-app-startup-observability.md
+    until: 4.2.0
+  - package: app
+    type: WAppPluginInitException
+    adr: docs/adr/0017-app-startup-observability.md
+    until: 4.2.0

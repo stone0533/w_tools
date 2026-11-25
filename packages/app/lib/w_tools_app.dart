@@ -2,6 +2,7 @@
 library w_tools_app;
 
 export 'src/plugins/app_plugin.dart';
+export 'src/plugins/app_plugin_run.dart';
 export 'src/plugins/app_plugin_runner.dart';
 export 'src/language/language.dart';
 export 'src/language/language_scope.dart';

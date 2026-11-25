@@ -31,6 +31,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 | [0014](0014-async-default-hooks.md) | WAsync 默认生命周期钩子：值对象 + `defaultHooks` + 单次 `hooks` | 已采纳 | 2026-11-17 |
 | [0015](0015-async-executor.md) | 用 `WAsyncExecutor` 实例替代全局 `defaultHooks` | 已采纳 | 2026-11-17 |
 | [0016](0016-async-paged-refresh-style.md) | `WAsyncPagedList` 标准 RefreshIndicator 样式对象 | 已采纳 | 2026-11-19 |
+| [0017](0017-app-startup-observability.md) | 应用启动可观测性、插件首帧钩子、测试宿主与公开面例外 | 已采纳 | 2026-11-25 |
 
 ### 版本与发布
 
