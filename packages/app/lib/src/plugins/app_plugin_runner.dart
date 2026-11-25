@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'app_plugin.dart';
 import 'app_plugin_run.dart';
@@ -121,6 +122,12 @@ class WAppPluginRunner {
   ///
   /// 失败隔离：单个插件抛错只记录，不中断其它插件，也不改变 [init] 的结果。
   /// 未成功初始化的插件（含关键/非关键失败）不会收到回调。
+  ///
+  /// 回调全部结束后会补排一帧：`onFirstFrame` 通常运行在
+  /// `SchedulerPhase.postFrameCallbacks`，此时
+  /// `RendererBinding.allowFirstFrame()` 内部的 `scheduleWarmUpFrame()`
+  /// 会直接 return（非 idle），而 `deferFirstFrame` 期间当前帧又没有
+  /// `compositeFrame`。不补这一帧的话，静态首屏会停在原生闪屏。
   Future<void> firstFrame() async {
     if (_firstFrameDone) return;
     _firstFrameDone = true;
@@ -134,6 +141,7 @@ class WAppPluginRunner {
         _log('plugin ${plugin.name} onFirstFrame failed: $error');
       }
     }
+    SchedulerBinding.instance.scheduleFrame();
   }
 
   Future<WAppPluginRun> _runOnInit(WAppPlugin plugin) async {

@@ -170,11 +170,15 @@ class WListViewSliver extends StatelessWidget {
       itemExtent: itemExtent! - overlap,
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return OverflowBox(
+          final item = OverflowBox(
             maxHeight: double.infinity,
             alignment: Alignment.topCenter,
             child: itemBuilder(context, index),
           );
+          // 最后一项（单独的 sliver，按自然高度绘制）在
+          // SliverMainAxisGroup 里先于前面的固定 sliver 绘制；前一项的
+          // 溢出会盖住它的顶部。溢出的那截本来应由下一项覆盖，裁到命中盒。
+          return index == count - 1 ? ClipRect(child: item) : item;
         },
         childCount: count,
         addAutomaticKeepAlives: addAutomaticKeepAlives,

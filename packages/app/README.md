@@ -31,8 +31,10 @@ await runner.init();
 runner.firstFrame(); // 非 GetX 壳：首帧后自行调用
 ```
 
-`WAppPluginRunner` 执行 `dependsOn` / `onInit` / `onFirstFrame`；插件上的
-`navigatorObservers` 由 GetX 启动器 `WApp` 消费。同层插件按注册顺序串行执行，
+`WAppPluginRunner` 执行 `dependsOn` / `onInit` / `onFirstFrame`；所有 `onFirstFrame`
+回调结束后会补排一帧（`onFirstFrame` 运行在 post-frame 阶段，直接调
+`allowFirstFrame()` 不会自己排帧）。插件上的 `navigatorObservers` 由 GetX 启动器
+`WApp` 消费。同层插件按注册顺序串行执行，
 失败后重试会跳过已成功的插件。
 
 插件失败默认会抛 `WAppPluginInitException`（带 `pluginName` 与原始 `cause`）。

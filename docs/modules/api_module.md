@@ -57,7 +57,8 @@ api/
 
 ## 1. DioRegistry - Dio 实例注册表
 
-按 `baseUrl` 缓存并复用 `Dio` 实例，避免重复创建。配置直接使用 Dio 的 `BaseOptions`。
+按 `(baseUrl, key)` 缓存并复用 `Dio` 实例，避免重复创建。默认 `key` 为 null；
+同一 baseUrl 的第二套配置（如 token 刷新客户端）用独立 `key`，两套互不冲突。配置直接使用 Dio 的 `BaseOptions`。
 传入的 `BaseOptions` 会被**复制**并注入 `baseUrl`，因此传入实例不会被修改，多个
 Dio 实例之间也不会共享同一份可变配置。
 
@@ -65,10 +66,10 @@ Dio 实例之间也不会共享同一份可变配置。
 
 | 成员 | 说明 |
 |------|------|
-| `DioRegistry.forBaseUrl(baseUrl, {options, interceptors, replace})` | 获取或创建指定 `baseUrl` 的实例 |
+| `DioRegistry.forBaseUrl(baseUrl, {key, options, interceptors, replace})` | 获取或创建指定 `(baseUrl, key)` 的实例 |
 | `dio` | 获取内部 `Dio` 实例 |
-| `DioRegistry.maybeForBaseUrl(baseUrl)` | 读取已注册的 `Dio`，不创建新实例 |
-| `DioRegistry.dispose(baseUrl)` | 关闭并移除指定 `baseUrl` 的实例 |
+| `DioRegistry.maybeForBaseUrl(baseUrl, {key})` | 读取已注册的 `Dio`，不创建新实例 |
+| `DioRegistry.dispose(baseUrl, {key})` | 带 key 只清该桶；不带 key 清该 baseUrl 的所有桶 |
 | `DioRegistry.clearCache()` | 关闭并清空所有缓存实例 |
 | `maxCachedInstances` | 已弃用（7.0 删除）；缓存上限，`null` 不限制，`<= 0` 不缓存 |
 | `cacheTtl` | 已弃用（7.0 删除）；缓存惰性过期，`null` 不过期 |

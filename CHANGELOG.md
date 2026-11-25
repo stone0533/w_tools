@@ -1,3 +1,9 @@
+## 21.1.5
+
+### Changed
+- `w_tools_ui` 约束抬到 `^14.1.2`，接入 overlap 最后一项绘制顺序修复。
+- `w_tools_api` 约束抬到 `^6.5.0`，接入 `DioRegistry` 命名 key。
+
 ## 21.1.4
 
 ### Changed

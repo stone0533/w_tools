@@ -198,6 +198,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - `WListViewSliver.overlap` 的 `itemExtent` 是**视觉高度**：前 n-1 项按
   `itemExtent - overlap` 布局、重叠区由下一项接管；最后一项按自然高度布局，整张卡可点。
   卡片应自撑高度，视觉高度等于 `itemExtent` 时滚动范围最稳定。
+  最后一个固定项的溢出会裁到命中盒，避免它在 `SliverMainAxisGroup` 倒序绘制时盖住最后一项顶部。
 
 ## 7. WScaffold - 增强脚手架
 

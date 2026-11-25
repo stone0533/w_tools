@@ -77,6 +77,7 @@ await app.start();
 ### 首帧钩子 / 超时 / 关键性
 
 `onFirstFrame` 在首帧绘制后由 `WApp` 逐个插件调用，适合移除原生闪屏、首帧后预热；
+所有回调结束后 runner 会补排一帧，直接 `allowFirstFrame()` / `FlutterNativeSplash.remove()` 即可；
 单个插件抛错只记录，不影响启动。`timeout` 默认不限制（建议对网络 / 原生通道插件
 显式设置），`critical: false` 的插件失败时继续启动：
 
