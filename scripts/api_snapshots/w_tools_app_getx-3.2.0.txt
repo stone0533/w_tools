@@ -1,0 +1,72 @@
+# w_tools_app_getx 3.2.0
+WApp	class
+WApp.buildRoot	Widget ({ String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, })
+WApp.init	Future<void> ({VoidCallback? onLazyInit, List<Future<void>>? customTasks})
+WApp.isInitialized	bool
+WApp.language	WLanguage
+WApp.maybeOf	static WApp? (BuildContext context)
+WApp.of	static WApp (BuildContext context)
+WApp.options	WAppOptions
+WApp.plugins	List<WAppPlugin>
+WApp.routeStack	WRouteStack
+WApp.run	void ({ String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, })
+WApp.start	Future<void> ({ VoidCallback? onLazyInit, List<Future<void>>? customTasks, String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, })
+WApp.startupReport	WAppStartupReport?
+WAppOptions	class
+WAppOptions.appWrapper	Widget Function(Widget child)?
+WAppOptions.builder	TransitionBuilder?
+WAppOptions.copyWith	WAppOptions ({ String? title, Object? home = _unset, Object? initialRoute = _unset, Object? getPages = _unset, Object? routes = _unset, Object? navigatorKey = _unset, Object? theme = _unset, Object? translations = _unset, Object? supportedLocales = _unset, Object? localizationsDelegates = _unset, Object? builder = _unset, Object? navigatorObservers = _unset, Object? defaultTransition = _unset, Object? orientations = _unset, bool? shouldApplyOrientations, Object? appWrapper = _unset, Object? localeConfig = _unset, Object? plugins = _unset, Object? routeStack = _unset, Object? unknownRoute = _unset, Object? startupLog = _unset, })
+WAppOptions.defaultTransition	Transition?
+WAppOptions.getPages	List<GetPage<dynamic>>?
+WAppOptions.home	Widget?
+WAppOptions.initialRoute	String?
+WAppOptions.localeConfig	WLocaleConfig?
+WAppOptions.localizationsDelegates	Iterable<LocalizationsDelegate<dynamic>>?
+WAppOptions.navigatorKey	GlobalKey<NavigatorState>?
+WAppOptions.navigatorObservers	List<NavigatorObserver>?
+WAppOptions.new	({ required this.title, this.home, this.initialRoute, List<GetPage<dynamic>>? getPages, Map<String, WidgetBuilder>? routes, this.navigatorKey, this.theme, this.translations, List<Locale>? supportedLocales, this.localizationsDelegates, this.builder, List<NavigatorObserver>? navigatorObservers, this.defaultTransition, List<DeviceOrientation>? orientations, this.shouldApplyOrientations = false, this.appWrapper, this.localeConfig, List<WAppPlugin>? plugins, this.routeStack, this.unknownRoute, this.startupLog, })
+WAppOptions.orientations	List<DeviceOrientation>
+WAppOptions.plugins	List<WAppPlugin>
+WAppOptions.routeStack	WRouteStack?
+WAppOptions.routes	Map<String, WidgetBuilder>?
+WAppOptions.shouldApplyOrientations	bool
+WAppOptions.startupLog	bool?
+WAppOptions.supportedLocales	List<Locale>?
+WAppOptions.theme	WAppTheme?
+WAppOptions.title	String
+WAppOptions.translations	Translations?
+WAppOptions.unknownRoute	GetPage<dynamic>?
+WAppScope	class
+WAppScope.app	WApp
+WAppScope.new	({super.key, required this.app, required super.child})
+WAppScope.updateShouldNotify	bool (WAppScope oldWidget)
+WAppStartupReport	class
+WAppStartupReport.customTasksDuration	Duration
+WAppStartupReport.failures	Iterable<WAppPluginRun>
+WAppStartupReport.firstFrameDuration	Duration?
+WAppStartupReport.hasFirstFrame	bool
+WAppStartupReport.initDuration	Duration
+WAppStartupReport.markFirstFrame	void (Duration duration)
+WAppStartupReport.new	({ required List<WAppPluginRun> pluginRuns, required this.pluginsDuration, required this.customTasksDuration, required this.initDuration, })
+WAppStartupReport.pluginRuns	List<WAppPluginRun>
+WAppStartupReport.pluginsDuration	Duration
+WAppStartupReport.toString	String ()
+WBottomSheet	class
+WBottomSheet.show	static Future<T?> (Widget content, { Color? backgroundColor, Color? barrierColor, bool? isDismissible, bool? enableDrag, ShapeBorder? shape, Clip? clipBehavior, bool? ignoreSafeArea, double? elevation, bool isScrollControlled = true, })
+WRouteObserver	class
+WRouteObserver.didPop	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didPush	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didRemove	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didReplace	void ({Route<dynamic>? newRoute, Route<dynamic>? oldRoute})
+WRouteObserver.new	({required WRouteStack stack, this.recordPopups = false})
+WRouteObserver.recordPopups	bool
+WRouteObserver.stack	WRouteStack
+WRouteStack	class
+WRouteStack.addRoute	void (Route<dynamic> route)
+WRouteStack.clearRoutes	void ()
+WRouteStack.new	()
+WRouteStack.popUntilRoute	bool (String page)
+WRouteStack.removeRoute	void (Route<dynamic> route)
+WRouteStack.removeRouteIfExists	bool (String page)
+WRouteStack.removeRoutesAfter	int (String page)
+WRouteStack.routes	UnmodifiableListView<Route<dynamic>>
