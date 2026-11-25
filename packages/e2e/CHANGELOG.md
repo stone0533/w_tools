@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0
+
+### Added
+- `E2eConfig.skipReason`（`E2eSkipReason`）：区分 `releaseBuild` / `flagOff` / `profileNotAllowed` / `missingEmail` / `missingPassword` / `disabled`，`canAutoLogin` 由它推导；`fromEnvironment` 通过 `E2eConfig.disabledReason` 传入编译期原因。
+- `E2eLogin.run(beforeLogin: ...)`：登录前 await，适合清残留会话 / token；它抛错时单独上报并返回 false。
+- `E2eSignals.ready([detail])` / `readyPrefix` / `readyLine`：给设备黑盒一个稳定的 `[E2E] ready` 等待点。
+
+### Changed
+- `E2eLogin.run` 条件不满足时不再静默返回，打印 `[E2E] skip: <reason>`；`beforeLogin` 失败以 `[E2E] beforeLogin failed` 上报。
+- README 示例不再提前 `if (!config.canAutoLogin) return;`，并补「为什么不自动登录」「设备黑盒怎么配合」。
+
 ## 0.2.0
 
 ### Added

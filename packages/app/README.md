@@ -59,7 +59,7 @@ class AnalyticsPlugin extends WAppPlugin {
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.1.0
+  w_tools_app_getx: ^3.2.0
 ```
 
 语言与外观类型也可以直接引用：

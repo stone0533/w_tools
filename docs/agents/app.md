@@ -72,7 +72,9 @@ class SplashPlugin with WAppPlugin {
 ```
 
 单插件可设 `Duration? get timeout`（默认不限制）与 `bool get critical`（默认 true；
-false 时失败只记录、继续启动）。
+false 时失败只记录、继续启动）。启动耗时 / 失败用 `app.startupReport` 读取，
+日志默认 debug 打开（`WAppOptions.startupLog` 覆盖）。widget 测试用
+`app.buildRoot()` 复用运行时装配，不要手搭 `ScreenUtilInit` + `MaterialApp`。
 
 多语言：
 
@@ -113,7 +115,8 @@ await tester.pumpWidget(WAppScope(app: app, child: const MyPage()));
 navigatorObservers / defaultTransition / theme / translations`，
 `title`、`home`、`orientations`、`shouldApplyOrientations`、`appWrapper`、`localeConfig`、
 `plugins` 等只能放 `WAppOptions`；外观（theme / darkTheme / themeMode / systemUiOverlayStyle）
-统一放 `WAppTheme`；默认不干预系统栏，需要时显式传 `systemUiOverlayStyle`。
+统一放 `WAppTheme`；`systemUiOverlayStyle` 传了就是全局兜底（页面标注优先），
+不传则不干预系统栏。
 
 ## WAsyncExecutor（项目 composition root）
 

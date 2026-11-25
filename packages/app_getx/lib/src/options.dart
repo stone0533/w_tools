@@ -43,6 +43,7 @@ class WAppOptions {
     List<WAppPlugin>? plugins,
     this.routeStack,
     this.unknownRoute,
+    this.startupLog,
   }) : getPages = getPages == null ? null : List<GetPage<dynamic>>.unmodifiable(getPages),
        routes = routes == null ? null : Map<String, WidgetBuilder>.unmodifiable(routes),
        supportedLocales = supportedLocales == null
@@ -108,6 +109,12 @@ class WAppOptions {
   final WRouteStack? routeStack;
   final GetPage<dynamic>? unknownRoute;
 
+  /// 是否输出启动期日志（逐插件耗时 / 启动摘要 / 首帧）。
+  ///
+  /// null（默认）表示 debug 构建打开、profile / release 关闭；显式 `true`
+  /// 可在 profile / CI 里打开，`false` 可在 debug 下静音。
+  final bool? startupLog;
+
   static const Object _unset = Object();
 
   /// 创建副本；传 `null` 可清空可空字段。
@@ -132,6 +139,7 @@ class WAppOptions {
     Object? plugins = _unset,
     Object? routeStack = _unset,
     Object? unknownRoute = _unset,
+    Object? startupLog = _unset,
   }) {
     T? pick<T>(Object? value, T? current) => identical(value, _unset) ? current : value as T?;
 
@@ -161,6 +169,7 @@ class WAppOptions {
       plugins: pick<List<WAppPlugin>>(plugins, this.plugins),
       routeStack: pick<WRouteStack>(routeStack, this.routeStack),
       unknownRoute: pick<GetPage<dynamic>>(unknownRoute, this.unknownRoute),
+      startupLog: pick<bool>(startupLog, this.startupLog),
     );
   }
 
@@ -190,7 +199,8 @@ class WAppOptions {
         other.localeConfig == localeConfig &&
         listEquals(other.plugins, plugins) &&
         other.routeStack == routeStack &&
-        other.unknownRoute == unknownRoute;
+        other.unknownRoute == unknownRoute &&
+        other.startupLog == startupLog;
   }
 
   @override
@@ -217,5 +227,6 @@ class WAppOptions {
     Object.hashAll(plugins),
     routeStack,
     unknownRoute,
+    startupLog,
   ]);
 }

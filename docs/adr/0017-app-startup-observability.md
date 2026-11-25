@@ -8,7 +8,9 @@
   [`app.dart`](../../packages/app_getx/lib/src/app.dart)、
   [`e2e_config.dart`](../../packages/e2e/lib/src/e2e_config.dart)、
   [`docs/modules/app_module.md`](../modules/app_module.md)、
-  [`docs/feedback/README.md`](../feedback/README.md)
+  [`docs/feedback/app_getx.md`](../feedback/app_getx.md)、
+  [`docs/feedback/app.md`](../feedback/app.md)、
+  [`docs/feedback/e2e.md`](../feedback/e2e.md)
 
 ## 背景
 
@@ -87,8 +89,8 @@
 
 ## 落地结果
 
-- 状态：分批落地；`w_tools_app 4.1.0` 先发，`w_tools_app_getx 3.2.0` /
-  `w_tools_e2e 0.3.0` / ui 14.1.1 随后续 PR 发布
+- 状态：未执行（随 `w_tools_app 4.1.0` / `w_tools_app_getx 3.2.0` /
+  `w_tools_e2e 0.3.0` 发布，ui 行为修复随 14.1.1）
 - 证据：本 ADR 落地后由 `scripts/check_api_budget.py`、各包测试与
   `docs/feedback` 闭环记录验证。
 

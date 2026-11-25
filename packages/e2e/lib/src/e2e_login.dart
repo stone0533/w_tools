@@ -13,6 +13,12 @@ class E2eLogin {
 
   /// 返回**登录本身**是否成功；失败只回调 [onError] 并返回 false，不抛异常。
   ///
+  /// 条件不满足时返回 false 并打一行 `[E2E] skip: <reason>`（见
+  /// [E2eConfig.skipReason]），不再静默返回。
+  ///
+  /// [beforeLogin] 在 [login] 之前 await，适合清残留会话 / token；它自己抛错
+  /// 会以 `[E2E] beforeLogin failed` 上报并返回 false，不会继续登录。
+  ///
   /// [afterLogin] 的失败（同步抛 / Future 报错）只上报，不影响返回值 ——
   /// 登录已经成功，不能因为导航出错就判成"没登录"。
   ///
@@ -20,14 +26,24 @@ class E2eLogin {
   /// 集成测试需要等导航完成时传 [awaitAfterLogin] = true。
   static Future<bool> run({
     E2eConfig? config,
+    FutureOr<void> Function()? beforeLogin,
     required E2eLoginCallback login,
     FutureOr<void> Function()? afterLogin,
     FutureOr<void> Function(Object error, StackTrace stack)? onError,
     bool awaitAfterLogin = false,
   }) async {
     final cfg = config ?? E2eConfig.fromEnvironment();
-    if (!cfg.canAutoLogin) return false;
+    final reason = cfg.skipReason;
+    if (reason != null) {
+      debugPrint('[E2E] skip: ${reason.name}');
+      return false;
+    }
+    var stage = 'beforeLogin';
     try {
+      if (beforeLogin != null) {
+        await beforeLogin();
+      }
+      stage = 'auto login';
       await login(cfg.email, cfg.password).timeout(cfg.timeout);
       debugPrint('[E2E] auto login ok: ${cfg.email}');
       final after = _runAfterLogin(afterLogin, onError);
@@ -38,7 +54,7 @@ class E2eLogin {
       }
       return true;
     } catch (e, st) {
-      await _report(onError, e, st, failed: true);
+      await _report(onError, e, st, stage: stage);
       return false;
     }
   }
@@ -54,7 +70,7 @@ class E2eLogin {
       final after = afterLogin();
       if (after is Future) await after;
     } catch (e, st) {
-      await _report(onError, e, st, failed: false);
+      await _report(onError, e, st, stage: 'afterLogin');
     }
   }
 
@@ -62,15 +78,11 @@ class E2eLogin {
     FutureOr<void> Function(Object, StackTrace)? onError,
     Object e,
     StackTrace st, {
-    required bool failed,
+    required String stage,
   }) async {
     final handler = onError ??
         (Object err, StackTrace stack) {
-          debugPrint(
-            failed
-                ? '[E2E] auto login failed: $err\n$stack'
-                : '[E2E] afterLogin failed: $err\n$stack',
-          );
+          debugPrint('[E2E] $stage failed: $err\n$stack');
         };
     try {
       await handler(e, st);

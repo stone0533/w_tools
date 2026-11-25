@@ -3,3 +3,4 @@ library;
 
 export 'src/e2e_config.dart';
 export 'src/e2e_login.dart';
+export 'src/e2e_signals.dart';

@@ -1,3 +1,8 @@
+## 14.1.1
+
+### Fixed
+- `WListViewSliver.overlap` 最后一项按自然高度布局：此前固定行高 + `OverflowBox` 让最后一张卡露出的底部收不到点击；现在整卡可点，卡片高于 `itemExtent` 时也能完整滚入视口。`itemExtent` 的语义在文档 / catalog 中明确为视觉高度；前 n-1 项的命中盒仍是 `itemExtent - overlap`（重叠区由下一项接管）。
+
 ## 14.1.0
 
 ### Added

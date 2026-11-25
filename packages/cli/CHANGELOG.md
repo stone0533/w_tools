@@ -1,7 +1,8 @@
-## Unreleased
+## 2.9.8
 
 ### Changed
-- `init` 的 `versions.dart` 约束跟随 `w_tools_app 4.1.0`。
+- `init` 的 `versions.dart` 约束跟随 `w_tools_app 4.1.0` / `w_tools_app_getx 3.2.0` / `w_tools_ui 14.1.1`。
+- `feedback` lint 支持多行字段值（代码块 / 列表），不再把合法的命令 / 复现数据误判为占位；缩进列表项不再被当作字段。
 
 ## 2.9.7
 

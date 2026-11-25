@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^14.1.0
+  w_tools_ui: ^14.1.1
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -336,6 +336,9 @@ WListView(sliver: WListViewSliver.separated(itemCount: n, itemBuilder: ..., sepa
 WListView(sliver: WListViewSliver.grid(itemCount: n, gridDelegate: ..., itemBuilder: ...));
 WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap: 24, itemBuilder: ...));
 ```
+
+`overlap` 的 `itemExtent` 是视觉高度：前 n-1 项按 `itemExtent - overlap` 布局、
+重叠区归下一项；最后一项按自然高度布局，整张卡（含露出部分）可点击。
 
 角标 / 裁剪 / 横向操作：
 

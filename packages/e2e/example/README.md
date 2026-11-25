@@ -7,15 +7,17 @@ Put the import and call in `tool/main_e2e.dart`; production `lib/main.dart` must
 ```dart
 import 'package:w_tools_e2e/w_tools_e2e.dart';
 
-final config = E2eConfig.fromEnvironment();
-if (config.canAutoLogin) {
-  await E2eLogin.run(
-    config: config,
-    login: (email, password) => repository.login(email, password),
-    afterLogin: () => router.go('/home'),
-    onError: (error, stack) => logger.warning('E2E failed: $error'),
-  );
-}
+// 不要提前 if (!config.canAutoLogin) return;：run() 会打 [E2E] skip: <reason>。
+await E2eLogin.run(
+  config: E2eConfig.fromEnvironment(),
+  beforeLogin: () => repository.clearSession(),
+  login: (email, password) => repository.login(email, password),
+  afterLogin: () => router.go('/home'),
+  onError: (error, stack) => logger.warning('E2E failed: $error'),
+);
+
+// 首页首屏数据就绪后，再给设备黑盒一个稳定的等待点。
+E2eSignals.ready('home');
 ```
 
 Run the host app with:
