@@ -131,7 +131,9 @@ class WListViewSliver extends StatelessWidget {
               )
             : SliverToBoxAdapter(child: empty)
       else if (_isSplitOverlap)
-        ..._buildOverlapSlivers(context)
+        // 叠卡内容必须按「先前面的项、后最后一项」绘制；SliverMainAxisGroup
+        // 默认倒序绘制，会把上一项的溢出画到最后一项顶部。
+        _ForwardPaintMainAxisGroup(slivers: _buildOverlapSlivers(context))
       else
         _buildListSliver(),
       if (footer != null) SliverToBoxAdapter(child: footer),
@@ -147,7 +149,8 @@ class WListViewSliver extends StatelessWidget {
   /// 最后一项单独用 `SliverToBoxAdapter` 按自然高度布局，命中盒 = 视觉盒。
   ///
   /// 这样最后一卡露出的底部可以点击；统一卡片高度 == [itemExtent] 时
-  /// 滚动范围与旧实现一致。
+  /// 滚动范围与旧实现一致。内容由 [_ForwardPaintMainAxisGroup] 正序绘制，
+  /// 最后一张卡盖住前一项的溢出，圆角不会被裁成直角、也不会露出背景白。
   List<Widget> _buildOverlapSlivers(BuildContext context) {
     final step = itemExtent! - overlap;
     return <Widget>[
@@ -169,17 +172,11 @@ class WListViewSliver extends StatelessWidget {
     return SliverFixedExtentList(
       itemExtent: itemExtent! - overlap,
       delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final item = OverflowBox(
-            maxHeight: double.infinity,
-            alignment: Alignment.topCenter,
-            child: itemBuilder(context, index),
-          );
-          // 最后一项（单独的 sliver，按自然高度绘制）在
-          // SliverMainAxisGroup 里先于前面的固定 sliver 绘制；前一项的
-          // 溢出会盖住它的顶部。溢出的那截本来应由下一项覆盖，裁到命中盒。
-          return index == count - 1 ? ClipRect(child: item) : item;
-        },
+        (context, index) => OverflowBox(
+          maxHeight: double.infinity,
+          alignment: Alignment.topCenter,
+          child: itemBuilder(context, index),
+        ),
         childCount: count,
         addAutomaticKeepAlives: addAutomaticKeepAlives,
         addRepaintBoundaries: true,
@@ -231,6 +228,33 @@ class WListViewSliver extends StatelessWidget {
           addRepaintBoundaries: true,
           addSemanticIndexes: true,
         );
+    }
+  }
+}
+
+/// 按子 sliver 顺序（first → last）绘制的主轴 group。
+///
+/// `SliverMainAxisGroup`（`rendering/sliver_group.dart`）的 `paint` 从
+/// `lastChild` 倒序，这对需要「后项盖前项」的叠卡是反的；这个私有 group
+/// 只覆盖绘制顺序，布局 / 命中测试仍复用 Flutter 的实现。
+class _ForwardPaintMainAxisGroup extends SliverMainAxisGroup {
+  const _ForwardPaintMainAxisGroup({required super.slivers});
+
+  @override
+  RenderSliverMainAxisGroup createRenderObject(BuildContext context) =>
+      _RenderForwardPaintMainAxisGroup();
+}
+
+class _RenderForwardPaintMainAxisGroup extends RenderSliverMainAxisGroup {
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    RenderSliver? child = firstChild;
+    while (child != null) {
+      if (child.geometry!.visible) {
+        final parentData = child.parentData! as SliverPhysicalParentData;
+        context.paintChild(child, offset + parentData.paintOffset);
+      }
+      child = childAfter(child);
     }
   }
 }

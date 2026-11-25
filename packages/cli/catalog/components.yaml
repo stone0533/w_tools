@@ -1144,7 +1144,7 @@ components:
     pitfalls:
       - '嵌自定义滚动壳 / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳'
       - 'shrinkWrap: true 与 emptyFill: true 同时用会断言'
-      - 'overlap 的 itemExtent 是视觉高度：前 n-1 项命中盒是 itemExtent - overlap，重叠区归下一项；最后一项按自然高度布局，整卡可点；最后一个固定项的溢会被裁掉，避免盖住最后一项顶部'
+      - 'overlap 的 itemExtent 是视觉高度：前 n-1 项命中盒是 itemExtent - overlap，重叠区归下一项；最后一项按自然高度布局，整卡可点；叠卡内容按顺序绘制，最后一项盖住前一项溢出，圆角完整'
     related: ['`WKeepAliveWrapper`', '`WNotificationListener`']
     teach: true
   - name: '`WKeepAliveWrapper`'

@@ -1,3 +1,8 @@
+## 14.1.3
+
+### Fixed
+- `WListViewSliver.overlap` 14.1.2 的 `ClipRect` 会把第 n-1 张卡的圆角底边裁成直角，并在最后一张卡顶部圆角外侧露出白底。改为 `_ForwardPaintMainAxisGroup` 正序绘制：前 n-1 项先画、最后一项后画，最后一项圆角盖住前项溢出；布局 / 滚动 / 命中盒不变。补圆角像素回归测试。
+
 ## 14.1.2
 
 ### Fixed
