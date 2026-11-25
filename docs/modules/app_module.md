@@ -105,6 +105,7 @@ await app.start();
 | `plugins` | `List<WAppPlugin>` | `[]` | 启动插件 |
 | `routeStack` | `WRouteStack?` | null | 自定义路由栈；默认新建 |
 | `unknownRoute` | `GetPage<dynamic>?` | null | GetX 未知路由 |
+| `startupLog` | `bool?` | null | 启动期日志；null 时 debug 打开，profile / release 关闭 |
 
 `WAppOptions` 是不可变值对象：构造时会拷贝 list / map，并实现 `==` / `hashCode`。
 
@@ -115,10 +116,13 @@ await app.start();
 | `light` | `ThemeData?` | null | 亮色主题 |
 | `dark` | `ThemeData?` | null | 暗色主题 |
 | `mode` | `ThemeMode` | `ThemeMode.system` | 主题模式 |
-| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式；null 时完全交给系统 |
+| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 全局兜底；页面未标注时使用 |
 
 `WAppTheme` 是应用外观值对象，实现 `==` / `hashCode`；不要和 `WAsyncTheme`（Widget）混用。
-默认**不干预**系统栏；需要固定状态栏 / 导航栏时显式传入 `systemUiOverlayStyle`。
+`systemUiOverlayStyle` 非 null 时是**全局兜底**：`WApp.run()` 会在根部包一层
+`AnnotatedRegion<SystemUiOverlayStyle>`，页面自己的 `WScaffold.systemStatusBarStyle` /
+`WAppBarStyle.systemOverlayStyle` 优先；页面没标注时回落到它（从浅色状态栏页面返回后会恢复）。
+null 时完全不干预系统栏。
 
 ### 插件管理
 
@@ -129,25 +133,35 @@ await app.start();
 
 | 方法 | 幂等 | 说明 |
 |------|------|------|
-| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | `ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → `onLazyInit` 首帧后回调 |
+| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | `ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → 首帧后插件 `onFirstFrame` / `onLazyInit`；失败时 `startupReport` 仍可读 |
 | `run({...})` | ❌ | 启动应用；必须先 `init`，且只能调用一次 |
-| `start({...})` | ❌ | 一站式启动：`init` + `run`；只能调用一次 |
+| `start({...})` | ❌ | 一站式启动：`init` + `run`；只能调用一次；失败后可再次调用重试 |
+| `buildRoot({...})` | ✅ | 构建根 Widget（不 `runApp`、不要求 `init`）；测试宿主 / 自定义根用 |
+| `startupReport` | — | `init` 后读取：逐插件耗时 / 失败 / `firstFrameDuration` |
 
 ### 包裹顺序（由外向内）
 
 ```text
-WAppOptions.appWrapper（MaterialApp 外）
-  → GetMaterialApp
-    → WAppOptions.builder（MaterialApp 内）
-      → 页面
+AnnotatedRegion<SystemUiOverlayStyle>（根级兜底；appWrapper 之外）
+  → WAppOptions.appWrapper（MaterialApp 外）
+    → GetMaterialApp
+      → WAppOptions.builder（MaterialApp 内）
+        → 页面
 ```
 
 ### 插件初始化流程
 
 - 按 `dependsOn` 分层；同层按注册顺序**串行**执行，跨层串行。
-- 某个 `onInit` 抛错会立即中断本次 `init`，同层后续插件不再执行。
+- 关键插件（`critical: true`，默认）的 `onInit` 抛错 / 超时会中断本次 `init`，
+  抛 `WAppPluginInitException`（带 `pluginName`，`cause` 保留原异常）。
+- 非关键插件（`critical: false`）失败只记入 `runner.runs` / `startupReport`，
+  继续启动；依赖它的插件仍会执行（`dependsOn` 只表达顺序）。
+- `timeout` 默认 null（不限制）；设置后超时按失败处理。
+- 首帧后逐个插件调用 `onFirstFrame()`，失败隔离，不改变启动结果。
 - 重试会跳过已成功的插件，从失败点继续。
 - 插件 `name` 重复、`dependsOn` 引用未注册插件、存在循环依赖时抛 `StateError`。
+- 启动期日志默认 debug 打开（`WAppOptions.startupLog` 可覆盖），格式固定
+  `[WApp] plugin env 120ms ok` / `[WApp] started in ...` / `[WApp] first frame ...`。
 
 ### `builder` 与 `.sp`
 
@@ -241,6 +255,9 @@ Future<void> main() async {
 | 钩子 | 返回类型 | 说明 |
 |------|----------|------|
 | `onInit()` | `Future<void>` | 初始化阶段被调用，参与分层编排 |
+| `onFirstFrame()` | `Future<void>` | 首帧绘制后调用一次；适合移除原生闪屏 / 首帧后预热 |
+| `timeout` | `Duration?` | 单个插件 `onInit` 超时；null（默认）不限制 |
+| `critical` | `bool` | 默认 true；false 时失败只记录、继续启动 |
 | `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WAppOptions.navigatorObservers` 合并；只由 `WApp` 消费 |
 
 插件已删除 `builderWrapper` / `wrapApp`：全局包裹用 `WAppOptions.builder` / `appWrapper`。
@@ -279,7 +296,9 @@ await runner.init();
 
 - 同层按注册顺序串行、跨层串行；
 - `name` 重复 / 依赖未注册 / 循环依赖抛 `StateError`；
-- 某个 `onInit` 抛错会中断本次 init；重试跳过已成功的插件；
+- 关键插件 `onInit` 失败 / 超时抛 `WAppPluginInitException`；非关键插件记录后继续；
+- `runs` 暴露逐插件耗时 / 失败（重试会追加），`totalDuration` 是最近一次 init 耗时；
+- `firstFrame()` 提供首帧钩子（幂等）；`WApp` 会自动在首帧后调用；
 - 插件列表在构造时确定，`init` 之后不可增删。
 
 ---
@@ -545,7 +564,7 @@ language.changeLanguage('en_US');
 - **页面内访问**：用 `WLanguageScope.of(context)` / `WApp.of(context)`；`WApp.run()` 已自动
   插入 scope，`of` 找不到时抛 `FlutterError`，测试可手动包一层。
 - **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 统一放 `WAppTheme`；
-  默认不干预系统栏，需要时显式传 `systemUiOverlayStyle`。
+  `systemUiOverlayStyle` 传了就是全局兜底（页面标注优先），不传则不干预系统栏。
 - **Flutter 本地化**：默认使用 `GlobalMaterialLocalizations.delegates`；
   需要自定义时传 `WAppOptions.localizationsDelegates`。
 

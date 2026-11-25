@@ -10,17 +10,21 @@
 ## 特性
 
 - **一站式启动**：`app.start()` = `init()` + `run()`；入口是 `WApp.options(...)`
-- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层按注册顺序串行）
+- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化、`onFirstFrame` 首帧钩子、
+  单插件 `timeout` / `critical`
+- **启动可观测**：`app.startupReport`（逐插件耗时 / 失败 / 首帧）+ `startupLog`
+- **系统栏兜底**：`WAppTheme.systemUiOverlayStyle` 是全局 fallback，页面标注优先
 - **实例级状态**：`app.language` / `app.routeStack`，没有全局单例
 - **语言切换**：`WLanguage` + `WLocaleConfig`（来自 `w_tools_app`）
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
+- **测试宿主**：`app.buildRoot()` 复用运行时装配，widget 测试不用手搭外壳
 - **底部弹窗**：`WBottomSheet.show()`
 
 ## 安装
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.1.0
+  w_tools_app_getx: ^3.2.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -69,6 +73,85 @@ await app.start();
 插件负责初始化（以及可选的 `navigatorObservers`）；需要包裹整个应用时用
 `WAppOptions.appWrapper`，需要在 MaterialApp 内部插入 Theme / MediaQuery 时用
 `WAppOptions.builder`。
+
+### 首帧钩子 / 超时 / 关键性
+
+`onFirstFrame` 在首帧绘制后由 `WApp` 逐个插件调用，适合移除原生闪屏、首帧后预热；
+单个插件抛错只记录，不影响启动。`timeout` 默认不限制（建议对网络 / 原生通道插件
+显式设置），`critical: false` 的插件失败时继续启动：
+
+```dart
+class SplashPlugin extends WAppPlugin {
+  @override
+  String get name => 'native-splash';
+
+  @override
+  Future<void> onInit() async => FlutterNativeSplash.preserve(
+    widgetsBinding: WidgetsBinding.instance,
+  );
+
+  @override
+  Future<void> onFirstFrame() async => FlutterNativeSplash.remove();
+}
+
+class AnalyticsPlugin extends WAppPlugin {
+  @override
+  String get name => 'analytics';
+
+  @override
+  Duration get timeout => const Duration(seconds: 10);
+
+  @override
+  bool get critical => false;
+
+  @override
+  Future<void> onInit() => Analytics.init();
+}
+```
+
+### 启动观测
+
+```dart
+await app.start();
+
+final report = app.startupReport;
+report?.pluginRuns;          // 逐插件耗时 / 成功失败（WAppPluginRun）
+report?.failures;            // 失败插件
+report?.initDuration;        // init 总耗时
+report?.firstFrameDuration;  // 首帧耗时（首帧后填入）
+
+// 日志默认在 debug 打开；profile / CI 可显式打开，debug 下可静音
+WAppOptions(title: 'Demo', home: const HomePage(), startupLog: true);
+```
+
+日志格式固定：`[WApp] plugin env 120ms ok`、`[WApp] started in 480ms（...）`、
+`[WApp] first frame 60ms`。插件失败抛 `WAppPluginInitException`（带 `pluginName`）；
+`start()` 失败后可以再次调用重试（已成功的插件不重复执行）。
+
+### 系统栏兜底
+
+`WAppTheme.systemUiOverlayStyle` 现在是**全局兜底**：页面自己的
+`WScaffold.systemStatusBarStyle` / `WAppBarStyle.systemOverlayStyle` 优先；
+页面没有标注时回落到这里。从浅色状态栏页面返回后会恢复，不会停留在浅色。
+
+### widget 测试宿主
+
+`app.buildRoot()` 用与运行时一致的装配（`GetMaterialApp` → `appWrapper` →
+`WAppScope` / `WLanguageScope` → 系统栏兜底）构建根，不要求 `init()`，
+测试只写业务：
+
+```dart
+// test/support/pump_app.dart（示例）
+Future<void> pumpWApp(WidgetTester tester, Widget child) async {
+  final app = WApp.options(appOptions.copyWith(home: child));
+  await tester.pumpWidget(app.buildRoot());
+  await tester.pump();
+}
+```
+
+其中 `appOptions` 是项目里构造 `WAppOptions` 的同一个函数（含 `appWrapper` /
+`builder` / `theme`），测试不会再漏 `ScreenUtilInit` / `WFormTheme`。
+`setUp` 里建议 `Get.testMode = true; Get.reset();`。
 
 ### 在插件里注册服务
 

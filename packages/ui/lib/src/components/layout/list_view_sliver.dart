@@ -53,6 +53,11 @@ class WListViewSliver extends StatelessWidget {
        overlap = 0,
        assert(itemCount >= 0);
 
+  /// 叠压列表：每项按 [itemExtent] 的视觉高度绘制，向上叠压 [overlap]。
+  ///
+  /// 前 n-1 项的命中盒是 `itemExtent - overlap`（重叠部分由下一项接管），
+  /// **最后一项按自然高度布局**，整张卡（含露出部分）都可点击；因此
+  /// [itemBuilder] 返回的卡片应自撑高度，且视觉高度建议等于 [itemExtent]。
   const WListViewSliver.overlap({
     super.key,
     required this.itemCount,
@@ -106,6 +111,13 @@ class WListViewSliver extends StatelessWidget {
   /// 是否展示 empty。
   bool get hasEmpty => itemCount == 0 && empty != null;
 
+  /// 叠压列表里最后一项是否单独按自然高度布局。
+  ///
+  /// `OverflowBox` 只放大绘制，不放大命中盒；固定行高 + 溢出绘制会让
+  /// 最后一项露出的底部变成点击死区。最后一项没有「下一项」遮挡，必须
+  /// 让布局盒等于它的自然高度。
+  bool get _isSplitOverlap => _kind == _WListViewKind.overlap && overlap > 0 && itemCount > 0;
+
   @override
   Widget build(BuildContext context) {
     final hasEmpty = this.hasEmpty;
@@ -118,16 +130,57 @@ class WListViewSliver extends StatelessWidget {
                 child: empty,
               )
             : SliverToBoxAdapter(child: empty)
+      else if (_isSplitOverlap)
+        ..._buildOverlapSlivers(context)
       else
         _buildListSliver(),
-      if (!hasEmpty && _kind == _WListViewKind.overlap && overlap > 0 && itemCount > 0)
-        SliverToBoxAdapter(child: SizedBox(height: overlap)),
       if (footer != null) SliverToBoxAdapter(child: footer),
     ];
 
     return SliverPadding(
       padding: padding,
       sliver: SliverMainAxisGroup(slivers: slivers),
+    );
+  }
+
+  /// 叠压列表：前 n-1 项仍按 `itemExtent - overlap` 的固定行高布局并溢出绘制，
+  /// 最后一项单独用 `SliverToBoxAdapter` 按自然高度布局，命中盒 = 视觉盒。
+  ///
+  /// 这样最后一卡露出的底部可以点击；统一卡片高度 == [itemExtent] 时
+  /// 滚动范围与旧实现一致。
+  List<Widget> _buildOverlapSlivers(BuildContext context) {
+    final step = itemExtent! - overlap;
+    return <Widget>[
+      if (itemCount > 1) _buildFixedOverlapSliver(itemCount - 1),
+      SliverToBoxAdapter(
+        child: IndexedSemantics(
+          index: itemCount - 1,
+          child: ConstrainedBox(
+            // 与固定行高保持一致的下限：item 没有显式高度时不会塌成 0。
+            constraints: BoxConstraints(minHeight: step),
+            child: itemBuilder(context, itemCount - 1),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildFixedOverlapSliver(int count) {
+    return SliverFixedExtentList(
+      itemExtent: itemExtent! - overlap,
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return OverflowBox(
+            maxHeight: double.infinity,
+            alignment: Alignment.topCenter,
+            child: itemBuilder(context, index),
+          );
+        },
+        childCount: count,
+        addAutomaticKeepAlives: addAutomaticKeepAlives,
+        addRepaintBoundaries: true,
+        addSemanticIndexes: true,
+      ),
     );
   }
 
@@ -152,22 +205,8 @@ class WListViewSliver extends StatelessWidget {
           addSemanticIndexes: true,
         );
       case _WListViewKind.overlap:
-        return SliverFixedExtentList(
-          itemExtent: itemExtent! - overlap,
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              return OverflowBox(
-                maxHeight: double.infinity,
-                alignment: Alignment.topCenter,
-                child: itemBuilder(context, index),
-              );
-            },
-            childCount: itemCount,
-            addAutomaticKeepAlives: addAutomaticKeepAlives,
-            addRepaintBoundaries: true,
-            addSemanticIndexes: true,
-          ),
-        );
+        // overlap == 0 时没有叠压，走普通固定行高即可（不拆最后一项）。
+        return _buildFixedOverlapSliver(itemCount);
       case _WListViewKind.list:
         if (itemExtent != null) {
           return SliverFixedExtentList(

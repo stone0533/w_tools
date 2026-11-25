@@ -66,6 +66,119 @@ void main() {
       expect(result.issues.where((i) => i.message.contains('缺字段')).length, 8);
     });
 
+    test('多行命令 / 复现数据（代码块 + 缩进列表）不算占位', () {
+      final root = _tmp('wt_fbl_multiline_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'app.md'))
+        ..writeAsStringSync('''
+### [待处理] app: 多行字段
+- 包/版本：w_tools_app 4.0.1
+- 环境：macOS
+- 命令 / 输入：
+  ```dart
+  await app.start();
+  ```
+- 期望：有日志
+- 实际：没有日志
+- 影响：排查靠猜
+- 建议：加日志
+- 复现数据：
+   - `packages/app/lib/src/app.dart:1-2`
+   - 现象：没有任何输出
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      expect(
+        result.issues.where((i) => i.message.contains('占位内容')),
+        isEmpty,
+        reason: '字段值写在下一行的代码块 / 列表里是合法内容',
+      );
+      expect(result.ok, isTrue);
+    });
+
+    test('缩进子项不会被当成字段（字段必须从行首 - 开始）', () {
+      final root = _tmp('wt_fbl_nested_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'app.md'))
+        ..writeAsStringSync('''
+### [待处理] app: 子项冒充字段
+- 包/版本：w_tools_app 4.0.1
+- 环境：macOS
+- 期望：有日志
+- 实际：没有日志
+- 影响：排查靠猜
+- 建议：加日志
+- 复现数据：
+  - 命令：这不是字段
+  - 复现数据：这也不是字段
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      final missing = result.issues.where((i) => i.message.contains('缺字段'));
+      expect(missing.map((i) => i.message), contains('待处理条目缺字段「命令」'));
+    });
+
+    test('代码块 / 行内代码里的 ... 不算占位，裸 ... 仍算', () {
+      final root = _tmp('wt_fbl_ellipsis_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'e2e.md'))
+        ..writeAsStringSync('''
+### [待处理] e2e: 代码里的省略号
+- 包/版本：w_tools_e2e 0.2.0
+- 环境：macOS
+- 命令 / 输入：
+  ```bash
+  flutter run -d <udid> --dart-define=E2E_EMAIL=... --dart-define=E2E_PASSWORD=...
+  ```
+- 期望：能跑
+- 实际：不能跑
+- 影响：多花时间
+- 建议：补文档
+- 复现数据：`debugPrint('[E2E] ...')`
+
+### [待处理] e2e: 裸省略号
+- 包/版本：w_tools_e2e 0.2.0
+- 环境：macOS
+- 命令 / 输入：...
+- 期望：能跑
+- 实际：不能跑
+- 影响：多花时间
+- 建议：补文档
+- 复现数据：日志
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      final placeholderIssues = result.issues.where((i) => i.message.contains('占位内容')).toList();
+      expect(placeholderIssues, hasLength(1));
+      expect(placeholderIssues.single.message, contains('命令'));
+    });
+
+    test('字段值是空的仍算占位', () {
+      final root = _tmp('wt_fbl_empty_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'ui.md'))
+        ..writeAsStringSync('''
+### [待处理] ui: 空字段
+- 包/版本：w_tools_ui 14.1.0
+- 环境：macOS
+- 命令 / 输入：flutter test
+- 期望：通过
+- 实际：失败
+- 影响：挡 CI
+- 建议：补断言
+- 复现数据：
+
+### [待处理] ui: 空字段 2
+- 包/版本：w_tools_ui 14.1.0
+- 环境：macOS
+- 命令 / 输入：flutter test
+- 期望：通过
+- 实际：失败
+- 影响：挡 CI
+- 建议：补断言
+- 复现数据：
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      expect(result.issues.where((i) => i.message.contains('占位内容')), hasLength(2));
+    });
+
     test('待处理超过 stale-days 给警告，不影响 ok', () {
       final root = _tmp('wt_fbl5_');
       addTearDown(() => root.deleteSync(recursive: true));

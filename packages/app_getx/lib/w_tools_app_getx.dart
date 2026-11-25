@@ -2,7 +2,15 @@
 library w_tools_app_getx;
 
 export 'package:w_tools_app/w_tools_app.dart'
-    show WAppPlugin, WAppPluginRunner, WAppTheme, WLanguage, WLanguageScope, WLocaleConfig;
+    show
+        WAppPlugin,
+        WAppPluginInitException,
+        WAppPluginRun,
+        WAppPluginRunner,
+        WAppTheme,
+        WLanguage,
+        WLanguageScope,
+        WLocaleConfig;
 
 export 'src/app.dart';
 export 'src/options.dart';
@@ -10,3 +18,4 @@ export 'src/routing/route_stack.dart';
 export 'src/routing/route_observer.dart';
 export 'src/service.dart';
 export 'src/sheet/bottom_sheet.dart';
+export 'src/startup_report.dart';

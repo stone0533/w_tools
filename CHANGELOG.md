@@ -1,3 +1,8 @@
+## 21.1.4
+
+### Changed
+- `w_tools_ui` 约束抬到 `^14.1.1`，接入 `WListViewSliver.overlap` 最后一项点击死区修复。
+
 ## 21.1.3
 
 ### Changed

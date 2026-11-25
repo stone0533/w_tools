@@ -4,6 +4,39 @@
 
 （暂无）
 
+## 已确认
+
+### [已确认] api: DioRegistry 以 baseUrl 为单 key：同一 baseUrl 无法承载第二套 options/拦截器
+
+- 包/版本：w_tools_api 6.3.0
+- 环境：macOS 15.x / Flutter 3.44.9 / Dart 3.12.2 / iPhone 17 模拟器（iOS 26.2）
+- 命令 / 输入：
+  ```dart
+  // 主客户端：registry + token 拦截器
+  DioRegistry.forBaseUrl(apiUrl, interceptors: [WTokenInterceptor(...), WLogInterceptor(...)]);
+
+  // token 刷新客户端：同一 baseUrl，需要 30s 超时
+  final dio = Dio(BaseOptions(
+    baseUrl: apiUrl,
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    sendTimeout: const Duration(seconds: 30),
+  ));
+  ```
+- 期望：同一 baseUrl + 不同 `BaseOptions` / 拦截器能建第二个客户端，且仍走注册表
+- 实际：`forBaseUrl` 以 baseUrl 为唯一 key，第二套配置抛 `ArgumentError`；`replace: true` 会
+  `close(force: true)` 掉主客户端（含在途请求）。只能退回裸 `Dio(...)`，不再继承
+  `WApiSettings.baseOptions`
+- 影响：token 刷新链路为 30s 超时绕开 registry，两套客户端全局配置容易漂移，也违反
+  「不要直接 `Dio()`」的项目规则
+- 建议：`forBaseUrl` 增加命名 key（按 `(baseUrl, key)` 分桶），或提供
+  `DioRegistry.fork(...)`；至少把「同一 baseUrl 只能一份配置」写进 dartdoc 并给刷新场景示例
+- 复现数据：`packages/api/lib/src/client/dio_registry.dart` 的 `_instances` 以 baseUrl 为 key；
+  命中时 `listEquals` 不等即 `ArgumentError`；消费方 `AppRepository._createDio()` /
+  `_createRefreshDio()`
+- 关联 issue：#285
+- 状态变更：2026-11-25 已确认 → #285
+
 ## 已闭环
 
 | 日期 | 问题 | 结果 |

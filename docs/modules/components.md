@@ -48,7 +48,7 @@
 | `WImageSource` | ui | core | WImage 的来源：network / asset / file / base64 / provider | 不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse |
 | `WImageStyle` | ui | core | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
 | `WImageLoadOptions` | ui | core | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
-| `WAppPlugin` | app | core | 插件分层初始化 | 不要用插件包裹应用；需要 Theme / MediaQuery 的中间件放 WAppOptions.builder |
+| `WAppPlugin` | app | core | 插件分层初始化 + 首帧钩子 | 不要用插件包裹应用；需要 Theme / MediaQuery 的中间件放 WAppOptions.builder |
 | `WAppPluginRunner` | app | core | GetX-free 的插件注册表与 dependsOn 分层初始化 | 不要绕过 WApp.init 直接调用；WApp 内部会委托它 |
 | `WAsyncState` | async | core | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WImageTheme` | ui | core | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
