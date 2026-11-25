@@ -124,7 +124,7 @@ bash scripts/check_feedback.sh
 | [qr](qr.md) | 0 | 2026-11-04 |
 | [async_ui](async_ui.md) | 0 | 2026-11-23 |
 | [form](form.md) | 0 | 2026-11-24 |
-| [ui](ui.md) | 0 | 2026-11-25 |
+| [ui](ui.md) | 1 | 2026-11-25 |
 | [app_getx](app_getx.md) | 0 | 2026-11-25 |
 | [app](app.md) | 1 | 2026-11-25 |
 
