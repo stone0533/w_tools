@@ -30,41 +30,18 @@ packages:
   form: {}
   api: {}
   toast: {}
-  app:
-    growth: 21
-  app_getx:
-    growth: 13
+  app: {}
+  app_getx: {}
   map: {}
   map_google: {}
   qr: {}
   figma: {}
   device:
     mode: tool
-  e2e:
-    growth: 11
+  e2e: {}
   cli:
     mode: tool
 
 # 新增公开类型必须在这里登记，并指向真正的 ADR；`until` 到期后例外失效。
 # 新类型进入已发布快照后，删掉对应条目（脚本会对过期条目告警）。
-exceptions:
-  - package: app
-    type: WAppPluginRun
-    adr: docs/adr/0017-app-startup-observability.md
-    until: 4.2.0
-  - package: app
-    type: WAppPluginInitException
-    adr: docs/adr/0017-app-startup-observability.md
-    until: 4.2.0
-  - package: app_getx
-    type: WAppStartupReport
-    adr: docs/adr/0017-app-startup-observability.md
-    until: 3.3.0
-  - package: e2e
-    type: E2eSignals
-    adr: docs/adr/0017-app-startup-observability.md
-    until: 0.4.0
-  - package: e2e
-    type: E2eSkipReason
-    adr: docs/adr/0017-app-startup-observability.md
-    until: 0.4.0
+exceptions: []
