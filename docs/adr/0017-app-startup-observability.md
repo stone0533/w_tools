@@ -89,10 +89,11 @@
 
 ## 落地结果
 
-- 状态：未执行（随 `w_tools_app 4.1.0` / `w_tools_app_getx 3.2.0` /
-  `w_tools_e2e 0.3.0` 发布，ui 行为修复随 14.1.1）
-- 证据：本 ADR 落地后由 `scripts/check_api_budget.py`、各包测试与
-  `docs/feedback` 闭环记录验证。
+- 状态：已完成（2026-11-25）
+- 发布：`w_tools_app 4.1.0` / `w_tools_app_getx 3.2.0` / `w_tools_e2e 0.3.0` /
+  `w_tools_ui 14.1.1` / `w_tools_cli 2.9.8` / 根包 `w_tools 21.1.4`
+- 证据：PR #410 / #412；快照 PR #411 / #413；`release_status --online --check`
+  状态正常；新类型进入快照后已从 `scripts/api_budget.yaml` 移除例外、growth 回默认。
 
 ## 备选方案
 
