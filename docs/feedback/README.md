@@ -126,7 +126,7 @@ bash scripts/check_feedback.sh
 | [form](form.md) | 0 | 2026-11-24 |
 | [ui](ui.md) | 0 | 2026-11-25 |
 | [app_getx](app_getx.md) | 0 | 2026-11-25 |
-| [app](app.md) | 0 | 2026-11-25 |
+| [app](app.md) | 1 | 2026-11-25 |
 
 新增条目时**同步这张表**（CI 会核对数量）。未列出的包（core/ui/form/toast/app）首次用 `feedback submit --ledger` 建档时自动补索引；
 消费方用默认 issue 入口，不要直接改这张表。
