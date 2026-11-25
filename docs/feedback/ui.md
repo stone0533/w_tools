@@ -2,7 +2,30 @@
 
 ## 待处理
 
-（暂无）
+### [待处理] ui: ui 14.1.1：WListViewSliver.overlap 最后一项被上一项溢出盖住（SliverMainAxisGroup 倒序绘制）
+
+- 包/版本：w_tools_ui 14.1.1（本地检出 + pub 同源），Flutter 3.44.9
+- 环境：Android 真机（Pixel 5，dpr 2.75）与 flutter_tester 都能复现；项目 ureward_member_app
+- 命令 / 输入：
+  ```dart
+  WListViewSliver.overlap(
+    itemExtent: 200,
+    overlap: 60,
+    itemCount: 3,
+    itemBuilder: (_, i) => GestureDetector(          // 每项纯色、高 200
+      behavior: HitTestBehavior.opaque,
+      onTap: () => taps.add(i + 1),
+      child: Container(height: 200, color: colors[i]),
+    ),
+  )
+  ```
+- 期望：重叠区（后一项顶部 60）露出**后一项**；三项都一样。
+- 实际：前两项正确，**最后一项的顶部被上一项的溢出盖住**（像素取样：item2 顶部 #00ff00 ✓、item3 顶部 #00ff00 ✗ 期望 #0000ff、item3 中段 #0000ff ✓）。点击归属正常（item2 顶部点中 2、item3 顶部点中 3）。
+- 原因：`_buildOverlapSlivers` 把最后一项放进独立的 `SliverToBoxAdapter`，而 `SliverMainAxisGroup.paint` 从 `lastChild` **倒序**绘制（`rendering/sliver_group.dart`），于是先画最后一项、再画前面的固定 sliver；固定 sliver 里每项溢出行高（200 in 140）的那 60 会盖住最后一项顶部。14.1.1 之前所有项都在同一个 `SliverFixedExtentList` 里按顺序绘制，没有这个问题 —— 是「最后一项命中盒 = 视觉盒」那次改动的回归。
+- 影响：所有 `itemExtent < item 实际高度` 的叠卡列表，最后一项顶部的内容（标题条 / 白条 / 按钮）被上一项盖住。本项目会员卡页就是最后一张卡的白条（商家名 + 钱包余额）看不见。
+- 建议：`_buildFixedOverlapSliver` 里给每个 item 包 `ClipRect`（溢出的那截本来就被下一项遮住，视觉无损，最后一项也就不会被盖）；或把最后一项与其它项放进同一个 sliver（最后一行高 = itemExtent），保证绘制顺序与命中盒都对。
+- 复现数据：项目仓库 `test/component/w_list_overlap_test.dart`（纯色 + 像素取样，`flutter test test/component/w_list_overlap_test.dart`；最后一项用例目前 `skip: true`，去掉 skip 即红）。
+- 状态变更：2026-11-25 待处理
 
 ## 已确认
 
