@@ -1,0 +1,28 @@
+# w_tools_e2e 0.3.0
+E2eConfig	class
+E2eConfig.canAutoLogin	bool
+E2eConfig.copyWith	E2eConfig ({Duration? timeout})
+E2eConfig.disabledReason	E2eSkipReason?
+E2eConfig.email	String
+E2eConfig.enabled	bool
+E2eConfig.fromEnvironment	()
+E2eConfig.new	({ required this.enabled, required this.email, required this.password, this.timeout = const Duration(seconds: 60), this.disabledReason, })
+E2eConfig.password	String
+E2eConfig.skipReason	E2eSkipReason?
+E2eConfig.timeout	Duration
+E2eConfig.toString	String ()
+E2eLogin	class
+E2eLogin._	()
+E2eLogin.run	static Future<bool> ({ E2eConfig? config, FutureOr<void> Function()? beforeLogin, required E2eLoginCallback login, FutureOr<void> Function()? afterLogin, FutureOr<void> Function(Object error, StackTrace stack)? onError, bool awaitAfterLogin = false, })
+E2eLoginCallback	typedef E2eLoginCallback = Future<void> Function(String email, String password);
+E2eSignals	class
+E2eSignals.ready	static void ([String detail = ''])
+E2eSignals.readyLine	static String ([String detail = ''])
+E2eSignals.readyPrefix	String
+E2eSkipReason	enum
+E2eSkipReason.disabled	enum
+E2eSkipReason.flagOff	enum
+E2eSkipReason.missingEmail	enum
+E2eSkipReason.missingPassword	enum
+E2eSkipReason.profileNotAllowed	enum
+E2eSkipReason.releaseBuild	enum
