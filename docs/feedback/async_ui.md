@@ -2,7 +2,11 @@
 
 ## 待处理
 
-### [待处理] async_ui：空结果后再切筛选，WAsyncPagedList 同时显示下拉圈 + 居中 loading（两个加载提示）
+（暂无）
+
+## 已确认
+
+### [已确认] async_ui：空结果后再切筛选，WAsyncPagedList 同时显示下拉圈 + 居中 loading（两个加载提示）
 
 - 包/版本：w_tools_async_ui 2.3.0（配套 w_tools_async 8.2.0），Flutter 3.44.9 / Dart 3.12.2
 - 环境：Android 真机（Pixel 5，1080×2340，dpr 2.75，Impeller）+ flutter_test 状态探针；项目 ureward_member_app
@@ -32,6 +36,7 @@
   另建议补一个 widget 回归测试：empty 状态 `reloadRequests++` 后，屏幕上加载指示器数量应为 1。
 - 复现数据：上面的状态探针；项目侧可落成 `test/component/paged_list_empty_reload_test.dart`（需要的话我可以补上）。
 - 状态变更：2026-11-25 待处理
+- 状态变更：2026-11-25 已确认 → #422（两条路径都要收：程序化 reload + 空态手动下拉）
 
 ## 已闭环
 
