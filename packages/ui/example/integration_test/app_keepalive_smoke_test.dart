@@ -2,7 +2,8 @@
 //
 // 这是"参考示例"，不是 init 生成物，也不代表你的 App 页面结构：
 //   1. WKeepAliveWrapper：切走再回来，State 与滚动位置保留
-//   2. 不可见页的 TickerMode 关闭（生产里由项目的 WPageActivity 负责，这里内联等价实现）
+//   2. 不可见页的 `TickerMode` 关闭（生产里由业务页面壳自己包
+//      `TickerMode(enabled: isActive)`，见下方 `_tab`；这里内联等价实现）
 //
 // 需要 dev_dependencies:
 //   integration_test:
