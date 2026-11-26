@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
+import 'package:w_tools_async/w_tools_async.dart';
 
 import '../main.dart';
 
@@ -13,6 +14,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String? _routeSnapshot;
+  String _asyncResult = '未执行';
+
+  /// 演示：插件里注册的 WAsyncExecutor，页面用 Get.find 取，hooks 由 app 统一配置。
+  Future<void> _runAsync() async {
+    final executor = Get.find<WAsyncExecutor>();
+    final result = await executor.run(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      return 'executor: ok';
+    });
+    if (!mounted) return;
+    setState(() => _asyncResult = result);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +80,10 @@ class _HomePageState extends State<HomePage> {
                 child: const Text('底部弹窗'),
               ),
               OutlinedButton(
+                onPressed: _runAsync,
+                child: const Text('执行异步任务'),
+              ),
+              OutlinedButton(
                 onPressed: () {
                   setState(() {
                     // 路由栈：WRouteStack（每个 WApp 自己的 app.routeStack）
@@ -79,6 +96,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Text('异步执行器：$_asyncResult', style: const TextStyle(fontSize: 14)),
           if (_routeSnapshot != null) ...[
             const SizedBox(height: 16),
             Text(
@@ -107,6 +126,7 @@ class _HomePageState extends State<HomePage> {
                   Text('插件：FeaturePlugin 依赖 EnvPlugin，先 env 后 feature'),
                   Text('WRouteObserver 由 WApp 自动追加'),
                   Text('全局包裹：WAppOptions.builder（Theme/MediaQuery）'),
+                  Text('AsyncExecutorPlugin：Get.put(WAsyncExecutor)，页面 Get.find'),
                   Text('最外层包裹：WAppOptions.appWrapper（RepaintBoundary）'),
                 ],
               ),

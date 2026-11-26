@@ -61,7 +61,7 @@ class AnalyticsPlugin extends WAppPlugin {
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.2.0
+  w_tools_app_getx: ^3.3.0
 ```
 
 语言与外观类型也可以直接引用：
@@ -81,12 +81,12 @@ language.changeLanguage('en_US');
 `changeLanguage(saved)`（不在支持列表内会返回 `false`）。
 
 需要“跟随系统”时用 `WLocaleConfig(followSystem: true)`（与 `initialLanguage` 互斥）：
-启动语言由系统解析，应用壳把系统语言变化通过
-`changeLanguage(code, userSelected: false)` 写回，用户显式切换后停止跟随；
+启动语言由系统解析，系统语言变化由应用壳（`WApp`）通过
+`changeLanguage(code, userSelected: false)` 写回，用户显式切换后停止跟随。
 系统语言不在支持列表内时回退 `fallbackLanguage`。
 
-测试 teardown 直接 `language.dispose()`（释放变化流与监听）；dispose 后
-`changeLanguage` 抛 `StateError`。
+测试 teardown 用 `app.dispose()`（会释放 `WLanguage` 的变化流与监听）；单独使用
+`WLanguage` 时直接 `language.dispose()`。
 
 页面里用 `WLanguageScope.of(context)` 读取当前语言；语言切换时依赖者自动重建：
 

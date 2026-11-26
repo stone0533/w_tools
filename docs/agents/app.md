@@ -77,7 +77,8 @@ class SplashPlugin with WAppPlugin {
 单插件可设 `Duration? get timeout`（默认不限制）与 `bool get critical`（默认 true；
 false 时失败只记录、继续启动）。启动耗时 / 失败用 `app.startupReport` 读取，
 日志默认 debug 打开（`WAppOptions.startupLog` 覆盖）。widget 测试用
-`app.buildRoot()` 复用运行时装配，不要手搭 `ScreenUtilInit` + `MaterialApp`。
+`app.buildRoot()` 复用运行时装配，不要手搭 `ScreenUtilInit` + `MaterialApp`；
+它需要已初始化的 binding（纯 `test()` 里先 `TestWidgetsFlutterBinding.ensureInitialized()`）。
 
 多语言：
 
@@ -100,15 +101,20 @@ app.language.changeLanguage('en_US');
 // UI 监听：app.language.languageListenable（ValueListenable）或 languageChanges（Stream）
 ```
 
-跟随系统用 `followSystem: true`（与 `initialLanguage` 互斥）：启动语言由系统解析，
-应用壳把系统语言变化通过 `changeLanguage(code, userSelected: false)` 写回；用户
-`changeLanguage(...)` 后停止跟随；系统语言不命中支持列表时用 `fallbackLanguage`：
+跟随系统用 `followSystem: true`（与 `initialLanguage` 互斥）：启动与系统语言变化都跟随，
+用户 `changeLanguage(...)` 后停止跟随；系统语言不命中支持列表时用 `fallbackLanguage`：
 
 ```dart
-WLocaleConfig(
-  supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-  fallbackLanguage: 'en_US',
-  followSystem: true,
+final app = WApp.options(
+  WAppOptions(
+    title: 'Demo',
+    home: const HomePage(),
+    localeConfig: WLocaleConfig(
+      supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+      fallbackLanguage: 'en_US',
+      followSystem: true,
+    ),
+  ),
 );
 ```
 
@@ -116,6 +122,19 @@ WLocaleConfig(
 `WAppOptions.supportedLocales` 只用于显式覆盖 Flutter 本地化列表；当前语言不在列表内时
 `run()` 抛 `StateError`。语言不持久化：要恢复上次选择，在 `start()` 之前调用
 `app.language.changeLanguage(saved)`。
+
+外观（深浅色）运行时可切，不要为切主题新建 `WApp`（`start()` 只能一次）：
+
+```dart
+app.setThemeMode(ThemeMode.dark);      // 只重建 GetMaterialApp，不重置路由
+ValueListenableBuilder<ThemeMode>(
+  valueListenable: app.themeMode,
+  builder: (context, mode, _) => Text('$mode'),
+);
+```
+
+`WAppTheme.mode` 只是启动初值；持久化归消费方，恢复时先 `setThemeMode(saved)` 再
+`await app.start()`（或在插件 `onInit` 里设）。
 
 页面里用 `WLanguageScope.of(context)` 读取语言（切换时自动重建），用
 `WApp.of(context)` 读取应用实例；不要保存全局 `app`。
@@ -197,6 +216,7 @@ await app.start();
 ## 常见坑
 
 - `start()` / `run()` 只能调一次（重复调用抛 `StateError`）；
+- 测试 teardown 调 `app.dispose()`；dispose 后 `init` / `buildRoot` / `setThemeMode` 抛 `StateError`；
 - 插件同层串行，有顺序要求仍要写 `dependsOn`，不要依赖注册顺序的偶然性；
 - 多语言用 `app.language.changeLanguage(...)`，监听 `app.language.languageChanges`；
   不要保存第二份 current；

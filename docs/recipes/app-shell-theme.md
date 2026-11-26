@@ -1,5 +1,7 @@
 # App 根装配：主题 + 排版 + 全局提示
 
+> 这份配方用裸 `MaterialApp` 讲主题与全局提示的装配。用 `WApp` 启动器时，启动顺序 / 插件 / 存储 / 网络见 [应用启动](app-boot.md)。
+
 ```dart
 void main() {
   runApp(

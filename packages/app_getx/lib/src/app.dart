@@ -35,6 +35,7 @@ class WApp {
   WApp.options(this.options)
     : language = WLanguage.fromConfig(options.localeConfig),
       routeStack = options.routeStack ?? WRouteStack(),
+      _themeMode = ValueNotifier<ThemeMode>(options.theme?.mode ?? ThemeMode.system),
       _pluginRunner = WAppPluginRunner(
         options.plugins,
         _startupLogEnabledFor(options),
@@ -50,12 +51,20 @@ class WApp {
   final WRouteStack routeStack;
 
   final WAppPluginRunner _pluginRunner;
+  final ValueNotifier<ThemeMode> _themeMode;
+  late final _SystemLocaleObserver _systemLocaleObserver = _SystemLocaleObserver(this);
 
   bool _initialized = false;
   Future<void>? _initFuture;
   bool _started = false;
   bool _hasRun = false;
   bool _languageListenerAttached = false;
+  VoidCallback? _languageListener;
+  bool _systemLocaleObserverAttached = false;
+  bool _disposed = false;
+
+  /// 最近一轮 init 是否留下了失败的插件（非关键插件的补偿重试入口）。
+  bool _hasPluginFailures = false;
   WAppStartupReport? _startupReport;
 
   /// 已注册插件（只读视图）。
@@ -66,6 +75,48 @@ class WApp {
 
   /// 最近一次启动的耗时与插件结果；`init` 前为 null（失败时也有）。
   WAppStartupReport? get startupReport => _startupReport;
+
+  /// 当前主题模式（运行时可切）；初值来自 `WAppTheme.mode`。
+  ///
+  /// 用 `ValueListenableBuilder` 监听即可做“深色模式”开关；不持久化，
+  /// 持久化归消费方（恢复时在新应用实例上先 `setThemeMode(saved)`）。
+  ValueListenable<ThemeMode> get themeMode => _themeMode;
+
+  /// 运行时切换主题模式（只更新 MaterialApp 的 `themeMode`，不重建路由）。
+  void setThemeMode(ThemeMode mode) {
+    _ensureAlive('setThemeMode()');
+    _themeMode.value = mode;
+  }
+
+  /// 释放应用级监听（语言、系统语言、主题模式）与语言实例；幂等。
+  ///
+  /// 只在测试 teardown / 重建应用时调用；dispose 后 [init] / [run] /
+  /// [buildRoot] / [setThemeMode] 抛 [StateError]，[language] 也不可再用。
+  void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+
+    final listener = _languageListener;
+    if (listener != null) {
+      language.languageListenable.removeListener(listener);
+    }
+    _languageListener = null;
+    _languageListenerAttached = false;
+
+    if (_systemLocaleObserverAttached) {
+      WidgetsBinding.instance.removeObserver(_systemLocaleObserver);
+      _systemLocaleObserverAttached = false;
+    }
+
+    _themeMode.dispose();
+    language.dispose();
+  }
+
+  void _ensureAlive(String method) {
+    if (_disposed) {
+      throw StateError('$method 不能再调用：WApp 已 dispose');
+    }
+  }
 
   /// 启动期日志是否打开（[WAppOptions.startupLog]，null 时跟随 debug）。
   bool get _startupLogEnabled => _startupLogEnabledFor(options);
@@ -91,13 +142,15 @@ class WApp {
 
   // ──── 生命周期 ────
 
-  /// 初始化应用（幂等：重复调用只执行一次）。
+  /// 初始化应用（幂等：全部成功时重复调用不做任何事）。
   ///
-  /// 并发调用会共享同一次初始化；[onLazyInit] / [customTasks] 以首次调用为准。
-  /// 若插件初始化失败，[isInitialized] 保持 false；再次调用会从失败点继续
+  /// 并发调用会共享同一次初始化；[onLazyInit] / [customTasks] 以本次调用为准。
+  /// 若关键插件失败，[isInitialized] 保持 false；再次调用会从失败点继续
   /// （已经成功的插件不会重复执行），[customTasks] 会重新执行。
+  /// 非关键插件失败时启动照常完成，再次调用只会重试失败的插件。
   Future<void> init({VoidCallback? onLazyInit, List<Future<void>>? customTasks}) {
-    if (_initialized) return Future<void>.value();
+    _ensureAlive('init()');
+    if (_initialized && !_hasPluginFailures) return Future<void>.value();
 
     final pending = _initFuture;
     if (pending != null) return pending;
@@ -117,15 +170,24 @@ class WApp {
     List<Future<void>>? customTasks,
   }) async {
     WidgetsFlutterBinding.ensureInitialized();
+    _ensureSystemLocaleObserver();
+    _syncSystemLocale();
 
     final firstFrameWatch = Stopwatch()..start();
     final pluginsWatch = Stopwatch()..start();
+    final runsBefore = _pluginRunner.runs.length;
     var customTasksDuration = Duration.zero;
+
+    /// 本轮插件执行记录：报告只描述最近一次 init，重试不累积历史失败。
+    List<WAppPluginRun> runsThisInit() =>
+        _pluginRunner.runs.skip(runsBefore).toList(growable: false);
 
     try {
       _setupSystemUI();
       await _setupOrientation();
       await _pluginRunner.init();
+      final runs = runsThisInit();
+      _hasPluginFailures = runs.any((run) => !run.ok);
       pluginsWatch.stop();
 
       if (customTasks != null && customTasks.isNotEmpty) {
@@ -139,7 +201,7 @@ class WApp {
       }
 
       _startupReport = WAppStartupReport(
-        pluginRuns: _pluginRunner.runs,
+        pluginRuns: runs,
         pluginsDuration: pluginsWatch.elapsed,
         customTasksDuration: customTasksDuration,
         initDuration: firstFrameWatch.elapsed,
@@ -153,6 +215,7 @@ class WApp {
           debugPrint('[WApp] first frame ${firstFrame.inMilliseconds}ms');
         }
         unawaited(_pluginRunner.firstFrame());
+        _detachGetxLocaleObserver();
         onLazyInit?.call();
       });
 
@@ -160,7 +223,7 @@ class WApp {
     } catch (_) {
       pluginsWatch.stop();
       _startupReport = WAppStartupReport(
-        pluginRuns: _pluginRunner.runs,
+        pluginRuns: runsThisInit(),
         pluginsDuration: pluginsWatch.elapsed,
         customTasksDuration: customTasksDuration,
         initDuration: firstFrameWatch.elapsed,
@@ -247,6 +310,7 @@ class WApp {
     ThemeData? theme,
     Translations? translations,
   }) {
+    _ensureAlive('run()');
     if (!_initialized) {
       throw StateError('run() 之前必须先 await init()，或直接使用 await start()');
     }
@@ -280,7 +344,8 @@ class WApp {
   /// ```
   ///
   /// 注意：它不执行插件初始化（需要时自行 `await app.init()`），也不标记
-  /// 应用已启动；重复调用会重新构建根。
+  /// 应用已启动；重复调用会重新构建根。它需要已初始化的 `WidgetsBinding`
+  /// （widget 测试天然满足；纯 `test()` 里先 `TestWidgetsFlutterBinding.ensureInitialized()`）。
   Widget buildRoot({
     String? initialRoute,
     List<GetPage<dynamic>>? getPages,
@@ -290,6 +355,18 @@ class WApp {
     ThemeData? theme,
     Translations? translations,
   }) {
+    _ensureAlive('buildRoot()');
+    final binding = _maybeBinding;
+    if (binding == null) {
+      throw StateError(
+        'buildRoot() 需要已初始化的 WidgetsBinding：widget 测试请先调用 '
+        'TestWidgetsFlutterBinding.ensureInitialized()（或直接用 testWidgets），'
+        '生产环境请用 WApp.start()。',
+      );
+    }
+    _ensureSystemLocaleObserver(binding);
+    _syncSystemLocale(null, binding);
+
     final title = options.title;
     if (title.trim().isEmpty) {
       throw StateError('title 不能为空');
@@ -312,7 +389,9 @@ class WApp {
     final appTheme = _appTheme;
     final effectiveTheme = theme ?? appTheme.light;
     final effectiveTranslations = translations ?? options.translations;
-    final effectiveLocale = language.hasExplicitSelection ? language.currentLocale : null;
+    final effectiveLocale = language.hasExplicitSelection || language.isFollowingSystem
+        ? language.currentLocale
+        : null;
     final effectiveFallbackLocale = _fallbackLocale();
     final effectiveSupportedLocales = _supportedLocales(effectiveLocale);
 
@@ -329,7 +408,7 @@ class WApp {
       allObservers.add(WRouteObserver(stack: routeStack));
     }
 
-    Widget app = GetMaterialApp(
+    Widget materialApp(ThemeMode mode) => GetMaterialApp(
       title: title,
       home: effectiveHome,
       initialRoute: effectiveInitialRoute,
@@ -349,7 +428,14 @@ class WApp {
       defaultTransition: effectiveDefaultTransition,
       theme: effectiveTheme,
       darkTheme: appTheme.dark,
-      themeMode: appTheme.mode,
+      themeMode: mode,
+    );
+
+    // 主题模式是 MaterialApp 的入参：只重建到 GetMaterialApp 为止，
+    // 不重建 appWrapper / scope，也不会重置 Navigator。
+    Widget app = ValueListenableBuilder<ThemeMode>(
+      valueListenable: _themeMode,
+      builder: (context, mode, _) => materialApp(mode),
     );
 
     final wrapper = options.appWrapper;
@@ -372,6 +458,7 @@ class WApp {
       );
     }
 
+    binding.addPostFrameCallback((_) => _detachGetxLocaleObserver());
     _attachLanguageListener();
     return app;
   }
@@ -380,12 +467,87 @@ class WApp {
   void _attachLanguageListener() {
     if (_languageListenerAttached) return;
     _languageListenerAttached = true;
-    language.languageListenable.addListener(() {
-      // 只更新 GetMaterialApp 的 locale 并触发现有 GetBuilder 重建；
-      // Get.updateLocale 会额外 performReassemble 整棵树，切语言成本过高。
-      Get.locale = language.currentLocale;
-      Get.rootController.update();
-    });
+    _languageListener = _onLanguageChanged;
+    language.languageListenable.addListener(_languageListener!);
+  }
+
+  void _onLanguageChanged() {
+    // 只更新 GetMaterialApp 的 locale 并触发现有 GetBuilder 重建；
+    // Get.updateLocale 会额外 performReassemble 整棵树，切语言成本过高。
+    Get.locale = language.currentLocale;
+    Get.rootController.update();
+  }
+
+  /// 跟随系统时把系统语言写回 `WLanguage`。
+  ///
+  /// [locales] 为 null 时读当前系统列表；[binding] 供 `buildRoot()` 在拿不到
+  /// 全局 binding 时报错前复用。
+  void _syncSystemLocale([List<Locale>? locales, WidgetsBinding? binding]) {
+    if (_disposed || !language.isFollowingSystem) return;
+    final supported = _languageLocales();
+    if (supported.isEmpty) return;
+    final systemLocales =
+        locales ?? (binding ?? WidgetsBinding.instance).platformDispatcher.locales;
+    if (systemLocales.isEmpty) return;
+
+    final resolved = basicLocaleListResolution(systemLocales, supported);
+    // basicLocaleListResolution 在没有命中时会退回支持列表的第一个；
+    // 有 fallbackLanguage 时用它，避免“系统是日语却显示中文”。
+    final matched = systemLocales.any(
+      (locale) => locale.languageCode == resolved.languageCode,
+    );
+    final code = matched
+        ? _codeForLocale(resolved)
+        : options.localeConfig?.fallbackLanguage ?? _codeForLocale(resolved);
+    if (code == null || code == language.currentLanguage) return;
+    language.changeLanguage(code, userSelected: false);
+  }
+
+  /// 跟随系统解析用的 Locale 列表：以 `WLocaleConfig.supportedLanguages` 为准。
+  ///
+  /// `WAppOptions.supportedLocales` 只覆盖 Flutter 的本地化列表，不参与解析：
+  /// 它的写法（`en` / `en_US`）可能与语言码不一致，拿它解析会映射不回语言码，
+  /// 表现为「系统语言变了但 `WLanguage` 不动」。
+  List<Locale> _languageLocales() {
+    final languages = options.localeConfig?.supportedLanguages;
+    if (languages != null && languages.isNotEmpty) {
+      return languages.keys.map(WLanguage.localeFromCode).toList(growable: false);
+    }
+    return _localeList();
+  }
+
+  /// 把解析出的 [Locale] 映射回 `supportedLanguages` 的语言码。
+  ///
+  /// 先按完整 Locale 匹配，再按语言码兜底（`Locale('zh')` 能映射到 `zh_CN`）。
+  String? _codeForLocale(Locale locale) {
+    final codes = language.supportedLanguages.keys;
+    for (final code in codes) {
+      if (WLanguage.localeFromCode(code) == locale) return code;
+    }
+    for (final code in codes) {
+      if (WLanguage.localeFromCode(code).languageCode == locale.languageCode) {
+        return code;
+      }
+    }
+    return null;
+  }
+
+  void _ensureSystemLocaleObserver([WidgetsBinding? binding]) {
+    if (_systemLocaleObserverAttached) return;
+    (binding ?? WidgetsBinding.instance).addObserver(_systemLocaleObserver);
+    _systemLocaleObserverAttached = true;
+  }
+
+  /// 摘掉 GetX 自带的系统语言观察者。
+  ///
+  /// `GetMaterialController.didChangeLocales` 会把 `Get.locale` 直接改成
+  /// `Get.deviceLocale`（只看首选 locale，不按 `supportedLocales` 解析），并整树
+  /// reassemble；这既绕过 `WLanguage` 这个唯一真源，也会覆盖用户的显式选择。
+  /// 语言策略由 WApp 负责，所以首帧后把它移除；`Get.locale` 仍由
+  /// `_onLanguageChanged` 维护，`GetMaterialApp` 的 `locale: Get.locale ?? locale`
+  /// 会跟着变。
+  void _detachGetxLocaleObserver() {
+    WidgetsBinding.instance.removeObserver(Get.rootController);
   }
 
   Locale? _fallbackLocale() {
@@ -394,19 +556,23 @@ class WApp {
     return WLanguage.localeFromCode(fallbackLanguage);
   }
 
-  List<Locale> _supportedLocales(Locale? effectiveLocale) {
+  List<Locale> _localeList() {
     final configured = options.supportedLocales;
-    final locales =
-        configured ??
-        options.localeConfig?.supportedLanguages.keys
-            .map(WLanguage.localeFromCode)
-            .toList(growable: false) ??
-        const <Locale>[Locale('en', 'US')];
+    if (configured != null) return configured;
+    final languages = options.localeConfig?.supportedLanguages;
+    if (languages != null) {
+      return languages.keys.map(WLanguage.localeFromCode).toList(growable: false);
+    }
+    return const <Locale>[Locale('en', 'US')];
+  }
 
+  List<Locale> _supportedLocales(Locale? effectiveLocale) {
+    final locales = _localeList();
     if (effectiveLocale != null && !locales.contains(effectiveLocale)) {
       throw StateError(
         'supportedLocales 不包含当前语言 ${effectiveLocale.toString()}；'
-        '请把它加入 WLocaleConfig.supportedLanguages 或 WAppOptions.supportedLocales',
+        '请把它加入 WLocaleConfig.supportedLanguages，或让 WAppOptions.supportedLocales '
+        '与语言码形态一致（例如 en_US 对应 Locale("en", "US")）',
       );
     }
     return locales;
@@ -432,3 +598,31 @@ class WAppScope extends InheritedWidget {
 
 /// 启动期日志开关的单一判定；构造函数与实例 getter 共用。
 bool _startupLogEnabledFor(WAppOptions options) => options.startupLog ?? kDebugMode;
+
+extension on WApp {
+  /// 当前 `WidgetsBinding`；未初始化时返回 null（纯 `test()` 里调用 `buildRoot()`）。
+  WidgetsBinding? get _maybeBinding {
+    try {
+      return WidgetsBinding.instance;
+    } on Object {
+      return null;
+    }
+  }
+}
+
+/// 把系统语言变化转给 [WApp]。
+///
+/// 用私有类承接而不是让 `WApp` 自己实现 `WidgetsBindingObserver`：
+/// 后者会把 `didChangeAppLifecycleState` 等方法变成 `WApp` 的公开面，
+/// 而 API 快照的预算门禁看不到包外父类型的成员。
+class _SystemLocaleObserver extends WidgetsBindingObserver {
+  _SystemLocaleObserver(this._app);
+
+  final WApp _app;
+
+  @override
+  void didChangeLocales(List<Locale>? locales) {
+    super.didChangeLocales(locales);
+    _app._syncSystemLocale(locales);
+  }
+}

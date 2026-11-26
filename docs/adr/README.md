@@ -33,6 +33,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 | [0016](0016-async-paged-refresh-style.md) | `WAsyncPagedList` 标准 RefreshIndicator 样式对象 | 已采纳 | 2026-11-19 |
 | [0017](0017-app-startup-observability.md) | 应用启动可观测性、插件首帧钩子、测试宿主与公开面例外 | 已采纳 | 2026-11-25 |
 | [0018](0018-dashed-line.md) | `WDashedLine` 作为 ui 的水平虚线原语；逻辑像素、主题兜底、catalog 普通组件 | 已采纳 | 2026-11-26 |
+| [0019](0019-app-runtime-state.md) | 应用级运行期状态：主题切换 / 语言跟随系统 / 释放路径 | 已采纳 | 2026-11-26 |
 
 ### 版本与发布
 

@@ -486,6 +486,11 @@ banned:
     expect(json['schemaVersion'], 1);
     expect(json['needsPubspec'], isTrue);
     expect(json['nextActions'], isNotEmpty);
+    expect(
+      (json['nextActions'] as List).join(' '),
+      contains('app-boot'),
+      reason: 'init 应给出全栈启动配方的入口',
+    );
     expect(json['created'], isA<List<Object?>>());
     expect((json['created'] as List).first, isA<Map>());
     expect(json['missing'], isA<List<Object?>>());

@@ -13,6 +13,7 @@
 - `app.routeStack.popUntilRoute`
 - `app.language` 语言切换与 `WLocaleConfig`
 - `WBottomSheet`
+- 真实子包：`w_tools_async` 的 `WAsyncExecutor` 在插件里注册、页面里 `Get.find`
 
 ## 运行
 
@@ -37,6 +38,7 @@ flutter test
   切换语言
   打开详情路由
   底部弹窗
+  执行异步任务（WAsyncExecutor）
   查看路由栈
 
 详情页
@@ -60,6 +62,10 @@ main
 FeaturePlugin dependsOn ['env']
   → EnvPlugin 先完成
   → FeaturePlugin 再完成
+
+AsyncExecutorPlugin dependsOn ['env']
+  → Get.put(WAsyncExecutor(WAsyncHooks(...)))
+  → 页面 Get.find<WAsyncExecutor>().run(...)
 ```
 
 ## 说明

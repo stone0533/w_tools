@@ -13,6 +13,7 @@ dependencies:
   get: ^4.7.3
   w_tools_app_getx:
     path: ../
+  w_tools_async: ^8.2.0
 
 dev_dependencies:
   flutter_test:

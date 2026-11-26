@@ -34,6 +34,24 @@ class _BlockingPlugin extends WAppPlugin {
   }
 }
 
+class _SoftCountingPlugin extends WAppPlugin {
+  _SoftCountingPlugin(this.name);
+
+  @override
+  final String name;
+
+  @override
+  bool get critical => false;
+
+  int initCount = 0;
+
+  @override
+  Future<void> onInit() async {
+    initCount++;
+    if (initCount == 1) throw StateError('soft boom');
+  }
+}
+
 class _FlakyPlugin extends WAppPlugin {
   _FlakyPlugin(this.name);
 
@@ -148,6 +166,26 @@ void main() {
     expect(success.initCount, 1);
     expect(flaky.attempts, 2);
     expect(app.isInitialized, isTrue);
+  });
+
+  test('非关键插件失败后 init() 可重试：只重跑失败插件，报告只留最近一轮', () async {
+    final success = _CountingPlugin('a');
+    final soft = _SoftCountingPlugin('b');
+    final app = _app(plugins: [success, soft]);
+
+    await app.init();
+    expect(app.isInitialized, isTrue, reason: '非关键失败不阻塞启动');
+    expect(success.initCount, 1);
+    expect(soft.initCount, 1);
+    expect(app.startupReport!.failures.map((run) => run.name), ['b']);
+
+    await app.init();
+    expect(success.initCount, 1, reason: '已成功的插件不重复执行');
+    expect(soft.initCount, 2, reason: '非关键失败插件在下次 init 重试');
+    expect(app.startupReport!.failures, isEmpty, reason: '报告只反映最近一轮');
+
+    await app.init();
+    expect(soft.initCount, 2, reason: '全部成功后重复 init 不再执行');
   });
 
   test('customTasks 在 init 内并行执行', () async {

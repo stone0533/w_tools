@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.3.0
+
+### Added
+- `WApp.themeMode`（`ValueListenable<ThemeMode>`）与 `WApp.setThemeMode(...)`：运行时切主题模式，
+  只重建 `GetMaterialApp`，不重置路由 / 不重建 `appWrapper`。
+- `WApp.dispose()`：移除语言 / 系统语言 / 主题监听并 dispose `language`；幂等，dispose 后
+  `init` / `run` / `buildRoot` / `setThemeMode` 抛 `StateError`。
+- 跟随系统语言：`WLocaleConfig(followSystem: true)` 时启动与系统语言变化都同步到 `WLanguage`，
+  用户显式切语言后停止跟随。
+
+### Changed
+- 语言以 `WLanguage` 为唯一真源：首帧后移除 GetX 自带的系统语言观察者（它会把 `Get.locale`
+  设成不按 `supportedLocales` 解析的 `deviceLocale`，还会整树 reassemble）。
+- 依赖下界 `w_tools_app: ^4.2.0`。
+
+### Fixed
+- `buildRoot()` 在未初始化 `WidgetsBinding` 的纯单测里抛可执行的 `StateError`
+  （不再只给 Framework 的断言文本）。
+- 跟随系统解析改用 `WLocaleConfig.supportedLanguages`（`WAppOptions.supportedLocales`
+  只覆盖 Flutter 列表），`en` / `en_US` 形态不一致时不再出现「语言不同步」；
+  `supportedLocales` 校验失败时给出形态提示。
+- `init()` 在非关键插件失败后无法重试（`_initialized` 已置位，重复调用直接返回）：现在按
+  上一轮插件结果判断，只重试失败的插件，已成功的插件不重复执行。
+- `WAppStartupReport.pluginRuns` 只保留最近一轮 `init` 的记录：此前重试会累积历史失败，
+  成功重试后 `failures` 仍显示旧失败。
+
 ## 3.2.0
 
 ### Added
