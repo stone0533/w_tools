@@ -3,6 +3,7 @@
 // 通用组件
 export 'common/button/button.dart';
 export 'common/badge.dart';
+export 'common/dashed_line.dart';
 export 'common/image/image.dart';
 export 'common/keep_alive_wrapper.dart';
 export 'common/notification_listener.dart';

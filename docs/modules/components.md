@@ -105,6 +105,7 @@
 | 组件 | 子包 | 层级 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- | --- |
 | `WScreen` | ui | core | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
+| `WDashedLine` | ui | core | 水平虚线分隔 / 装饰线：线宽、dash 长度 / 间距、左右缩进可配 | 普通实线分隔直接用 Material `Divider`；竖线 / 虚线边框暂不支持 |
 | `WFormBorderStyle` | form | core | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式 | 配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口 |
 | `WAsyncView` | async | core | 普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；业务页面优先用 WAsyncSection；不要省略 onRetry 还期待默认重试按钮 |
 | `WAsyncSection` | async_ui | app | 业务页面单区块四态的规范入口；支持 per-block builder 与自定义 onRetry | 分页用 WAsyncPagedList；纯执行用 WAsync；不要在本组件里塞全局 loading |
@@ -225,7 +226,6 @@
 | **居中弹窗壳**（311 宽 / r20 / 57 高 `#F8F8F5` 头部 / 按钮排布） | 各项目手写，样式已开始漂移 | `w_tools_ui` |
 | **图标 + 文字一行**（`WidgetSpan` + 光学补偿） | 各项目手写 `Row`，对齐普遍偏 1.5~2.5px | `w_tools_ui` |
 | **品牌 logo 方块**（48 底 / 40 图 / r10 / `#EAEAEA` 边） | 至少 3 处重复 | `w_tools_ui` |
-| **虚线分隔**（`#CFCFCF` dash[2,2] 等） | 各项目自己画 | `w_tools_ui` |
 | **空态**（80 圆 + 图标 + 文案） | 各项目各写一份 | `w_tools_ui` |
 | **语义颜色 token**（`#3F3F3F`/`#545454`/`#EAEAEA`/`#409C35`…） | 全项目硬编码 | `w_tools_core` |
 

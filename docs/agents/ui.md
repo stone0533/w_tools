@@ -266,4 +266,5 @@ bigText
 横向操作 / 单选行 → WActionRow / WSelectableRow（explain WActionRow）
 圆角裁剪 → Flutter 原生 ClipRRect（WClipRRect 已在 11.0 删除）
 普通 / 分隔线 / 网格 / 重叠列表 → WListView + WListViewSliver
+虚线分隔 / 装饰线 → WDashedLine（水平；宽度必须有界；普通实线用原生 Divider）
 ```

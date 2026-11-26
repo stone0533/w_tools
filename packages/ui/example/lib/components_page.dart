@@ -5,6 +5,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 import 'components_overview_sections.dart';
 import 'components_state_sections.dart';
 import 'components_page_sections.dart';
+import 'demo_widgets.dart';
 
 /// 覆盖非 WImage 的核心组件：文字、徽标、裁剪、进度、步骤、
 /// 列表、横向按钮、Tab、底部导航、通知与保活。
@@ -38,6 +39,18 @@ class _ComponentsPageState extends State<ComponentsPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        const DemoSectionTitle('WDashedLine 虚线分隔'),
+        const WDashedLine(),
+        const SizedBox(height: 12),
+        WDashedLine(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          thickness: 2,
+          dashWidth: 6,
+          dashGap: 3,
+        ),
+        const SizedBox(height: 12),
+        const WDashedLine(indent: 24, endIndent: 24),
+        const SizedBox(height: 24),
         ...buildComponentsOverviewSections(context),
         ...buildComponentsStateSections(
           context: context,

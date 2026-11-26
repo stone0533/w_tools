@@ -11,7 +11,7 @@
 ## 特性
 
 - **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
-- **布局组件**：`WScaffold` / `WAppBar` / `WListView` / `WStep`
+- **布局组件**：`WScaffold` / `WAppBar` / `WListView` / `WStep` / `WDashedLine`
 - **导航组件**：`WNavBar` / `WNavController`（顶部 tab 直接用 Material `TabBar`）
 - **扩展方法**：颜色、字符串、数字、Widget、BoxDecoration 等
 - **屏幕适配**：`WScreen`、间距与尺寸工具
@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^14.1.3
+  w_tools_ui: ^14.2.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -354,6 +354,23 @@ ClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton.filled(...), WButton.filled(...)]);
 ```
 
+虚线分隔 / 装饰线：
+
+```dart
+WDashedLine(); // 默认 1px、dash [2,2]，颜色跟随 DividerTheme / ColorScheme.outlineVariant
+WDashedLine(
+  color: scheme.outlineVariant,
+  thickness: 1,
+  dashWidth: 4,
+  dashGap: 2,
+  indent: 12,
+  endIndent: 12,
+);
+```
+
+尺寸是逻辑像素，不随设计稿缩放；需要缩放时由调用方传 `1.w` / `WScreen.of(context).w(1)`。
+宽度必须有界（`Column` / `ListView` 可直接用，`Row` 里用 `Expanded` 包裹）。
+
 ## 状态与反馈
 
 ```dart
@@ -485,6 +502,7 @@ WScreenScope(
 | 文本 / 图片 | `WText` / `WImage` |
 | 按钮 / 点击 | `WButton` / `WPressable` |
 | 徽标 / 横向操作 | `WBadge` / `WActionRow` / `WSelectableRow` |
+| 虚线分隔 | `WDashedLine` |
 | 裁剪 | Flutter 原生 `ClipRRect`（`WClipRRect` 已删除） |
 | 加载指示 | `WGradientCircularProgressIndicator` |
 | 列表保活 | `WKeepAliveWrapper` |

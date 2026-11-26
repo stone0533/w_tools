@@ -1,3 +1,11 @@
+## 14.2.0
+
+### Added
+- 新增 `WDashedLine`：水平虚线分隔 / 装饰线；逻辑像素，`color` 跟随 `DividerTheme` /
+  `ColorScheme.outlineVariant`，支持 `thickness` / `dashWidth` / `dashGap` / `indent` /
+  `endIndent`。宽度必须有界；`dashWidth` / `dashGap` 的非法值在构造期断言，release 下
+  防御为不绘制。
+
 ## 14.1.3
 
 ### Fixed
