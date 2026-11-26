@@ -1,5 +1,6 @@
-> 分析记录：**P0 / P1 / P2-a / D-1 / C3 / P3 已落地**（`w_tools_app 4.2.0` /
-> `w_tools_app_getx 3.3.0` / `w_tools_cli 2.9.14`，均未发布）；剩余 A3、P2-b、预设包。
+> 分析记录：**P0 / P1 / P2-a / D-1 / C3 / P3 已落地并发布**（`w_tools_app 4.2.0` /
+> `w_tools_app_getx 3.3.0` / `w_tools_cli 2.9.14`，2026-11-26；PR #430 / #432，
+> 快照 PR #431 / #433，`release_status --online --check` 正常）。剩余 A3、P2-b、预设包。
 > 基线 `main @ 7f0b3d92`。设计决策见 [ADR-0019](../adr/0019-app-runtime-state.md)。
 
 # w_tools_app 完善方案分析（2026-11-26）
