@@ -1,0 +1,64 @@
+# w_tools_app 4.2.0
+WAppPlugin	class
+WAppPlugin.critical	bool
+WAppPlugin.dependsOn	List<String>
+WAppPlugin.name	String
+WAppPlugin.navigatorObservers	List<NavigatorObserver>?
+WAppPlugin.onFirstFrame	Future<void> ()
+WAppPlugin.onInit	Future<void> ()
+WAppPlugin.timeout	Duration?
+WAppPluginInitException	class
+WAppPluginInitException.cause	Object
+WAppPluginInitException.new	({ required this.pluginName, required this.cause, required this.stackTrace, this.timedOut = false, })
+WAppPluginInitException.pluginName	String
+WAppPluginInitException.stackTrace	StackTrace
+WAppPluginInitException.timedOut	bool
+WAppPluginInitException.toString	String ()
+WAppPluginRun	class
+WAppPluginRun.duration	Duration
+WAppPluginRun.error	Object?
+WAppPluginRun.name	String
+WAppPluginRun.new	({ required this.name, required this.duration, this.error, this.stackTrace, this.timedOut = false, })
+WAppPluginRun.ok	bool
+WAppPluginRun.stackTrace	StackTrace?
+WAppPluginRun.timedOut	bool
+WAppPluginRun.toString	String ()
+WAppPluginRunner	class
+WAppPluginRunner.debugLogging	_debugLogging =
+WAppPluginRunner.firstFrame	Future<void> ()
+WAppPluginRunner.init	Future<void> ()
+WAppPluginRunner.new	([ Iterable<WAppPlugin> plugins = const [], bool debugLogging = false, ])
+WAppPluginRunner.plugins	List<WAppPlugin>
+WAppPluginRunner.runs	List<WAppPluginRun>
+WAppPluginRunner.totalDuration	Duration?
+WAppTheme	class
+WAppTheme.dark	ThemeData?
+WAppTheme.light	ThemeData?
+WAppTheme.mode	ThemeMode
+WAppTheme.new	({ this.light, this.dark, this.mode = ThemeMode.system, this.systemUiOverlayStyle, })
+WAppTheme.systemUiOverlayStyle	SystemUiOverlayStyle?
+WLanguage	class
+WLanguage._	({ required Map<String, String> supportedLanguages, required String initialLanguage, required bool followSystem, required bool explicitSelection, })
+WLanguage.changeLanguage	bool (String languageCode, {bool userSelected = true})
+WLanguage.currentLanguage	String
+WLanguage.currentLanguageName	String
+WLanguage.currentLocale	Locale
+WLanguage.dispose	void ()
+WLanguage.explicitSelection	_explicit =
+WLanguage.fromConfig	(WLocaleConfig? config)
+WLanguage.hasExplicitSelection	bool
+WLanguage.isFollowingSystem	bool
+WLanguage.languageChanges	Stream<String>
+WLanguage.languageListenable	ValueListenable<String>
+WLanguage.localeFromCode	static Locale (String languageCode)
+WLanguage.supportedLanguages	Map<String, String>
+WLanguageScope	class
+WLanguageScope.new	({ super.key, required WLanguage language, required super.child, })
+WLanguageScope.of	static WLanguage (BuildContext context)
+WLocaleConfig	class
+WLocaleConfig._	(this.supportedLanguages, this.initialLanguage, this.fallbackLanguage, this.followSystem,)
+WLocaleConfig.fallbackLanguage	String?
+WLocaleConfig.followSystem	bool
+WLocaleConfig.initialLanguage	String?
+WLocaleConfig.new	({ required Map<String, String> supportedLanguages, String? initialLanguage, String? fallbackLanguage, bool followSystem = false, })
+WLocaleConfig.supportedLanguages	Map<String, String>
