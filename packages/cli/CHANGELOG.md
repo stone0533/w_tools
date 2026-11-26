@@ -1,3 +1,11 @@
+## 2.9.14
+
+### Changed
+- `init` 的 `versions.dart` 约束跟随 `w_tools_app 4.2.0` / `w_tools_app_getx 3.3.0`。
+- `init` 的「下一步」增加全栈启动配方入口（`docs/recipes/app-boot.md`）。
+- catalog：`WApp` 增加「首帧后移除 GetX 系统语言观察者」pitfall；`WAppPlugin` 增加
+  「依赖失败后依赖者仍执行」pitfall。
+
 ## 2.9.12
 
 ### Changed

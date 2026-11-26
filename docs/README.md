@@ -45,6 +45,7 @@
 - [0016 WAsyncPagedList 刷新样式](adr/0016-async-paged-refresh-style.md)：`WAsyncRefreshIndicatorStyle`
 - [0017 应用启动可观测性](adr/0017-app-startup-observability.md)：插件首帧钩子 / 超时与关键性 / `startupReport` / `buildRoot` / e2e 诊断
 - [0018 WDashedLine 水平虚线](adr/0018-dashed-line.md)：逻辑像素 / 主题兜底 / catalog 普通组件
+- [0019 应用级运行期状态](adr/0019-app-runtime-state.md)：主题运行时切换 / 语言跟随系统 / `dispose`
 
 - [ADR 索引与模板](adr/README.md)：按主题分组的索引、状态词、模板、新增/取代规则
 - [0001 子包独立版本](adr/0001-package-versioning.md)：独立 semver、不回滚（操作规则见 releasing.md）
@@ -81,6 +82,7 @@
 - [2026-11-18 AppButtons 配对契约与回归测试（L 任务）](analysis/2026-11-18-appbuttons-pairing-contract.md)
 - [2026-11-18 WImage.source 改为无名构造器：决策记录与执行清单](analysis/2026-11-18-wimage-unnamed-constructor.md)
 - [2026-11-23 字段样式作用域：9.0 结构清理（待执行）](analysis/2026-11-23-form-field-style-scope-9.0.md)
+- [2026-11-26 app 包完善方案：语义修复 / 状态补全 / 装配真相](analysis/2026-11-26-app-improvement-plan.md)
 
 改完 `docs/` 后跑：
 

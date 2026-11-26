@@ -1213,6 +1213,7 @@ components:
       );
       await app.start();
       app.language.changeLanguage('en_US');
+      app.setThemeMode(ThemeMode.dark); // 运行时切深浅色
       app.routeStack.popUntilRoute('/');
       // 页面里：final app = WApp.of(context);
     pitfalls:
@@ -1222,6 +1223,9 @@ components:
       - '页面里用 WApp.of(context) / WLanguageScope.of(context)，不要保存全局 app'
       - '启动耗时 / 失败读 app.startupReport；日志用 WAppOptions.startupLog（null 跟随 debug）'
       - 'widget 测试用 app.buildRoot() 复用运行时装配，不要手搭 ScreenUtilInit + MaterialApp'
+      - '主题运行时可切：app.themeMode（ValueListenable）+ app.setThemeMode；建新 WApp 实例做不到'
+      - '测试 teardown 用 app.dispose()；dispose 后 init / buildRoot / setThemeMode 抛 StateError'
+      - '首帧后会移除 GetX 自带的系统语言观察者；需要 GetX 原生 didChangeLocales 行为时自行 addObserver'
     related: ['`WAppPlugin`', '`WAppOptions`', '`WLanguage`']
     teach: true
   - name: '`WAppOptions`'
@@ -1292,7 +1296,9 @@ components:
       }
     pitfalls:
       - '有顺序要求必须写 dependsOn；同层按注册顺序串行'
+      - '依赖失败后依赖者仍会执行（dependsOn 只表顺序）；强依赖请在 onInit 里自己检查前置'
       - '关键插件失败 / 超时抛 WAppPluginInitException（带插件名）；critical: false 时记录后继续'
+      - '非关键插件失败不阻塞启动；再次 init() 只重试失败的插件，成功后补发 onFirstFrame'
       - 'timeout 默认 null（不限制）；网络 / 原生通道插件建议显式设置'
       - '首帧后的收尾（移除闪屏 / 预热）写 onFirstFrame，不要塞进某个页面'
       - '插件没有 builderWrapper / wrapApp；全局包裹用 WAppOptions.builder / appWrapper'
@@ -1782,6 +1788,8 @@ components:
     usage: |
       final language = WLanguageScope.of(context);
       language.changeLanguage('zh_CN');
+      language.changeLanguage(code, userSelected: false); // 跟随系统时由壳写回
+      language.isFollowingSystem;   // 是否仍跟随系统
       language.languageChanges.listen((code) { ... });
       language.languageListenable; // ValueListenable
     pitfalls:
@@ -1790,6 +1798,8 @@ components:
       - '未在 supportedLanguages 中的语言会被拒绝并返回 false'
       - '没有公开构造函数：用 WLanguage.fromConfig(WLocaleConfig?) 或 app.language'
       - '语言不持久化；恢复上次选择在 start() 之前 changeLanguage(saved)'
+      - 'userSelected: false 表示系统解析结果，不会把“用户已选”置位；用户切换用默认值'
+      - '测试 teardown 用 app.dispose()（内部会 dispose language）'
     related: ['`WLocaleConfig`', '`WApp`']
     teach: false
   - name: '`WRouteObserver`'
@@ -2512,11 +2522,12 @@ components:
     usage: |
       WLocaleConfig(
         supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-        initialLanguage: 'zh_CN',
+        initialLanguage: 'zh_CN',   // 或 followSystem: true
         fallbackLanguage: 'en_US',
       )
     pitfalls:
       - 'initialLanguage / fallbackLanguage 必须出现在 supportedLanguages 中'
       - '语言码只接受 lang / lang_COUNTRY / lang_Script_COUNTRY；非法码抛 ArgumentError'
+      - 'followSystem: true 与 initialLanguage 互斥（构造期 ArgumentError）；系统语言不命中时用 fallbackLanguage'
     related: ['`WAppOptions`', '`WLanguage`']
     teach: false

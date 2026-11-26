@@ -13,7 +13,7 @@ class WAppStartupReport {
     required this.initDuration,
   }) : pluginRuns = List<WAppPluginRun>.unmodifiable(pluginRuns);
 
-  /// 插件执行记录（按执行顺序；重试会追加）。
+  /// 本次 init 的插件执行记录（按执行顺序）；重试时只保留最近一轮。
   final List<WAppPluginRun> pluginRuns;
 
   /// 插件初始化总耗时。

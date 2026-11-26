@@ -176,7 +176,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.2.0
+  w_tools_app_getx: ^3.3.0
 ```
 
 ```dart

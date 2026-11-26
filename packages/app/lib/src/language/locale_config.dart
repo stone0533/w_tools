@@ -4,14 +4,15 @@ import 'locale_code.dart';
 
 /// 应用支持的语言与启动/回退策略。
 ///
-/// 只描述“支持哪些语言、启动用哪种、回退到哪种”，运行期当前语言由 `WLanguage`
-/// 实例维护；本类不持久化任何选择。
+/// 只描述“支持哪些语言、启动用哪种、回退到哪种、是否跟随系统”，运行期当前语言由
+/// `WLanguage` 实例维护；本类不持久化任何选择。
 @immutable
 class WLocaleConfig {
   factory WLocaleConfig({
     required Map<String, String> supportedLanguages,
     String? initialLanguage,
     String? fallbackLanguage,
+    bool followSystem = false,
   }) {
     final config = WLocaleConfig._(
       Map<String, String>.unmodifiable(
@@ -19,6 +20,7 @@ class WLocaleConfig {
       ),
       initialLanguage,
       fallbackLanguage,
+      followSystem,
     );
     config._validate();
     return config;
@@ -28,6 +30,7 @@ class WLocaleConfig {
     this.supportedLanguages,
     this.initialLanguage,
     this.fallbackLanguage,
+    this.followSystem,
   );
 
   /// 支持的语言（语言码 → 展示名），不可变。
@@ -45,6 +48,15 @@ class WLocaleConfig {
   ///
   /// 为 null 时不额外指定回退。
   final String? fallbackLanguage;
+
+  /// 是否跟随系统语言（默认 false）。
+  ///
+  /// true 时启动语言与系统语言变化都由系统解析决定（命中 [supportedLanguages]，
+  /// 不命中用 [fallbackLanguage] 或第一个语言）；用户显式调用
+  /// `WLanguage.changeLanguage` 后不再跟随。
+  ///
+  /// 与 [initialLanguage] 互斥：同时给出会在构造时抛 [ArgumentError]。
+  final bool followSystem;
 
   void _validate() {
     if (supportedLanguages.isEmpty) {
@@ -69,6 +81,13 @@ class WLocaleConfig {
     if (fallback != null && !supportedLanguages.containsKey(fallback)) {
       throw ArgumentError.value(fallback, 'fallbackLanguage', '必须出现在 supportedLanguages 中');
     }
+    if (followSystem && initial != null) {
+      throw ArgumentError.value(
+        initial,
+        'initialLanguage',
+        'followSystem 为 true 时不能同时指定 initialLanguage',
+      );
+    }
   }
 
   @override
@@ -77,7 +96,8 @@ class WLocaleConfig {
     return other is WLocaleConfig &&
         mapEquals(other.supportedLanguages, supportedLanguages) &&
         other.initialLanguage == initialLanguage &&
-        other.fallbackLanguage == fallbackLanguage;
+        other.fallbackLanguage == fallbackLanguage &&
+        other.followSystem == followSystem;
   }
 
   @override
@@ -87,5 +107,6 @@ class WLocaleConfig {
     ),
     initialLanguage,
     fallbackLanguage,
+    followSystem,
   );
 }

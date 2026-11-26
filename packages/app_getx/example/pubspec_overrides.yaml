@@ -3,3 +3,5 @@
 dependency_overrides:
   w_tools_app:
     path: ../../app
+  w_tools_async:
+    path: ../../async

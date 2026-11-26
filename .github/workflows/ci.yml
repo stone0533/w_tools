@@ -330,10 +330,19 @@ jobs:
         working-directory: packages/${{ matrix.package }}
         run: flutter test --coverage
 
-      # 只给 ui 设行覆盖下限；其它包先只上传报告，避免一次性把历史包卡死。
+      # 只给有把握的包设行覆盖下限；其它包先只上传报告，避免一次性把历史包卡死。
+      # app / app_getx 实测约 94.8%（2026-11-26），卡 90 留余量。
       - name: Coverage floor (ui)
         if: matrix.package == 'ui'
         run: python3 scripts/check_coverage.py --package ui --min-lines 90
+
+      - name: Coverage floor (app)
+        if: matrix.package == 'app'
+        run: python3 scripts/check_coverage.py --package app --min-lines 90
+
+      - name: Coverage floor (app_getx)
+        if: matrix.package == 'app_getx'
+        run: python3 scripts/check_coverage.py --package app_getx --min-lines 90
 
       - name: Test (pure Dart package)
         if: matrix.kind == 'dart'
