@@ -53,7 +53,8 @@ await app.start();
 ```
 
 插件按 `dependsOn` 分层、同层按注册顺序**串行**执行；关键插件（默认）的 `onInit`
-抛错 / 超时会抛 `WAppPluginInitException`（带插件名），重试时已成功的插件不重复执行。
+抛错 / 超时会抛 `WAppPluginInitException`（带插件名），重试时已成功的插件不重复执行；
+非关键插件失败不阻塞启动，再次 `init()` 只重试失败的插件。
 插件列表只在 `WAppOptions.plugins` 声明，没有 `addPlugin` / `removePlugin`。
 
 首帧后要做的事（移除原生闪屏、预热）写插件的 `onFirstFrame()`，不要塞进某个页面。
@@ -97,6 +98,18 @@ await app.start();
 // 运行期切换
 app.language.changeLanguage('en_US');
 // UI 监听：app.language.languageListenable（ValueListenable）或 languageChanges（Stream）
+```
+
+跟随系统用 `followSystem: true`（与 `initialLanguage` 互斥）：启动语言由系统解析，
+应用壳把系统语言变化通过 `changeLanguage(code, userSelected: false)` 写回；用户
+`changeLanguage(...)` 后停止跟随；系统语言不命中支持列表时用 `fallbackLanguage`：
+
+```dart
+WLocaleConfig(
+  supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+  fallbackLanguage: 'en_US',
+  followSystem: true,
+);
 ```
 
 语言只有 `localeConfig` 一个入口，`WAppOptions.locale` / `fallbackLocale` 已删除。

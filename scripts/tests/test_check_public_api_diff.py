@@ -514,6 +514,14 @@ class SnapshotIntegrityTest(unittest.TestCase):
         )
         self.assertEqual(changes, [])
 
+    def test_private_constructor_change_is_not_breaking(self):
+        """私有构造器（`X._`）调用方无法访问，改动不应要求 CHANGELOG Breaking。"""
+        changes = diff_api(
+            {'WThing._': '({ required this.a, })'},
+            {'WThing._': '({ required this.a, required this.b, })'},
+        )
+        self.assertEqual(changes, [])
+
     def test_inherited_members_are_part_of_surface(self):
         """公开类继承自同包私有基类时，基类成员要算进它的公开面。"""
         with tempfile.TemporaryDirectory() as temp:

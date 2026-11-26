@@ -1292,6 +1292,7 @@ components:
       }
     pitfalls:
       - '有顺序要求必须写 dependsOn；同层按注册顺序串行'
+      - '依赖失败后依赖者仍会执行（dependsOn 只表顺序）；强依赖请在 onInit 里自己检查前置'
       - '关键插件失败 / 超时抛 WAppPluginInitException（带插件名）；critical: false 时记录后继续'
       - 'timeout 默认 null（不限制）；网络 / 原生通道插件建议显式设置'
       - '首帧后的收尾（移除闪屏 / 预热）写 onFirstFrame，不要塞进某个页面'

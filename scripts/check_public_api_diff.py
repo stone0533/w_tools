@@ -342,9 +342,11 @@ def api_surface(package_dir: pathlib.Path) -> dict[str, str]:
 def diff_api(baseline: dict[str, str], current: dict[str, str]) -> list[tuple[str, str, str | None]]:
     changes: list[tuple[str, str, str | None]] = []
     for key in sorted(baseline):
+        member = key.rsplit('.', 1)[-1]
         # 旧基线（5.1.1 等）里可能有 `X.null` 这类解析伪成员，忽略它们，
         # 否则删掉一个私有 getter 会被判成公开 API 删除。
-        if key.rsplit('.', 1)[-1] in RESERVED_MEMBER_NAMES:
+        # 私有成员（含 `X._` 私有构造）调用方无法访问，改动同样不需要 Breaking。
+        if member in RESERVED_MEMBER_NAMES or member.startswith('_'):
             continue
         old = baseline[key]
         new = current.get(key)

@@ -1,3 +1,9 @@
+## 2.9.13
+
+### Changed
+- `init` 的 `versions.dart` 约束跟随 `w_tools_app 4.2.0`。
+- catalog：`WAppPlugin` 增加「依赖失败后依赖者仍会执行」pitfall。
+
 ## 2.9.12
 
 ### Changed

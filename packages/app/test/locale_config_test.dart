@@ -58,4 +58,23 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
   });
+
+  test('followSystem 与 initialLanguage 互斥', () {
+    expect(
+      () => WLocaleConfig(
+        supportedLanguages: supported,
+        followSystem: true,
+        initialLanguage: 'zh_CN',
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  test('followSystem 参与 == / hashCode', () {
+    final a = WLocaleConfig(supportedLanguages: supported);
+    final b = WLocaleConfig(supportedLanguages: supported, followSystem: true);
+
+    expect(a, isNot(b));
+    expect(a.hashCode, isNot(b.hashCode));
+  });
 }

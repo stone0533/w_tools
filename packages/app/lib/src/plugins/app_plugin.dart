@@ -47,8 +47,9 @@ abstract mixin class WAppPlugin {
   /// 适用于：dotenv 加载、日志配置、SharedPreferences 预加载等异步准备工作。
   ///
   /// 插件按层串行执行：某个 [onInit] 抛错或超时会中断本次 `init`，同层后续
-  /// 插件不再执行；重试时已成功的插件不会重复执行。失败会被包装成
-  /// `WAppPluginInitException`（带 [name]，见 [timeout] / [critical]）。
+  /// 插件不再执行；失败会被包装成 `WAppPluginInitException`（带 [name]，见
+  /// [timeout] / [critical]）。重试时已成功的插件不会重复执行，只重跑失败的那个
+  /// （非关键插件失败后，下一次 `init()` 也会重试它）。
   ///
   /// 在 `GetX` 应用里注册服务时，用 `w_tools_app_getx` 的
   /// `registerService<T>(...)`，不要写 `Future<void> onInit() => Get.putAsync(...)`：
@@ -67,7 +68,8 @@ abstract mixin class WAppPlugin {
   /// `allowFirstFrame()`，仍需自行 `scheduleFrame()`。
   ///
   /// 只用 `WAppPluginRunner` 时，由调用方在首帧后自行调用
-  /// `WAppPluginRunner.firstFrame()`。
+  /// `WAppPluginRunner.firstFrame()`。首帧已过才初始化成功的插件（重试）会在
+  /// 下一次 `firstFrame()` 收到回调，仍然每个插件最多一次。
   Future<void> onFirstFrame() async {}
 
   /// 单个插件 [onInit] 的超时时间；null（默认）表示不限制。
@@ -79,7 +81,8 @@ abstract mixin class WAppPlugin {
   /// 是否为关键插件（默认 true）。
   ///
   /// - true：失败 / 超时按启动失败处理，抛 `WAppPluginInitException`；
-  /// - false：记录失败、继续启动；依赖它的插件仍会执行（依赖只表达顺序）。
+  /// - false：记录失败、继续启动；依赖它的插件仍会执行（依赖只表达顺序），
+  ///   下一次 `init()` 会重试它，重试成功后补发 [onFirstFrame]。
   bool get critical => true;
 
   /// 额外的 NavigatorObserver

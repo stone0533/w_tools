@@ -259,6 +259,9 @@ def breaking_signature_changes(
     """minor 下识别 breaking 签名变化；只新增 optional 参数算 additive。"""
     reasons: list[str] = []
     for key in changed:
+        # 私有成员（含 `X._` 私有构造）调用方访问不到，签名变化不构成 breaking。
+        if key.rsplit('.', 1)[-1].startswith('_'):
+            continue
         old = baseline[key]
         new = current[key]
         old_signature = _signature_parts(old)
