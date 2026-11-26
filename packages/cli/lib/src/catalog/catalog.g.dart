@@ -1074,7 +1074,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "2-wappplugin---插件接口",
     aliases: <String>[],
     usage: "class EnvPlugin extends WAppPlugin {\n  @override String get name => 'env';\n  @override Future<void> onInit() async { ... }\n}\nclass SplashPlugin extends WAppPlugin {\n  @override String get name => 'native-splash';\n  @override Future<void> onInit() async => FlutterNativeSplash.preserve(...);\n  @override Future<void> onFirstFrame() async => FlutterNativeSplash.remove();\n}\nclass ServicePlugin extends WAppPlugin {\n  @override String get name => 'service';\n  @override List<String> get dependsOn => ['env'];\n  @override Duration get timeout => const Duration(seconds: 10);\n  @override Future<void> onInit() async { ... }\n}\n",
-    pitfalls: <String>["有顺序要求必须写 dependsOn；同层按注册顺序串行", "关键插件失败 / 超时抛 WAppPluginInitException（带插件名）；critical: false 时记录后继续", "timeout 默认 null（不限制）；网络 / 原生通道插件建议显式设置", "首帧后的收尾（移除闪屏 / 预热）写 onFirstFrame，不要塞进某个页面", "插件没有 builderWrapper / wrapApp；全局包裹用 WAppOptions.builder / appWrapper"],
+    pitfalls: <String>["有顺序要求必须写 dependsOn；同层按注册顺序串行", "依赖失败后依赖者仍会执行（dependsOn 只表顺序）；强依赖请在 onInit 里自己检查前置", "关键插件失败 / 超时抛 WAppPluginInitException（带插件名）；critical: false 时记录后继续", "timeout 默认 null（不限制）；网络 / 原生通道插件建议显式设置", "首帧后的收尾（移除闪屏 / 预热）写 onFirstFrame，不要塞进某个页面", "插件没有 builderWrapper / wrapApp；全局包裹用 WAppOptions.builder / appWrapper"],
     related: <String>["`WApp`", "`WAppPluginRunner`"],
     teach: true,
   ),

@@ -22,11 +22,19 @@ class WAppPluginRunner {
 
   final List<WAppPlugin> _plugins;
   final bool _debugLogging;
+
+  /// 成功完成过 [WAppPlugin.onInit] 的插件名。
   final Set<String> _completed = <String>{};
+
+  /// 最近一轮失败、等待下次 [init] 重试的插件名。
   final Set<String> _failed = <String>{};
+
+  /// 已经收到 [WAppPlugin.onFirstFrame] 的插件名（首帧钩子每个插件一次）。
+  final Set<String> _firstFrameNotified = <String>{};
+
   final List<WAppPluginRun> _runs = <WAppPluginRun>[];
   bool _initialized = false;
-  bool _firstFrameDone = false;
+  Future<void>? _initFuture;
   Duration? _totalDuration;
 
   /// 已注册插件（只读视图）。
@@ -45,10 +53,28 @@ class WAppPluginRunner {
   ///   [WAppPluginInitException]（带插件名，`cause` 保留原异常）；
   /// - 为 false → 记入 [runs]、继续下一个插件，依赖它的插件仍会执行。
   ///
+  /// 幂等：全部插件成功后重复调用不做任何事；上一轮有失败插件（关键失败后重试，
+  /// 或非关键失败后的补偿重试）时，只重跑失败的那个插件，已成功的不会重复执行。
+  /// 并发调用共享同一次初始化，插件不会被执行两次。
+  ///
   /// 插件 name 重复、依赖未注册、循环依赖时抛 [StateError]。
-  /// 失败后可以重试：已经成功的插件不会重复执行，从失败点继续。
-  Future<void> init() async {
-    if (_initialized) return;
+  Future<void> init() {
+    if (_initialized && _failed.isEmpty) return Future<void>.value();
+
+    final pending = _initFuture;
+    if (pending != null) return pending;
+
+    late final Future<void> future;
+    future = _doInit().whenComplete(() {
+      if (identical(_initFuture, future)) {
+        _initFuture = null;
+      }
+    });
+    _initFuture = future;
+    return future;
+  }
+
+  Future<void> _doInit() async {
     if (_plugins.isEmpty) {
       _initialized = true;
       _totalDuration = Duration.zero;
@@ -102,9 +128,9 @@ class WAppPluginRunner {
               timedOut: run.timedOut,
             );
           }
-          // 非关键插件：记录失败后继续；依赖它的插件仍会执行。
+          // 非关键插件：记录失败后继续本次 init（依赖它的插件仍会执行），
+          // 但不写 _completed —— 下一次 init() 会重试它。
           _failed.add(plugin.name);
-          _completed.add(plugin.name);
           done.add(plugin.name);
         }
 
@@ -118,10 +144,10 @@ class WAppPluginRunner {
     }
   }
 
-  /// 首帧之后逐个插件调用 [WAppPlugin.onFirstFrame]（幂等）。
+  /// 首帧之后逐个插件调用 [WAppPlugin.onFirstFrame]（每个插件最多一次）。
   ///
-  /// 失败隔离：单个插件抛错只记录，不中断其它插件，也不改变 [init] 的结果。
-  /// 未成功初始化的插件（含关键/非关键失败）不会收到回调。
+  /// 只通知成功初始化的插件；失败隔离：单个插件抛错只记录，不中断其它插件，
+  /// 也不改变 [init] 的结果。重试后才成功的插件会在下一次 [firstFrame] 收到回调。
   ///
   /// 回调全部结束后会补排一帧：`onFirstFrame` 通常运行在
   /// `SchedulerPhase.postFrameCallbacks`，此时
@@ -129,12 +155,18 @@ class WAppPluginRunner {
   /// 会直接 return（非 idle），而 `deferFirstFrame` 期间当前帧又没有
   /// `compositeFrame`。不补这一帧的话，静态首屏会停在原生闪屏。
   Future<void> firstFrame() async {
-    if (_firstFrameDone) return;
-    _firstFrameDone = true;
-    for (final plugin in _plugins) {
-      if (!_completed.contains(plugin.name) || _failed.contains(plugin.name)) {
-        continue;
-      }
+    final targets = _plugins
+        .where(
+          (plugin) =>
+              _completed.contains(plugin.name) &&
+              !_failed.contains(plugin.name) &&
+              !_firstFrameNotified.contains(plugin.name),
+        )
+        .toList(growable: false);
+    if (targets.isEmpty) return;
+
+    for (final plugin in targets) {
+      _firstFrameNotified.add(plugin.name);
       try {
         await plugin.onFirstFrame();
       } catch (error) {

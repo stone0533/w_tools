@@ -358,5 +358,15 @@ class BudgetMainTest(unittest.TestCase):
         self.assertEqual(self._run(), 2)
 
 
+
+class PrivateMemberSignatureTest(unittest.TestCase):
+    """私有成员签名变化不构成 breaking。"""
+
+    def test_private_member_signature_change_is_not_breaking(self):
+        baseline = {'WThing._': '({ required this.a, })'}
+        current = {'WThing._': '({ required this.a, required this.b, })'}
+        self.assertEqual(budget.breaking_signature_changes(['WThing._'], baseline, current), [])
+
+
 if __name__ == '__main__':
     unittest.main()

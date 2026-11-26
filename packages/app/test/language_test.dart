@@ -127,4 +127,43 @@ void main() {
       }
     });
   });
+
+  test('followSystem：启动不算显式选择，isFollowingSystem 为 true', () {
+    final language = WLanguage.fromConfig(
+      WLocaleConfig(supportedLanguages: supported, followSystem: true),
+    );
+
+    expect(language.isFollowingSystem, isTrue);
+    expect(language.hasExplicitSelection, isFalse);
+    expect(language.currentLanguage, 'en_US');
+  });
+
+  test('userSelected: false 写系统语言，不结束跟随', () {
+    final language = WLanguage.fromConfig(
+      WLocaleConfig(supportedLanguages: supported, followSystem: true),
+    );
+
+    expect(language.changeLanguage('zh_CN', userSelected: false), isTrue);
+    expect(language.currentLanguage, 'zh_CN');
+    expect(language.isFollowingSystem, isTrue);
+    expect(language.hasExplicitSelection, isFalse);
+  });
+
+  test('用户显式切语言后不再跟随系统', () {
+    final language = WLanguage.fromConfig(
+      WLocaleConfig(supportedLanguages: supported, followSystem: true),
+    );
+
+    expect(language.changeLanguage('zh_CN'), isTrue);
+    expect(language.isFollowingSystem, isFalse);
+    expect(language.hasExplicitSelection, isTrue);
+  });
+
+  test('dispose 幂等，之后 changeLanguage 抛 StateError', () {
+    final language = languageFrom();
+    language.dispose();
+    language.dispose();
+
+    expect(() => language.changeLanguage('zh_CN'), throwsStateError);
+  });
 }

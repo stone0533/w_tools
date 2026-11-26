@@ -35,7 +35,7 @@ runner.firstFrame(); // 非 GetX 壳：首帧后自行调用
 回调结束后会补排一帧（`onFirstFrame` 运行在 post-frame 阶段，直接调
 `allowFirstFrame()` 不会自己排帧）。插件上的 `navigatorObservers` 由 GetX 启动器
 `WApp` 消费。同层插件按注册顺序串行执行，
-失败后重试会跳过已成功的插件。
+失败后重试会跳过已成功的插件；非关键插件失败不阻塞启动，再次 `init()` 只重试它。
 
 插件失败默认会抛 `WAppPluginInitException`（带 `pluginName` 与原始 `cause`）。
 可以用 `timeout` 限制单个插件的初始化时间（默认不限制），用 `critical: false`
@@ -79,6 +79,14 @@ language.changeLanguage('en_US');
 
 `WLanguage` 不持久化选择；恢复上次语言时，在 `start()` 之前调用
 `changeLanguage(saved)`（不在支持列表内会返回 `false`）。
+
+需要“跟随系统”时用 `WLocaleConfig(followSystem: true)`（与 `initialLanguage` 互斥）：
+启动语言由系统解析，应用壳把系统语言变化通过
+`changeLanguage(code, userSelected: false)` 写回，用户显式切换后停止跟随；
+系统语言不在支持列表内时回退 `fallbackLanguage`。
+
+测试 teardown 直接 `language.dispose()`（释放变化流与监听）；dispose 后
+`changeLanguage` 抛 `StateError`。
 
 页面里用 `WLanguageScope.of(context)` 读取当前语言；语言切换时依赖者自动重建：
 

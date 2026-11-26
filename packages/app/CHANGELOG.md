@@ -1,5 +1,26 @@
 # Changelog
 
+## 4.2.0
+
+### Added
+- `WLocaleConfig.followSystem`：跟随系统语言；与 `initialLanguage` 互斥（同时给出抛
+  `ArgumentError`），系统语言不命中支持列表时用 `fallbackLanguage`。
+- `WLanguage.isFollowingSystem`：当前是否仍跟随系统（用户显式切语言后为 false）。
+- `WLanguage.dispose()`：释放变化流与值监听；幂等，dispose 后 `changeLanguage` 抛 `StateError`。
+
+### Changed
+- `WLanguage.changeLanguage` 新增可选参数 `userSelected`（默认 true）：`false` 表示系统解析结果，
+  不把「用户已选」置位。
+- `WLanguage.fromConfig` 在 `followSystem: true` 时不再视为显式选择语言。
+
+### Fixed
+- `WAppPluginRunner.init()` 并发调用会重复执行插件：改为共享同一次初始化（非 GetX 壳直接
+  使用 runner 时也不再有这个竞态；`WApp` 原本就有这层保护）。
+- `critical: false` 的插件失败后被当成已完成，再次 `init()` 不会重试：现在失败只记入
+  `_failed`，下一次 `init()` 重试它，成功后补发 `onFirstFrame`（每个插件仍最多一次）。
+- `firstFrame()` 改为按「已成功且未通知」筛选插件：重试后才成功的插件不会再漏掉首帧收尾；
+  重复调用不再空排帧。
+
 ## 4.1.1
 
 ### Fixed

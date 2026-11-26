@@ -87,6 +87,24 @@ class _HooksPlugin extends WAppPlugin {
   }
 }
 
+class _SoftFlakyPlugin extends WAppPlugin {
+  _SoftFlakyPlugin(this.name);
+
+  @override
+  final String name;
+
+  @override
+  bool get critical => false;
+
+  int attempts = 0;
+
+  @override
+  Future<void> onInit() async {
+    attempts++;
+    if (attempts == 1) throw StateError('soft boom');
+  }
+}
+
 class _NeverPlugin extends WAppPlugin {
   _NeverPlugin(this.name, {required this.timeout});
 
@@ -238,6 +256,60 @@ void main() {
 
     await runner.firstFrame();
     expect(log, ['init:a', 'init:c', 'first:a', 'first:c']);
+  });
+
+  test('非关键插件失败后，再次 init() 只重试失败的插件', () async {
+    final log = <String>[];
+    final flaky = _SoftFlakyPlugin('b');
+    final runner = WAppPluginRunner([
+      _RecorderPlugin('a', log: log),
+      flaky,
+      _RecorderPlugin('c', log: log, dependsOn: const ['b']),
+    ]);
+
+    await runner.init();
+    expect(log, ['a', 'c'], reason: '非关键失败不阻塞依赖它的插件');
+    expect(flaky.attempts, 1);
+
+    await runner.init();
+    expect(flaky.attempts, 2, reason: '第二次 init 重试失败的插件');
+    expect(log, ['a', 'c'], reason: '已成功的插件不重复执行');
+
+    await runner.init();
+    expect(flaky.attempts, 2, reason: '全部成功后重复 init 不再执行');
+  });
+
+  test('重试成功的插件会补发 onFirstFrame，失败插件不收到', () async {
+    final log = <String>[];
+    final soft = _HooksPlugin('b', log: log, failInit: true, critical: false);
+    final runner = WAppPluginRunner([_HooksPlugin('a', log: log), soft]);
+
+    await runner.init();
+    await runner.firstFrame();
+    expect(log, ['init:a', 'first:a']);
+
+    soft.failInit = false;
+    await runner.init();
+    await runner.firstFrame();
+    expect(log, ['init:a', 'first:a', 'init:b', 'first:b']);
+  });
+
+  test('并发 init() 共享同一次执行，插件 onInit 只跑一次', () async {
+    final started = <String>[];
+    final gate = Completer<void>();
+    final runner = WAppPluginRunner([_GatePlugin('p', started, gate)]);
+
+    final first = runner.init();
+    final second = runner.init();
+    await Future<void>.delayed(Duration.zero);
+    expect(started, ['p']);
+
+    gate.complete();
+    await Future.wait([first, second]);
+
+    expect(started, ['p']);
+    expect(runner.runs.where((run) => run.name == 'p').length, 1);
+    expect(runner.totalDuration, isNotNull);
   });
 
   test('onFirstFrame 逐个调用、失败隔离、幂等', () async {

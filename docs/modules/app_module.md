@@ -312,6 +312,7 @@ await runner.init();
 
 - 支持语言列表；
 - 当前语言（唯一可写入口 `changeLanguage`）；
+- 是否跟随系统（`isFollowingSystem`）；
 - 只读变化流 / 值监听；
 - 语言码 ↔ `Locale` 解析。
 
@@ -329,15 +330,29 @@ await runner.init();
 | `currentLocale` | `Locale` | 当前语言对应 Locale（支持 `en` / `zh_CN` / `zh_Hant_TW`） |
 | `languageChanges` | `Stream<String>` | 只读变化流 |
 | `languageListenable` | `ValueListenable<String>` | 只读值监听，可用于 `ValueListenableBuilder` |
-| `changeLanguage(String)` | `bool` | 切换语言；未收录返回 false。只触发 GetMaterialApp 重建，不整树 reassemble |
-| `hasExplicitSelection` | `bool` | 是否已显式选择语言 |
+| `changeLanguage(String, {bool userSelected = true})` | `bool` | 切换语言；未收录返回 false。`userSelected: false` 表示系统解析结果（跟随系统时由壳写回），不算用户选择 |
+| `hasExplicitSelection` | `bool` | 是否已显式选择语言（`followSystem: true` 的启动不算） |
+| `isFollowingSystem` | `bool` | 配置要求跟随系统，且用户还没有显式选择 |
+| `dispose()` | `void` | 释放变化流与值监听；幂等；之后 `changeLanguage` 抛 `StateError` |
 | `localeFromCode(String)` | `Locale` | 语言码解析；只接受三种形态，非法码抛 `ArgumentError` |
+
+### WLocaleConfig 字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `supportedLanguages` | `Map<String, String>` | — | 必填，语言码 → 展示名 |
+| `initialLanguage` | `String?` | null | 启动语言；null 时用支持列表第一个；与 `followSystem` 互斥 |
+| `fallbackLanguage` | `String?` | null | 回退语言（GetX `fallbackLocale`；跟随系统时不命中支持列表用它） |
+| `followSystem` | `bool` | false | 启动与系统语言变化都跟随系统；用户显式切语言后停止跟随 |
 
 ### 使用示例
 
 ```dart
 // 切换
 app.language.changeLanguage('en_US');
+
+// 跟随系统（WLocaleConfig(followSystem: true)）：应用壳把系统解析结果写回来
+app.language.changeLanguage('en_US', userSelected: false);
 
 // 监听
 final subscription = app.language.languageChanges.listen((code) {
