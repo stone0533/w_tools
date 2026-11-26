@@ -1,3 +1,11 @@
+## 21.2.0
+
+### Added
+- 根包重导出 `w_tools_ui 14.2.0`，新增 `WDashedLine`。
+
+### Changed
+- `w_tools_ui` 约束抬到 `^14.2.0`。
+
 ## 21.1.6
 
 ### Changed

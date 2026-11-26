@@ -447,6 +447,28 @@ components:
       - '不要在 main / 顶层 final 调 .sp；放到 ScreenUtilInit.builder 或 WAppOptions.builder'
     related: ['`WScaffold`']
     teach: true
+  - name: '`WDashedLine`'
+    package: 'w_tools_ui'
+    docsAnchor: 'wdashedline'
+    section: '4. 布局与容器'
+    useFor: '水平虚线分隔 / 装饰线：线宽、dash 长度 / 间距、左右缩进可配'
+    dontUseFor: '普通实线分隔直接用 Material `Divider`；竖线 / 虚线边框暂不支持'
+    usage: |
+      WDashedLine(); // 默认 1px、dash [2,2]，颜色跟随 DividerTheme / ColorScheme.outlineVariant
+      WDashedLine(
+        color: scheme.outlineVariant,
+        thickness: 1,
+        dashWidth: 4,
+        dashGap: 2,
+        indent: 12,
+        endIndent: 12,
+      );
+    pitfalls:
+      - '宽度跟随父级且必须有界；放在 Row 里用 Expanded 包裹，否则无限宽度会布局报错'
+      - '尺寸是逻辑像素，不随设计稿缩放；需要缩放时由调用方传 1.w / WScreen.of(context).w(1)'
+      - 'dashWidth 必须 >0、dashGap >=0；dashGap: 0 得到实线'
+    related: ['`WListView`', '`WStep`']
+    teach: false
   - name: '`WForm`'
     package: 'w_tools_form'
     docsAnchor: '36-直接字段与-wform'

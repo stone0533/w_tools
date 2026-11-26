@@ -23,7 +23,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 重构取舍（2026-11）
 
-- **catalog 粒度**：54 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
+- **catalog 粒度**：55 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
   需要精确命中，合并会降低可发现性。
 - **token 层**：暂不引入 `WUiTokens`。当前颜色走 `ColorScheme`，尺寸走
   `WButtonSize` / `WStepStyle`，阴影/渐变走 `WShadows` / `WGradients`；
@@ -241,6 +241,15 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ### WActionRow / WSelectableRow
 
 横向操作 / 可选行；按钮组用 `WActionRow`，需要选中态用 `WSelectableRow`。
+
+### WDashedLine
+
+水平虚线分隔 / 装饰线；用于卡片行分隔、票据 / 优惠券装饰线。尺寸是逻辑像素，
+不随设计稿缩放；需要缩放时由调用方传 `1.w` / `WScreen.of(context).w(1)`。
+`color` 不传时取 `DividerTheme.color`，再回退 `ColorScheme.outlineVariant`；
+`dashWidth` / `dashGap` 默认 `2` / `2`，`dashGap: 0` 得到实线。
+和 Material `Divider` 一样要求父级宽度有界：`Column` / `ListView` 可直接用，
+`Row` 里用 `Expanded` 包裹；竖线 / 虚线边框不在本组件范围。
 
 ### 圆角裁剪
 
