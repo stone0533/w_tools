@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
+import 'package:w_tools_async/w_tools_async.dart';
 
 import 'pages/detail_page.dart';
 import 'pages/home_page.dart';
@@ -59,6 +60,31 @@ class FeaturePlugin extends WAppPlugin {
   }
 }
 
+/// 真实子包示例：注册全局异步执行器（w_tools_async）。
+///
+/// hooks 写进 [startupEvents]，页面刷新后能看到 start / done —— 演示的是
+/// 「插件里注册、页面 Get.find 使用」这条链路，而不是全局单例。
+class AsyncExecutorPlugin extends WAppPlugin {
+  @override
+  String get name => 'async-executor';
+
+  @override
+  List<String> get dependsOn => const ['env'];
+
+  @override
+  Future<void> onInit() async {
+    Get.put(
+      WAsyncExecutor(
+        WAsyncHooks(
+          onStart: () => startupEvents.add('async: start'),
+          onError: (error) => startupEvents.add('async: error $error'),
+          onFinally: () => startupEvents.add('async: done'),
+        ),
+      ),
+    );
+  }
+}
+
 WApp createApp() {
   return WApp.options(
     WAppOptions(
@@ -94,6 +120,7 @@ WApp createApp() {
         RouteObserverPlugin(),
         FeaturePlugin(),
         EnvPlugin(),
+        AsyncExecutorPlugin(),
       ],
       localeConfig: WLocaleConfig(
         supportedLanguages: const {'zh_CN': '简体中文', 'en_US': 'English'},

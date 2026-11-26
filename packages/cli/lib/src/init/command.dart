@@ -92,6 +92,9 @@ List<Map<String, String>> _jsonEntries(List<String> items) {
   ];
 }
 
+/// 启动顺序 / 全栈启动配方的固定入口（w_tools 仓库文档）。
+const _appBootRecipeUrl = 'https://github.com/stone0533/w_tools/blob/main/docs/recipes/app-boot.md';
+
 /// 根据本次结果给出可执行的下一步，而不是无条件 doctor。
 List<String> _nextActions(InitReport report) {
   final actions = <String>[];
@@ -107,6 +110,7 @@ List<String> _nextActions(InitReport report) {
   if (actions.isEmpty) {
     actions.add('dart run w_tools_cli:w_tools doctor');
   }
+  actions.add('启动顺序 / 多包装配看全栈启动配方：$_appBootRecipeUrl');
   return actions;
 }
 

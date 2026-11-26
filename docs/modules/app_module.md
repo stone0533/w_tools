@@ -124,6 +124,10 @@ await app.start();
 `WAppBarStyle.systemOverlayStyle` 优先；页面没标注时回落到它（从浅色状态栏页面返回后会恢复）。
 null 时完全不干预系统栏。
 
+`mode` 是**启动时**的主题模式；运行期切换用 `app.setThemeMode(...)`，`app.themeMode`
+是只读 `ValueListenable<ThemeMode>`。切换只重建 `GetMaterialApp`（MaterialApp 的 `themeMode`
+入参），不重置路由、不重建 `appWrapper` / scope。
+
 ### 插件管理
 
 插件只在 `WAppOptions.plugins` 声明，`WApp` 已删除 `addPlugin` / `removePlugin` /
@@ -133,11 +137,14 @@ null 时完全不干预系统栏。
 
 | 方法 | 幂等 | 说明 |
 |------|------|------|
-| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | `ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → 首帧后插件 `onFirstFrame` / `onLazyInit`；失败时 `startupReport` 仍可读 |
+| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | `ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → 首帧后插件 `onFirstFrame` / `onLazyInit`；失败时 `startupReport` 仍可读；有失败插件时再次调用只重试失败项 |
 | `run({...})` | ❌ | 启动应用；必须先 `init`，且只能调用一次 |
 | `start({...})` | ❌ | 一站式启动：`init` + `run`；只能调用一次；失败后可再次调用重试 |
 | `buildRoot({...})` | ✅ | 构建根 Widget（不 `runApp`、不要求 `init`）；测试宿主 / 自定义根用 |
 | `startupReport` | — | `init` 后读取：逐插件耗时 / 失败 / `firstFrameDuration` |
+| `themeMode` | — | 只读 `ValueListenable<ThemeMode>`，初值来自 `WAppTheme.mode` |
+| `setThemeMode(ThemeMode)` | ✅ | 运行时切主题模式；不持久化；dispose 后抛 `StateError` |
+| `dispose()` | ✅ | 移除语言 / 系统语言 / 主题监听并 dispose `language`；测试 teardown 用 |
 
 ### 包裹顺序（由外向内）
 
@@ -155,11 +162,12 @@ AnnotatedRegion<SystemUiOverlayStyle>（根级兜底；appWrapper 之外）
 - 关键插件（`critical: true`，默认）的 `onInit` 抛错 / 超时会中断本次 `init`，
   抛 `WAppPluginInitException`（带 `pluginName`，`cause` 保留原异常）。
 - 非关键插件（`critical: false`）失败只记入 `runner.runs` / `startupReport`，
-  继续启动；依赖它的插件仍会执行（`dependsOn` 只表达顺序）。
+  继续启动；依赖它的插件仍会执行（`dependsOn` 只表达顺序），再次 `init()` 会重试它。
 - `timeout` 默认 null（不限制）；设置后超时按失败处理。
 - 首帧后逐个插件调用 `onFirstFrame()`，失败隔离，不改变启动结果；
   所有回调结束后 runner 补排一帧（保证 `allowFirstFrame()` 后静态首屏也能放行）。
-- 重试会跳过已成功的插件，从失败点继续。
+- 重试会跳过已成功的插件，从失败点继续；非关键插件失败后启动照常完成，
+  再次 `init()` 只重试失败的插件。
 - 插件 `name` 重复、`dependsOn` 引用未注册插件、存在循环依赖时抛 `StateError`。
 - 启动期日志默认 debug 打开（`WAppOptions.startupLog` 可覆盖），格式固定
   `[WApp] plugin env 120ms ok` / `[WApp] started in ...` / `[WApp] first frame ...`。
@@ -299,7 +307,9 @@ await runner.init();
 - `name` 重复 / 依赖未注册 / 循环依赖抛 `StateError`；
 - 关键插件 `onInit` 失败 / 超时抛 `WAppPluginInitException`；非关键插件记录后继续；
 - `runs` 暴露逐插件耗时 / 失败（重试会追加），`totalDuration` 是最近一次 init 耗时；
-- `firstFrame()` 提供首帧钩子（幂等）；`WApp` 会自动在首帧后调用；
+  `init()` 并发调用共享同一次执行，上一轮有失败插件时只重跑失败的；
+- `firstFrame()` 提供首帧钩子（每个插件最多一次）；`WApp` 会自动在首帧后调用，
+  重试后才成功的插件补发一次；
 - 插件列表在构造时确定，`init` 之后不可增删。
 
 ---
@@ -351,7 +361,7 @@ await runner.init();
 // 切换
 app.language.changeLanguage('en_US');
 
-// 跟随系统（WLocaleConfig(followSystem: true)）：应用壳把系统解析结果写回来
+// 跟随系统（WLocaleConfig(followSystem: true)）：WApp 把系统解析结果写回来
 app.language.changeLanguage('en_US', userSelected: false);
 
 // 监听
@@ -581,6 +591,14 @@ language.changeLanguage('en_US');
   插入 scope，`of` 找不到时抛 `FlutterError`，测试可手动包一层。
 - **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 统一放 `WAppTheme`；
   `systemUiOverlayStyle` 传了就是全局兜底（页面标注优先），不传则不干预系统栏。
+- **主题运行时可切**：用 `app.setThemeMode(ThemeMode.dark)`；`WAppTheme.mode` 只是初值，
+  不要为了切主题新建 `WApp`（`start()` 只能一次）。
+- **语言跟随系统**：`WLocaleConfig(followSystem: true)` 时启动与系统语言变化都跟随；
+  用户 `changeLanguage(...)` 后停止跟随；系统语言不命中支持列表时用 `fallbackLanguage`。
+  `WApp` 会在首帧后移除 GetX 自带的系统语言观察者——否则它会把 `Get.locale` 设成不支持的
+  `deviceLocale` 并整树 reassemble，覆盖 `WLanguage` 这个唯一真源。
+- **测试 teardown 调 `app.dispose()`**：移除语言 / 系统语言 / 主题监听并 dispose `language`；
+  dispose 后 `init` / `buildRoot` / `setThemeMode` 抛 `StateError`。
 - **Flutter 本地化**：默认使用 `GlobalMaterialLocalizations.delegates`；
   需要自定义时传 `WAppOptions.localizationsDelegates`。
 

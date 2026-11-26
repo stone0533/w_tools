@@ -1,7 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 import 'package:w_tools_app_example/main.dart';
 import 'package:w_tools_app_example/pages/detail_page.dart';
+import 'package:w_tools_async/w_tools_async.dart';
 
 Future<void> _start(WidgetTester tester) async {
   final starting = createApp().start();
@@ -39,6 +41,18 @@ void main() {
     await tester.tap(find.text('返回'));
     await tester.pumpAndSettle();
     expect(find.text('w_tools_app 示例'), findsOneWidget);
+  });
+
+  testWidgets('插件注册的 WAsyncExecutor 可以在页面使用', (tester) async {
+    await _start(tester);
+
+    expect(Get.isRegistered<WAsyncExecutor>(), isTrue);
+
+    await tester.tap(find.text('执行异步任务'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('executor: ok'), findsOneWidget);
+    expect(find.text('async: done'), findsOneWidget);
   });
 
   testWidgets('可以打开底部弹窗', (tester) async {

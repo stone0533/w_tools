@@ -15,7 +15,8 @@
 - **启动可观测**：`app.startupReport`（逐插件耗时 / 失败 / 首帧）+ `startupLog`
 - **系统栏兜底**：`WAppTheme.systemUiOverlayStyle` 是全局 fallback，页面标注优先
 - **实例级状态**：`app.language` / `app.routeStack`，没有全局单例
-- **语言切换**：`WLanguage` + `WLocaleConfig`（来自 `w_tools_app`）
+- **语言切换**：`WLanguage` + `WLocaleConfig`（来自 `w_tools_app`），支持跟随系统语言
+- **主题运行时可切**：`app.themeMode` / `app.setThemeMode()`，不重建路由
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
 - **测试宿主**：`app.buildRoot()` 复用运行时装配，widget 测试不用手搭外壳
 - **底部弹窗**：`WBottomSheet.show()`
@@ -24,7 +25,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.2.0
+  w_tools_app_getx: ^3.3.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -127,7 +128,8 @@ WAppOptions(title: 'Demo', home: const HomePage(), startupLog: true);
 
 日志格式固定：`[WApp] plugin env 120ms ok`、`[WApp] started in 480ms（...）`、
 `[WApp] first frame 60ms`。插件失败抛 `WAppPluginInitException`（带 `pluginName`）；
-`start()` 失败后可以再次调用重试（已成功的插件不重复执行）。
+`start()` 失败后可以再次调用重试（已成功的插件不重复执行）；非关键插件失败不阻塞启动，
+再次 `init()` 只重试失败的插件，`startupReport` 只反映最近一轮。
 
 ### 系统栏兜底
 
@@ -177,14 +179,19 @@ class PbePlugin with WAppPlugin {
 ## 生命周期
 
 ```text
-init()   可重复 / 并发调用；只执行一次插件 onInit
+init()   并发调用共享同一次；全部成功后重复调用不再执行插件 onInit
+         上一轮有失败插件时，只重试失败的那个
 start()  = init() + run()，只调用一次
 run()    通常由 start 调用；只能调用一次
 ```
 
-初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会从失败点继续：已经成功的
-插件不会重复执行，`customTasks` 会重新执行。插件列表在 `WAppOptions.plugins` 声明，
-`init` 之后不再允许修改。
+关键插件初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会从失败点继续：已经
+成功的插件不会重复执行，`customTasks` 会重新执行。非关键插件失败时启动照常完成，
+再次调用 `init()` 只重试失败的插件；`startupReport` 只反映最近一轮。插件列表在
+`WAppOptions.plugins` 声明，`init` 之后不再允许修改。
+
+测试 teardown 调 `app.dispose()`：移除语言 / 系统语言 / 主题监听并 dispose `language`；
+dispose 后 `init` / `run` / `buildRoot` / `setThemeMode` 抛 `StateError`。
 
 > `w_tools_app 3.2.0` 的 deprecated 入口已在 4.0.0 删除；本包 3.0.0 起迁移到
 > `WApp.of` / `WLanguageScope`，3.1.0 把依赖下界收到 `w_tools_app ^4.0.0`。
@@ -216,6 +223,40 @@ app.language.languageChanges.listen((code) {
 `WAppOptions.supportedLocales` 只用于显式覆盖 Flutter 本地化列表，默认从
 `localeConfig` 派生；当前语言不在列表内时 `run()` 抛 `StateError`。语言不会持久化，
 要恢复上次选择，在 `start()` 之前调用 `app.language.changeLanguage(saved)`。
+
+跟随系统：
+
+```dart
+WAppOptions(
+  title: 'Demo',
+  home: const HomePage(),
+  localeConfig: WLocaleConfig(
+    supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+    fallbackLanguage: 'en_US',
+    followSystem: true,       // 与 initialLanguage 互斥
+  ),
+);
+```
+
+启动语言与系统语言变化都跟随系统；用户显式 `changeLanguage(...)` 后停止跟随，
+系统语言不命中支持列表时用 `fallbackLanguage`。`app.language.isFollowingSystem`
+可用来在语言选择器里显示「跟随系统」。
+
+## 主题
+
+`WAppTheme.mode` 是启动初值；运行期切换用：
+
+```dart
+app.setThemeMode(ThemeMode.dark);
+
+ValueListenableBuilder<ThemeMode>(
+  valueListenable: app.themeMode,
+  builder: (context, mode, _) => Text('$mode'),
+);
+```
+
+只重建 `GetMaterialApp` 的 `themeMode`，不重置路由、不重建 `appWrapper` / scope。
+不持久化：需要记住选择时，恢复后在 `start()` 之前（或插件 `onInit` 里）设一次。
 
 页面里用 `WLanguageScope.of(context)` 读取语言，用 `WApp.of(context)` 读取应用实例：
 
