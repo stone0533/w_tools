@@ -16,6 +16,12 @@ Google Maps 实现：
 w_tools_map_google → WMap / WMapZone / WMapOptions / Google 类型
 ```
 
+## 为什么拆成两个包
+
+`w_tools_map` 只放平台无关模型；`w_tools_map_google` 才依赖 `google_maps_flutter`（带原生代码）。
+只做模型 / 纯 Dart 测试时不必拉 Flutter 与原生地图 SDK。拆分理由与复核结论见
+[ADR-0006](https://github.com/stone0533/w_tools/blob/main/docs/adr/0006-package-topology.md)。
+
 ## 安装
 
 只使用模型：
