@@ -25,11 +25,8 @@ packages:
     - WUx
   w_tools_form:
   w_tools_map:
-    - WMapItem
   w_tools_map_google:
     - WMapIconAssets
-    - WMapOptions
   w_tools_qr:
   w_tools_toast:
-    - WToastTheme
   w_tools_ui:

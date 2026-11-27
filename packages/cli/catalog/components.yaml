@@ -1130,6 +1130,22 @@ components:
       - '先初始化 BotToastInit / BotToastNavigatorObserver'
     related: ['`WToast`']
     teach: true
+  - name: '`WToastTheme`'
+    package: 'w_tools_toast'
+    section: '7. 状态与反馈'
+    useFor: '全局默认提示样式：放在 App 根部，让 `WToast.showSuccess(context:)` 等调用统一读取'
+    dontUseFor: '单条 toast 的临时样式用 `WToastStyle`；不要把 WToastTheme 塞进页面内'
+    usage: |
+      WToastTheme(
+        style: WToastStyle.defaults.copyWith(duration: const Duration(seconds: 3)),
+        child: MaterialApp(...),
+      );
+      // 之后：WToast.showSuccess('保存成功', context: context);
+    pitfalls:
+      - '放在 `WAppOptions.appWrapper` 或 MaterialApp 外层；调用处显式传 style: 时仍然优先'
+      - '不传 context 的 showXxx 读不到主题，会用默认样式'
+    related: ['`WToast`', '`WToastStyle`']
+    teach: true
   - name: '`WGradientCircularProgressIndicator`'
     package: 'w_tools_ui'
     docsAnchor: 'wgradientcircularprogressindicator'
@@ -1529,6 +1545,19 @@ components:
     section: '8. 能力（非 UI）'
     useFor: '防抖 / 节流（`WUx` 的同名方法已弃用）'
     dontUseFor: '不要每次 build 新建实例；页面 dispose 时 cancel'
+    usage: |
+      final debounce = WDebounce(
+        () => search(),
+        duration: const Duration(milliseconds: 300),
+      );
+      debounce();        // 每次输入调用；静默 300ms 后执行一次
+      debounce.cancel(); // 页面 dispose 时取消
+    pitfalls:
+      - '不要在 build 里新建 WDebounce；放 State 字段或 controller'
+      - '页面 dispose 时 cancel()，否则回调可能在销毁后触发'
+      - '节流用 `WThrottle`；`WUx().debounce/throttle` 已在 3.0 删除'
+    related: ['`WThrottle`']
+    teach: true
   - name: '`WPlatform`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -1905,6 +1934,52 @@ components:
     pitfalls:
       - "\u672a\u6302\u8f7d\u65f6\u65e0\u6548\u679c\uff1b\u4e0d\u8981\u7528 WMap.closeSelection"
     related: ["`WMap` / `WMapZone`"]
+    teach: true
+
+  - name: '`WMapOptions`'
+    package: 'w_tools_map_google'
+    section: '8. 能力（非 UI）'
+    useFor: '`WMap` 的相机与选中行为配置：selectZoom / closeZoom / selectLatOffset / onItemSelected / onItemClosed / onMapTap / padding'
+    dontUseFor: 'UI 样式不要塞进 WMapOptions；不要用 2.0 已删除的 `WMapConfig`'
+    usage: |
+      WMap<Shop>(
+        zone: zone,
+        controller: controller,
+        config: WMapOptions<Shop>(
+          selectZoom: 15,
+          padding: EdgeInsets.only(bottom: selected == null ? 0 : 150),
+          onItemSelected: (shop) => setState(() => selected = shop),
+          onMapTap: (_) => controller.closeSelection(selected),
+        ),
+      )
+    pitfalls:
+      - '底部有选中卡片时用 padding 抬起可视中心，否则选中的 Marker 会被挡住'
+      - '`WMapConfig` 已在 map_google 2.0 删除，统一用 `WMapOptions`'
+    related: ['`WMap` / `WMapZone`', '`WMapController`']
+    teach: true
+
+  - name: '`WMapItem`'
+    package: 'w_tools_map'
+    section: '8. 能力（非 UI）'
+    useFor: '地图条目抽象基类：业务模型实现 id / name / latitude / longitude 四个字段'
+    dontUseFor: 'json_serializable 生成的模型不要改生成代码去 implements；改用 `WMapItemMapper` 取字段'
+    usage: |
+      class Shop implements WMapItem {
+        Shop({this.id, this.name, this.latitude, this.longitude});
+
+        @override
+        final String? id;
+        @override
+        final String? name;
+        @override
+        final double? latitude;
+        @override
+        final double? longitude;
+      }
+    pitfalls:
+      - 'id 必须稳定（同一对象重建后不变），否则 Marker 会反复重建'
+      - '经纬度缺失的条目会被默认 mapper 跳过'
+    related: ['`WMapItemMapper`']
     teach: true
 
   - name: '`WMapItemMapper`'
