@@ -83,6 +83,7 @@
 - [2026-11-18 WImage.source 改为无名构造器：决策记录与执行清单](analysis/2026-11-18-wimage-unnamed-constructor.md)
 - [2026-11-23 字段样式作用域：9.0 结构清理（待执行）](analysis/2026-11-23-form-field-style-scope-9.0.md)
 - [2026-11-26 app 包完善方案：语义修复 / 状态补全 / 装配真相](analysis/2026-11-26-app-improvement-plan.md)
+- [2026-11-27 cli 2.9.15：catalog 入口可解释性修复与发布记录](analysis/2026-11-27-cli-catalog-explain-2.9.15.md)
 
 改完 `docs/` 后跑：
 
