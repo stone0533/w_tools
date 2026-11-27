@@ -2,7 +2,8 @@
 
 > 记录日期：2026-11-27。结论：`AUDIT-001~005` 已修复并发布为 `w_tools_cli 2.9.15`
 > （PR #435，快照 PR #436）；`release_status --online --check` 状态正常，
-> 消费方临时工程可解析并运行 2.9.15。`AUDIT-006~008` 核实为非缺口。
+> 消费方临时工程可解析并运行 2.9.15。`AUDIT-006~008` 核实为非缺口，
+> 按非缺口关闭（无代码改动）。
 
 ## 背景
 
@@ -58,8 +59,8 @@
 
 ## 后续
 
-- `AUDIT-006~008` 核实为非缺口：app 示例在 `app_getx/example`，map 示例在
-  `map_google/example`，e2e 由 [`docs/agents/device-testing.md`](../agents/device-testing.md)
-  覆盖，工具包示例即 README 命令。
+- **关闭结论：`AUDIT-006~008` 按非缺口关闭**（无代码改动）。理由：app 示例在
+  `app_getx/example`，map 示例在 `map_google/example`，e2e 由
+  [`docs/agents/device-testing.md`](../agents/device-testing.md) 覆盖，工具包示例即 README 命令。
 - `packages/map_google/README.md` 的改动属于 docs drift（2.0.1 已发布），要等
   map_google 下次发版才更新到 pub.dev，按手册可延后。
