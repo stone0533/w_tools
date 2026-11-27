@@ -2,7 +2,7 @@
 
 # ADR 0006：包拓扑——独立库包 + 契约/实现对，根包只聚合基础子包
 
-- 状态：已采纳（2026-11-04 拆包；2026-11-06 记录拓扑与根聚合范围）
+- 状态：已采纳（2026-11-04 拆包；2026-11-06 记录拓扑与根聚合范围；2026-11-27 复核 map / map_google 拆分）
 - 相关：[ADR-0002](0002-consumers-depend-on-subpackages.md)、[ADR-0003](0003-subpackage-typography-without-ui.md)、
   [`docs/modules/README.md`](../modules/README.md)、[`docs/releasing.md`](../releasing.md)、
   [`docs/migrations/app-3.0.md`](../migrations/app-3.0.md)、[`docs/migrations/map-3.0.md`](../migrations/map-3.0.md)
@@ -88,3 +88,27 @@
 `w_tools_async_ui` 是 7.0 之后新增的**可选应用层**：它依赖 `w_tools_async`，
 但不属于核心库包、不聚合进根包，也不改变「库包之间零内部依赖」的默认规则。
 这是「实现包 / 应用层 → 核心」的单向例外，详见 [ADR-0013](0013-async-ui-extension-package.md)。
+
+## 补充（2026-11-27）：map / map_google 拆分复核
+
+复核问题：`w_tools_map` 只有 83 行、3 个公开符号，且当前只有 Google 一个实现，
+是否有必要维持两个包。
+
+结论：**保留两个包**。理由不是「将来可能换地图」，而是依赖隔离：
+
+- `w_tools_map` 零依赖（纯 Dart），可进后端 / CLI / codegen / 纯 Dart 测试，
+  不拉 Flutter 引擎与原生地图 SDK；
+- `google_maps_flutter` 带 Android / iOS 原生代码，不应该因为「只想复用条目模型」
+  就装进依赖图；
+- 契约只有 83 行、零依赖，保留成本很低；合并是 `map 4.0` + `map_google 3.0` 双 major，
+  收益只是少一个包，不划算。
+
+在原有「重新评估的条件」上收窄合并触发条件：
+
+- 到下一个 `map` major 前仍无第二实现，**且**没有「只依赖 `w_tools_map`」的下游使用证据
+  → 再评估合并；
+- 或 `map` 的每次契约变更都迫使 `map_google` major（版本耦合成为常态）。
+
+若触发，按此路径合并：`map_google 3.0` 吸收三个模型类型 → `map 4.0` 空壳 re-export
+一个 major → 删除 `map`；不一步删包。消费方侧无需额外操作：`init --map` 同时加两个依赖，
+toolkit barrel 也同时 export 两包。

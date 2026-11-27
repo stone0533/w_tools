@@ -9,7 +9,8 @@ Map 模块由 `w_tools_map`（接口 / 模型）+ `w_tools_map_google`（Google 
 **不内置任何业务 UI**（列表面板、选中浮起、空状态等）。业务方通过 `WMapOptions.onItemSelected` / `WMapOptions.onItemClosed` 接收事件后自行构建业务 UI。
 
 依赖：只有 `w_tools_map_google` 依赖 `google_maps_flutter`；
-`w_tools_map` 只包含平台无关模型。
+`w_tools_map` 只包含平台无关模型。拆分理由与 2026-11-27 复核结论见
+[`ADR-0006`](../adr/0006-package-topology.md)。
 
 ## 快速判断
 - 地图 → `WMap` + `WMapZone`
