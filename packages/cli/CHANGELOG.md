@@ -1,3 +1,9 @@
+## 2.9.15
+
+### Changed
+- catalog：补登 `WToastTheme`、`WMapItem`、`WMapOptions`，`explain` 可精确命中；
+  `WDebounce` / `WThrottle` 补 usage 与 pitfalls。
+
 ## 2.9.14
 
 ### Changed

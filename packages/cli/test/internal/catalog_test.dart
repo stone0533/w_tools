@@ -175,4 +175,22 @@ void main() {
     expect(entry!.usage, isNotNull, reason: 'WLogPart 没有 usage');
     expect(entry.teach, isTrue, reason: 'WLogPart 是入口枚举，应 teach');
   });
+
+  test('AUDIT-001~003：WMapOptions / WToastTheme / WMapItem 各自可 explain 且带 usage', () {
+    for (final name in <String>['WMapOptions', 'WToastTheme', 'WMapItem']) {
+      final entry = findComponent(name);
+      expect(entry, isNotNull, reason: '$name 没有独立条目');
+      expect(entry!.name, name, reason: '$name 仍被合并到 ${entry.name}');
+      expect(entry.usage, isNotNull, reason: '$name 没有 usage');
+      expect(entry.teach, isTrue, reason: '$name 是 entrypoints 核心入口，应 teach');
+    }
+  });
+
+  test('AUDIT-004：WDebounce 可 explain 且带 usage / pitfalls', () {
+    final entry = findComponent('WDebounce');
+    expect(entry, isNotNull);
+    expect(entry!.usage, isNotNull);
+    expect(entry.pitfalls, isNotEmpty);
+    expect(entry.teach, isTrue);
+  });
 }

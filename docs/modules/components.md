@@ -164,6 +164,7 @@
 | `WFormValidatorItem` | form | core | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
 | `WToast` | toast | core | 轻提示；带遮罩的提示用 `WToast.showModal`（点遮罩关、不穿透、超时兜底） | 提示不要直接用 `WToast.showCustomDialog`（BotToast 直通口：默认关不掉且点击穿透）；确认框用 Flutter `showDialog` |
 | `WToastStyle` | toast | core | Toast 的时长 / 对齐 / 背景 / 动画等样式 | 不要为单条 toast 重复造主题；全局用 WToastTheme |
+| `WToastTheme` | toast | core | 全局默认提示样式：放在 App 根部，让 `WToast.showSuccess(context:)` 等调用统一读取 | 单条 toast 的临时样式用 `WToastStyle`；不要把 WToastTheme 塞进页面内 |
 | `WGradientCircularProgressIndicator` | ui | core | 确定 / 不确定进度的渐变圆环 | 不确定进度用 `indeterminate: true`，不要传假 value 假装旋转 |
 | `WListView` / `WListViewSliver` | ui | core | 列表（独立滚动 / 自定义滚动壳 sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | core | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
@@ -201,6 +202,8 @@
 | `WQrScanResult` | qr | onScanned 的扫码结果（code / format / rawBytes） | 不要把它当原始 Barcode：需要原始对象请监听 `WQrController.scannedDataStream` |
 | `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载到地图时调用没有任何效果 |
+| `WMapOptions` | map_google | `WMap` 的相机与选中行为配置：selectZoom / closeZoom / selectLatOffset / onItemSelected / onItemClosed / onMapTap / padding | UI 样式不要塞进 WMapOptions；不要用 2.0 已删除的 `WMapConfig` |
+| `WMapItem` | map | 地图条目抽象基类：业务模型实现 id / name / latitude / longitude 四个字段 | json_serializable 生成的模型不要改生成代码去 implements；改用 `WMapItemMapper` 取字段 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
 | `WNumFormatExtension` | core | 数字格式化：千分位 / 货币 / 百分比 / 前导零（12.0 从 ui 迁入） | 不要重复手写 toStringAsFixed / 正则分组；需要 locale 时用 intl |
 <!-- catalog:8:end -->
